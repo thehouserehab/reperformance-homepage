@@ -23,3 +23,4 @@ vercel --prod
 
 - `app/page.tsx`의 상담 폼 임시 링크 `https://forms.gle/`를 실제 구글폼/카카오톡/네이버폼 링크로 교체
 - 정확한 주소, 전화번호, 인스타 링크, 사진, 로고 추가
+Initial deployment
