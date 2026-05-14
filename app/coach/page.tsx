@@ -1,9 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
-function Header(){return <header className="site-header"><div className="container header-inner"><Link href="/" className="logo-link"><Image src="/images/reperformance-logo.png" alt="RePERFORMANCE" width={360} height={100} className="logo-img"/></Link><nav className="nav"><Link href="/services">서비스</Link><Link href="/system">시스템</Link><Link href="/coach">코치</Link><Link href="/location">위치</Link><Link href="/contact" className="nav-cta">상담</Link></nav></div></header>}
-function Footer(){return <footer className="footer"><div className="container footer-inner"><p>© RePERFORMANCE. All rights reserved.</p><p>전북 전주시 완산구 서신동 773-2, 2층 · 010-2418-8400</p></div></footer>}
+import ConsultationCTA from "../_components/ConsultationCTA";
+import { Footer, Header } from "../_components/SiteChrome";
+
 export default function CoachPage(){return <main><Header />
-<section className="page-hero"><div className="container page-title"><p className="eyebrow">HEAD COACH</p><h1>정우현 Head Coach</h1><p>책임지고 개선해드립니다. 고객이 건강할 때 행복합니다. 운동을 잘하게 만드는 것보다 먼저, 다시 편하게 움직일 수 있는 몸을 만드는 일을 합니다.</p></div></section>
-<section className="section"><div className="container grid-2"><div className="hero-panel"><Image src="/images/coach-profile.jpg" alt="정우현 코치 프로필 사진" width={900} height={1200} className="coach" /></div><div className="contact-box"><p className="eyebrow">PROFILE</p><h2>Rehab to Performance</h2><p>수술 후 재활, 만성통증, 원인 모를 통증을 가진 일반인부터 필드로 복귀를 준비하는 선수까지 폭넓게 환영합니다.</p><div className="info-list"><div className="info-item"><strong>철학</strong><span>아프지 않고 오래 건강하게 최선을 다하겠습니다.</span></div><div className="info-item"><strong>방식</strong><span>현재 상태를 보고, 그날 가능한 범위에서, 단계적으로 진행합니다.</span></div><div className="info-item"><strong>대상</strong><span>시니어, 일반인, 유소년 선수, 복귀 준비 엘리트 선수</span></div></div></div></div></section>
-<section className="section light"><div className="container"><div className="section-head"><p className="eyebrow">MESSAGE</p><h2>은퇴 후 건강을 책임집니다.</h2><p>노후를 준비하시거나 지금 당장 어딘가 아프신 분들께 자신 있게 추천합니다. 올바른 운동으로 올바른 몸을 만들어드립니다.</p></div><Link href="/contact" className="button primary">상담 신청하기</Link></div></section>
+<section className="page-hero"><div className="container page-title"><p className="eyebrow">HEAD COACH</p><h1>정우현 Head Coach</h1><p>운동을 잘하게 만들기 전에, 먼저 편하게 움직이는 몸을 만듭니다.</p></div></section>
+<section className="section"><div className="container grid-2"><div className="hero-panel"><Image src="/images/coach-profile.jpg" alt="정우현 코치 프로필" width={900} height={1200} className="coach" /></div><div className="contact-box"><h2>Rehab to Performance</h2><div className="info-list"><div className="info-item"><strong>철학</strong><span>아프지 않고 오래 건강하게.</span></div><div className="info-item"><strong>방식</strong><span>현재 상태를 보고 단계적으로 진행.</span></div><div className="info-item"><strong>대상</strong><span>시니어, 일반인, 유소년/엘리트 선수</span></div></div></div></div></section>
+<ConsultationCTA />
 <Footer /></main>}

@@ -1,10 +1,10 @@
-import Image from "next/image";
-import Link from "next/link";
-const notionSurveyUrl="https://fearless-okapi-9c9.notion.site/2cdfab3c9eaa80e8a936e85baa1f3b59?pvs=105";
-function Header(){return <header className="site-header"><div className="container header-inner"><Link href="/" className="logo-link"><Image src="/images/reperformance-logo.png" alt="RePERFORMANCE" width={360} height={100} className="logo-img"/></Link><nav className="nav"><Link href="/services">서비스</Link><Link href="/system">시스템</Link><Link href="/coach">코치</Link><Link href="/location">위치</Link><Link href="/contact" className="nav-cta">상담</Link></nav></div></header>}
-function Footer(){return <footer className="footer"><div className="container footer-inner"><p>© RePERFORMANCE. All rights reserved.</p><p>전북 전주시 완산구 서신동 773-2, 2층 · 010-2418-8400</p></div></footer>}
+import ConsultationCTA from "../_components/ConsultationCTA";
+import { Footer, Header } from "../_components/SiteChrome";
+import { instagramUrl, notionSurveyUrl, phoneHref } from "../_components/site-data";
+
 export default function ContactPage(){return <main><Header />
-<section className="page-hero"><div className="container page-title"><p className="eyebrow">CONTACT</p><h1>상담 신청</h1><p>지금 어느 부위가, 어떤 동작에서 불편한지 알려주세요. 설문 작성 후 전화 또는 DM으로 남겨주시면 상담 방향을 안내드립니다.</p></div></section>
-<section className="section"><div className="container grid-2"><div className="contact-box"><h2>온라인 설문</h2><p>운동 목표, 불편한 부위, 주의사항을 먼저 확인합니다. 안전한 운동 지도를 위해 가능한 정확하게 작성해주세요.</p><div className="button-row"><a className="button primary" href={notionSurveyUrl} target="_blank" rel="noopener noreferrer">온라인 설문 작성하기</a></div></div><div className="contact-box"><h2>직접 문의</h2><div className="contact-list"><div><strong>전화 상담</strong><span>010-2418-8400</span></div><div><strong>인스타그램</strong><span>@reperformance_trainer</span></div><div><strong>운영 시간</strong><span>08:00 ~ 22:00</span></div></div><div className="button-row"><a href="tel:010-2418-8400" className="button primary">전화하기</a><a href="https://www.instagram.com/reperformance_trainer" target="_blank" rel="noopener noreferrer" className="button secondary">DM 보내기</a></div></div></div></section>
-<section className="section light"><div className="container"><div className="section-head"><p className="eyebrow">WHAT TO SEND</p><h2>상담 시 알려주시면 좋은 정보</h2></div><div className="grid-3"><div className="card"><h3>불편한 부위</h3><p>어깨, 허리, 무릎 등 가장 신경 쓰이는 부위를 알려주세요.</p></div><div className="card"><h3>힘든 동작</h3><p>걷기, 계단, 팔 들기, 앉았다 일어나기처럼 실제 어려운 동작을 알려주세요.</p></div><div className="card"><h3>운동 목적</h3><p>통증 관리, 체력 회복, 운동 복귀, 부모님 재활 등 원하는 방향을 알려주세요.</p></div></div></div></section>
+<section className="page-hero"><div className="container page-title"><p className="eyebrow">CONTACT</p><h1>상담 신청</h1><p>지금 어느 부위가, 어떤 동작에서 불편한지 알려주세요.</p></div></section>
+<ConsultationCTA compact />
+<section className="section"><div className="container grid-3"><div className="card"><h3>온라인 설문</h3><p>건강상태와 목표를 먼저 확인합니다.</p><a className="button primary" href={notionSurveyUrl} target="_blank" rel="noopener noreferrer">온라인 설문 작성하기</a></div><div className="card"><h3>전화 상담</h3><p>가장 빠른 문의 채널입니다.</p><a href={phoneHref} className="button secondary">전화 상담하기</a></div><div className="card"><h3>인스타그램 DM</h3><p>@reperformance_trainer</p><a href={instagramUrl} target="_blank" rel="noopener noreferrer" className="button secondary">DM 보내기</a></div></div></section>
+<ConsultationCTA />
 <Footer /></main>}
