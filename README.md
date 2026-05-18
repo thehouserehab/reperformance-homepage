@@ -31,3 +31,12 @@ README.md
 ```
 
 Vercel Output Directory는 비워두세요.
+
+## v6 업데이트
+
+- `/admin` 대표 운영관리 페이지 추가
+- Google Drive 운영문서 폴더 연결
+- 매출관리, 상담응답, 문서DB, 할일 캘린더, Google Drive, ChatGPT 운영분석 바로가기 구성
+- 실제 민감정보는 홈페이지에 노출하지 않고 Google Workspace 권한으로 관리하는 방식
+
+현재 `/admin`의 주요 버튼은 Google Drive 운영문서 폴더로 연결됩니다. 추후 Google Sheets 직접 링크를 받으면 버튼별로 개별 파일/시트 링크로 교체하면 됩니다.

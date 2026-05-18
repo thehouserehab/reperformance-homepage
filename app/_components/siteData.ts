@@ -9,6 +9,8 @@ export const site = {
   notionSurveyHref:
     "https://fearless-okapi-9c9.notion.site/2cdfab3c9eaa80e8a936e85baa1f3b59?pvs=105",
   naverMapHref: "https://naver.me/5BwnMHha",
+  ownerWorkspaceHref: "https://drive.google.com/drive/folders/1X_bDnaAW89nuKdj5dZ48sMwkfvamqogy",
+  chatGptHref: "https://chatgpt.com/",
   address: "전북 전주시 완산구 서신동 773-2, 2층",
   addressDetail: "서신신협 2층",
   parking: "건물 뒷편 주차 가능",
