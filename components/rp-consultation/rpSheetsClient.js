@@ -1,0 +1,41 @@
+export async function fetchRpClients() {
+  const response = await fetch('/api/rp/clients', {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+    cache: 'no-store',
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload?.ok === false) {
+    const message = payload?.error || `Google Sheets 고객 목록을 불러오지 못했습니다. (${response.status})`;
+    throw new Error(message);
+  }
+
+  return Array.isArray(payload.clients) ? payload.clients : [];
+}
+
+export async function saveRpConsultation(record) {
+  const response = await fetch('/api/rp/clients', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      action: 'saveConsultation',
+      record,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload?.ok === false) {
+    const message = payload?.error || `상담 기록을 Google Sheets에 저장하지 못했습니다. (${response.status})`;
+    throw new Error(message);
+  }
+
+  return payload;
+}
