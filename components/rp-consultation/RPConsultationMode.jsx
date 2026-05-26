@@ -11,24 +11,42 @@ import {
   SAMPLE_CLIENTS,
   VISIT_PURPOSES,
 } from './rpConsultationSchema';
+import { fetchRpClients, saveRpConsultation } from './rpSheetsClient';
 
 const STORAGE_KEY = 'rp-consultation-mode-v1';
+
+const EMPTY_CLIENT = {
+  id: 'NO-CLIENT',
+  name: '회원 미선택',
+  phone: '',
+  birth: '',
+  gender: '',
+  route: '',
+  status: '상담 전',
+  parqStatus: '확인 필요',
+  parqYesItems: [],
+  goal: '',
+  purpose: [],
+  painAreas: [],
+  painScore: 0,
+  concern: '',
+};
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function createInitialRecord(client) {
+function createInitialRecord(client = EMPTY_CLIENT) {
   return {
     consultationDate: today(),
     clientId: client.id,
     clientName: client.name,
     consultationStatus: '상담 중',
-    coachName: '정우현',
+    coachName: client.coachName || client.coach || '정우현',
     memberGoal: client.goal || '',
     coachGoal: '',
-    purposes: client.purpose || [],
-    painAreas: client.painAreas || [],
+    purposes: Array.isArray(client.purpose) ? client.purpose : [],
+    painAreas: Array.isArray(client.painAreas) ? client.painAreas : [],
     painScore: client.painScore || 0,
     symptomMoves: client.concern || '',
     exerciseExperience: '',
@@ -60,14 +78,61 @@ function buildAiSummary(client, record, currentPhase) {
   return `AI 상담 요약\n\n- 회원 목표: ${record.memberGoal || '미입력'}\n- 코치 재정의 목표: ${record.coachGoal || '미입력'}\n- 주요 불편 부위: ${record.painAreas.length ? record.painAreas.join(', ') : '특이사항 없음'}\n- 통증 강도: ${record.painScore}/10\n- PAR-Q 확인: ${parqLine}\n- 초기 확인 질문: 통증 발생 동작, 최근 치료/주사/수술 여부, 운동 중 악화 기준\n- 초기 평가 추천: Squat, Hinge, Lunge, Balance, Breathing/Bracing\n- OPT Phase 후보: ${currentPhase?.label || 'Phase 미선택'} (${currentPhase?.clientLabel || ''})\n- 프로그램 설계 주의: 고강도 적용 전 통증 반응과 움직임 제어 능력 확인 필요`;
 }
 
-export default function RPConsultationMode({ clients = SAMPLE_CLIENTS, onSave }) {
-  const [clientId, setClientId] = useState(clients[0]?.id || '');
-  const selectedClient = useMemo(() => clients.find((client) => client.id === clientId) || clients[0], [clients, clientId]);
+export default function RPConsultationMode({ clients: initialClients, onSave }) {
+  const [clients, setClients] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients : SAMPLE_CLIENTS));
+  const [clientId, setClientId] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients[0]?.id : ''));
+  const [connectionStatus, setConnectionStatus] = useState('Google Sheets 연결 확인 중...');
+  const [connectionError, setConnectionError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const selectedClient = useMemo(() => clients.find((client) => client.id === clientId) || clients[0] || EMPTY_CLIENT, [clients, clientId]);
   const [record, setRecord] = useState(() => createInitialRecord(selectedClient));
   const currentPhase = RP_PHASES.find((phase) => phase.id === record.selectedPhase);
 
   useEffect(() => {
-    if (!selectedClient) return;
+    let cancelled = false;
+
+    async function loadClientsFromSheets() {
+      // 명시적으로 clients prop이 들어온 경우에는 외부에서 주입한 목록을 우선 사용한다.
+      if (Array.isArray(initialClients) && initialClients.length) {
+        setConnectionStatus(`외부 주입 고객 목록 사용 · ${initialClients.length}명`);
+        return;
+      }
+
+      try {
+        setConnectionStatus('Google Sheets 연결 확인 중...');
+        setConnectionError('');
+        const sheetClients = await fetchRpClients();
+
+        if (cancelled) return;
+
+        if (sheetClients.length) {
+          setClients(sheetClients);
+          setClientId(sheetClients[0].id);
+          setConnectionStatus(`Google Sheets 연결 성공 · ${sheetClients.length}명 불러옴`);
+        } else {
+          setClients([]);
+          setClientId('');
+          setConnectionStatus('Google Sheets 연결 성공 · 표시할 회원 없음');
+        }
+      } catch (error) {
+        if (cancelled) return;
+        setClients(SAMPLE_CLIENTS);
+        setClientId(SAMPLE_CLIENTS[0]?.id || '');
+        setConnectionStatus('Google Sheets 연결 실패 · 샘플 고객 표시 중');
+        setConnectionError(error?.message || '알 수 없는 연결 오류');
+      }
+    }
+
+    loadClientsFromSheets();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialClients]);
+
+  useEffect(() => {
+    if (!selectedClient || selectedClient.id === 'NO-CLIENT') return;
     const savedRaw = typeof window !== 'undefined' ? window.localStorage.getItem(`${STORAGE_KEY}:${selectedClient.id}`) : null;
     if (savedRaw) {
       try {
@@ -96,17 +161,27 @@ export default function RPConsultationMode({ clients = SAMPLE_CLIENTS, onSave })
     updateField('aiSummary', buildAiSummary(selectedClient, record, currentPhase));
   }
 
-  function saveRecord() {
+  async function saveRecord() {
     const payload = {
       ...record,
       savedAt: new Date().toISOString(),
       clientSnapshot: selectedClient,
     };
-    if (typeof window !== 'undefined') {
+
+    if (typeof window !== 'undefined' && selectedClient?.id) {
       window.localStorage.setItem(`${STORAGE_KEY}:${selectedClient.id}`, JSON.stringify(payload));
     }
-    if (typeof onSave === 'function') onSave(payload);
-    alert('상담 기록이 저장되었습니다. 실제 운영에서는 이 지점을 Google Sheets / Notion 저장 함수로 교체하세요.');
+
+    try {
+      setIsSaving(true);
+      await saveRpConsultation(payload);
+      if (typeof onSave === 'function') onSave(payload);
+      alert('상담 기록이 Google Sheets에 저장되었습니다.');
+    } catch (error) {
+      alert(`Google Sheets 저장 실패: ${error?.message || '알 수 없는 오류'}\n\n브라우저 localStorage에는 임시 저장되었습니다.`);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function exportJson() {
@@ -126,15 +201,17 @@ export default function RPConsultationMode({ clients = SAMPLE_CLIENTS, onSave })
         <div className={styles.brand}>
           <div className={styles.logoText}><span>Re</span>PERFORMANCE</div>
           <div className={styles.subtle}>Consultation Mode · Client View + Coach View</div>
+          <div className={connectionError ? styles.subtle : styles.subtle}>{connectionStatus}</div>
+          {connectionError && <div className={styles.subtle}>오류: {connectionError}</div>}
         </div>
         <div className={styles.actions}>
-          <select className={`${styles.select} ${styles.clientSelect}`} value={clientId} onChange={(event) => setClientId(event.target.value)}>
-            {clients.map((client) => (
+          <select className={`${styles.select} ${styles.clientSelect}`} value={clientId} onChange={(event) => setClientId(event.target.value)} disabled={!clients.length}>
+            {clients.length ? clients.map((client) => (
               <option key={client.id} value={client.id}>{client.id} · {client.name}</option>
-            ))}
+            )) : <option value="">회원 없음</option>}
           </select>
-          <button className={styles.ghostButton} type="button" onClick={exportJson}>JSON 내보내기</button>
-          <button className={styles.primaryButton} type="button" onClick={saveRecord}>상담 저장</button>
+          <button className={styles.ghostButton} type="button" onClick={exportJson} disabled={!clients.length}>JSON 내보내기</button>
+          <button className={styles.primaryButton} type="button" onClick={saveRecord} disabled={!clients.length || isSaving}>{isSaving ? '저장 중...' : '상담 저장'}</button>
         </div>
       </header>
 
@@ -308,8 +385,8 @@ export default function RPConsultationMode({ clients = SAMPLE_CLIENTS, onSave })
             </div>
 
             <div className={styles.footerActions}>
-              <button className={styles.ghostButton} type="button" onClick={exportJson}>JSON 내보내기</button>
-              <button className={styles.primaryButton} type="button" onClick={saveRecord}>상담 저장</button>
+              <button className={styles.ghostButton} type="button" onClick={exportJson} disabled={!clients.length}>JSON 내보내기</button>
+              <button className={styles.primaryButton} type="button" onClick={saveRecord} disabled={!clients.length || isSaving}>{isSaving ? '저장 중...' : '상담 저장'}</button>
             </div>
           </div>
         </section>
