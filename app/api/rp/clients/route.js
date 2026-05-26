@@ -17,18 +17,34 @@ function getConfig() {
   return { webAppUrl, apiSecret };
 }
 
+function buildScriptUrl(webAppUrl, body, apiSecret) {
+  const url = new URL(webAppUrl);
+
+  // Apps Script 구현 방식에 따라 e.parameter 또는 JSON body 중 하나만 읽는 경우가 있어
+  // 인증값과 action을 query string과 body 양쪽에 모두 전달한다.
+  url.searchParams.set('action', body?.action || 'listClients');
+  url.searchParams.set('secret', apiSecret);
+  url.searchParams.set('apiSecret', apiSecret);
+  url.searchParams.set('token', apiSecret);
+
+  return url.toString();
+}
+
 async function callSheetsApi(body) {
   const { webAppUrl, apiSecret } = getConfig();
+  const requestBody = {
+    ...body,
+    secret: apiSecret,
+    apiSecret,
+    token: apiSecret,
+  };
 
-  const response = await fetch(webAppUrl, {
+  const response = await fetch(buildScriptUrl(webAppUrl, body, apiSecret), {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8',
     },
-    body: JSON.stringify({
-      ...body,
-      secret: apiSecret,
-    }),
+    body: JSON.stringify(requestBody),
     cache: 'no-store',
     redirect: 'follow',
   });
@@ -43,7 +59,8 @@ async function callSheetsApi(body) {
   }
 
   if (!response.ok || data?.ok === false) {
-    throw new Error(data?.error || `Apps Script 요청 실패: ${response.status}`);
+    const suffix = data?.debug ? ` / debug=${JSON.stringify(data.debug).slice(0, 300)}` : '';
+    throw new Error((data?.error || `Apps Script 요청 실패: ${response.status}`) + suffix);
   }
 
   return data;
