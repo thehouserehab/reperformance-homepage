@@ -12,7 +12,7 @@
 
 const RP_CONFIG = {
   SPREADSHEET_ID: '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E',
-  DEFAULT_SECRET: 'CHANGE_THIS_TO_A_LONG_RANDOM_SECRET',
+  DEFAULT_SECRET: 'rp_2026_private_secret_reperformance2026',
   SHEETS: {
     dashboard: 'Dashboard',
     leads: 'Leads_상담',
