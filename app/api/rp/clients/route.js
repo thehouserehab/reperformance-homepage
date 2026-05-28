@@ -19,10 +19,11 @@ function getConfig() {
 
 function buildScriptUrl(webAppUrl, body, apiSecret) {
   const url = new URL(webAppUrl);
+  const action = body?.action || 'listClients';
 
   // Apps Script 구현 방식에 따라 e.parameter 또는 JSON body 중 하나만 읽는 경우가 있어
   // 인증값과 action을 query string과 body 양쪽에 모두 전달한다.
-  url.searchParams.set('action', body?.action || 'listClients');
+  url.searchParams.set('action', action);
   url.searchParams.set('secret', apiSecret);
   url.searchParams.set('apiSecret', apiSecret);
   url.searchParams.set('token', apiSecret);
@@ -30,8 +31,27 @@ function buildScriptUrl(webAppUrl, body, apiSecret) {
   return url.toString();
 }
 
-async function callSheetsApi(body) {
+function normalizeClients(data) {
+  if (Array.isArray(data?.clients)) return data.clients;
+  if (Array.isArray(data?.members)) return data.members;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.rows)) return data.rows;
+  return [];
+}
+
+async function parseScriptResponse(response) {
+  const text = await response.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    throw new Error(`Apps Script 응답이 JSON이 아닙니다: ${text.slice(0, 250)}`);
+  }
+}
+
+async function callSheetsApi(body, options = {}) {
   const { webAppUrl, apiSecret } = getConfig();
+  const method = options.method || 'POST';
   const requestBody = {
     ...body,
     secret: apiSecret,
@@ -39,24 +59,21 @@ async function callSheetsApi(body) {
     token: apiSecret,
   };
 
-  const response = await fetch(buildScriptUrl(webAppUrl, body, apiSecret), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'text/plain;charset=utf-8',
-    },
-    body: JSON.stringify(requestBody),
+  const fetchOptions = {
+    method,
     cache: 'no-store',
     redirect: 'follow',
-  });
+  };
 
-  const text = await response.text();
-  let data;
-
-  try {
-    data = JSON.parse(text);
-  } catch (error) {
-    throw new Error(`Apps Script 응답이 JSON이 아닙니다: ${text.slice(0, 250)}`);
+  if (method !== 'GET') {
+    fetchOptions.headers = {
+      'Content-Type': 'text/plain;charset=utf-8',
+    };
+    fetchOptions.body = JSON.stringify(requestBody);
   }
+
+  const response = await fetch(buildScriptUrl(webAppUrl, body, apiSecret), fetchOptions);
+  const data = await parseScriptResponse(response);
 
   if (!response.ok || data?.ok === false) {
     const suffix = data?.debug ? ` / debug=${JSON.stringify(data.debug).slice(0, 300)}` : '';
@@ -66,15 +83,51 @@ async function callSheetsApi(body) {
   return data;
 }
 
+async function listClientsWithFallbacks() {
+  const attempts = [
+    { action: 'getClients', method: 'GET' },
+    { action: 'listClients', method: 'GET' },
+    { action: 'getMembers', method: 'GET' },
+    { action: 'listMembers', method: 'GET' },
+    { action: 'clients', method: 'GET' },
+    { action: 'getClients', method: 'POST' },
+    { action: 'listMembers', method: 'POST' },
+    { action: 'clients', method: 'POST' },
+  ];
+
+  const errors = [];
+
+  for (const attempt of attempts) {
+    try {
+      const data = await callSheetsApi({ action: attempt.action }, { method: attempt.method });
+      const clients = normalizeClients(data);
+
+      return {
+        ok: true,
+        action: attempt.action,
+        method: attempt.method,
+        clients,
+        rawCount: clients.length,
+      };
+    } catch (error) {
+      errors.push(`${attempt.method} ${attempt.action}: ${error?.message || 'unknown error'}`);
+    }
+  }
+
+  throw new Error(`고객 목록을 불러올 수 없습니다. 시도한 action이 Apps Script와 맞지 않습니다. ${errors.slice(0, 4).join(' / ')}`);
+}
+
 export async function GET() {
   try {
-    const data = await callSheetsApi({ action: 'listClients' });
+    const data = await listClientsWithFallbacks();
 
     return NextResponse.json({
       ok: true,
       source: 'google-sheets',
-      clients: Array.isArray(data.clients) ? data.clients : [],
-      count: Array.isArray(data.clients) ? data.clients.length : 0,
+      action: data.action,
+      method: data.method,
+      clients: data.clients,
+      count: data.clients.length,
     });
   } catch (error) {
     return NextResponse.json(
@@ -94,7 +147,7 @@ export async function POST(request) {
     const action = payload?.action || 'saveConsultation';
 
     if (action === 'debug') {
-      const data = await callSheetsApi({ action: 'debug' });
+      const data = await callSheetsApi({ action: 'debug' }, { method: 'GET' });
       return NextResponse.json({ ok: true, ...data });
     }
 
