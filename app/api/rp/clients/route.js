@@ -3,26 +3,47 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const DEFAULT_SHEET_ID = '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E';
-const DEFAULT_MEMBERS_GID = '1044652737';
+const DEFAULT_MEMBERS_GID = '122819871';
+
+function cleanEnvValue(value) {
+  return String(value || '')
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .trim();
+}
+
+function extractUrl(value) {
+  const cleaned = cleanEnvValue(value);
+  const match = cleaned.match(/https?:\/\/[^\s'"]+/);
+  return match ? match[0] : cleaned;
+}
 
 function getConfig() {
   return {
-    webAppUrl: process.env.RP_SHEETS_WEBAPP_URL,
-    apiSecret: process.env.RP_API_SECRET,
-    sheetId: process.env.RP_SHEET_ID || DEFAULT_SHEET_ID,
-    membersGid: process.env.RP_MEMBERS_GID || DEFAULT_MEMBERS_GID,
+    webAppUrl: extractUrl(process.env.RP_SHEETS_WEBAPP_URL),
+    apiSecret: cleanEnvValue(process.env.RP_API_SECRET),
+    sheetId: cleanEnvValue(process.env.RP_SHEET_ID) || DEFAULT_SHEET_ID,
+    membersGid: cleanEnvValue(process.env.RP_MEMBERS_GID) || DEFAULT_MEMBERS_GID,
   };
 }
 
 function buildScriptUrl(webAppUrl, body, apiSecret) {
-  const url = new URL(webAppUrl);
+  const normalizedUrl = extractUrl(webAppUrl);
+
+  if (!normalizedUrl || !/^https?:\/\//i.test(normalizedUrl)) {
+    throw new Error('RP_SHEETS_WEBAPP_URL이 올바른 URL이 아닙니다. Apps Script 웹 앱 URL은 https://script.google.com/macros/s/.../exec 형식이어야 합니다.');
+  }
+
+  const url = new URL(normalizedUrl);
   const action = body?.action || 'listClients';
   url.searchParams.set('action', action);
+
   if (apiSecret) {
     url.searchParams.set('secret', apiSecret);
     url.searchParams.set('apiSecret', apiSecret);
     url.searchParams.set('token', apiSecret);
   }
+
   return url.toString();
 }
 
@@ -41,15 +62,18 @@ function parseCsv(text) {
       i += 1;
       continue;
     }
+
     if (char === '"') {
       inQuotes = !inQuotes;
       continue;
     }
+
     if (char === ',' && !inQuotes) {
       row.push(value.trim());
       value = '';
       continue;
     }
+
     if ((char === '\n' || char === '\r') && !inQuotes) {
       if (char === '\r' && next === '\n') i += 1;
       row.push(value.trim());
@@ -58,6 +82,7 @@ function parseCsv(text) {
       value = '';
       continue;
     }
+
     value += char;
   }
 
@@ -72,14 +97,18 @@ function normalizeKey(key) {
 
 function getValue(record, candidates) {
   if (!record) return '';
+
   for (const candidate of candidates) {
     if (record[candidate] !== undefined && record[candidate] !== null && record[candidate] !== '') return record[candidate];
   }
+
   const normalizedRecord = Object.fromEntries(Object.entries(record).map(([key, value]) => [normalizeKey(key), value]));
+
   for (const candidate of candidates) {
     const normalized = normalizeKey(candidate);
     if (normalizedRecord[normalized] !== undefined && normalizedRecord[normalized] !== null && normalizedRecord[normalized] !== '') return normalizedRecord[normalized];
   }
+
   return '';
 }
 
@@ -95,6 +124,7 @@ function splitList(value) {
 function rowsToObjects(rows) {
   const headerIndex = rows.findIndex((row) => row.some((cell) => ['회원ID', '회원명', '연락처'].includes(cell)));
   if (headerIndex === -1) return [];
+
   const headers = rows[headerIndex];
   return rows.slice(headerIndex + 1).map((row) => {
     const record = {};
@@ -108,6 +138,7 @@ function rowsToObjects(rows) {
 function mapClient(record, index = 0) {
   const id = getValue(record, ['회원ID', '회원Id', 'ID', 'id', 'clientId', 'memberId']) || `M-${String(index + 1).padStart(4, '0')}`;
   const name = getValue(record, ['회원명', '이름', 'name', 'clientName', 'memberName']);
+
   if (!name || name === '회원명') return null;
 
   const caution = getValue(record, ['주의사항', '메모', '상담메모', 'caution', 'concern']);
@@ -140,6 +171,7 @@ function normalizeClients(data) {
   else if (Array.isArray(data?.members)) raw = data.members;
   else if (Array.isArray(data?.data)) raw = data.data;
   else if (Array.isArray(data?.rows)) raw = data.rows;
+
   if (!raw.length) return [];
   if (Array.isArray(raw[0])) return rowsToObjects(raw).map(mapClient).filter(Boolean);
   return raw.map(mapClient).filter(Boolean);
@@ -156,12 +188,14 @@ async function parseScriptResponse(response) {
 
 async function callSheetsApi(body, options = {}) {
   const { webAppUrl, apiSecret } = getConfig();
+
   if (!webAppUrl) throw new Error('Vercel 환경변수 RP_SHEETS_WEBAPP_URL이 설정되지 않았습니다.');
   if (!apiSecret) throw new Error('Vercel 환경변수 RP_API_SECRET이 설정되지 않았습니다.');
 
   const method = options.method || 'POST';
   const requestBody = { ...body, secret: apiSecret, apiSecret, token: apiSecret };
   const fetchOptions = { method, cache: 'no-store', redirect: 'follow' };
+
   if (method !== 'GET') {
     fetchOptions.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
     fetchOptions.body = JSON.stringify(requestBody);
@@ -169,10 +203,12 @@ async function callSheetsApi(body, options = {}) {
 
   const response = await fetch(buildScriptUrl(webAppUrl, body, apiSecret), fetchOptions);
   const data = await parseScriptResponse(response);
+
   if (!response.ok || data?.ok === false) {
     const suffix = data?.debug ? ` / debug=${JSON.stringify(data.debug).slice(0, 300)}` : '';
     throw new Error((data?.error || `Apps Script 요청 실패: ${response.status}`) + suffix);
   }
+
   return data;
 }
 
@@ -236,10 +272,12 @@ export async function POST(request) {
   try {
     const payload = await request.json();
     const action = payload?.action || 'saveConsultation';
+
     if (action === 'debug') {
       const data = await callSheetsApi({ action: 'debug' }, { method: 'GET' });
       return NextResponse.json({ ok: true, ...data });
     }
+
     if (action !== 'saveConsultation') return NextResponse.json({ ok: false, error: `지원하지 않는 action입니다: ${action}` }, { status: 400 });
 
     const data = await callSheetsApi({ action: 'saveConsultation', record: payload?.record || {} });
