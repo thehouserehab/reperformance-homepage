@@ -3,6 +3,11 @@ import { site } from "../_components/siteData";
 
 const workspaceLinks = [
   {
+    title: "상담화면 열기",
+    description: "고객 화면과 코치 입력 화면을 동시에 열어 상담을 진행합니다.",
+    href: "/admin/consultation",
+  },
+  {
     title: "매출관리 열기",
     description: "매출, 실수금, 미수금, 환불액, 월별 비교를 관리합니다.",
     href: site.ownerWorkspaceHref,
@@ -44,6 +49,7 @@ const dashboardCards = [
 const checklist = [
   "매출 입력: 결제일, 회원명, 상품, 총액, 입금액, 잔금 확인",
   "상담 확인: 신규 상담자, 연락 여부, 체험 예약 여부 확인",
+  "상담화면 확인: 고객 화면과 코치 입력 화면을 열고 상담 진행",
   "문서 확인: 계약서, 동의서, 평가지, 가격표 최신본 유지",
   "할일 확인: 잔금, 재등록, 콘텐츠 업로드, 운영 업무 체크",
 ];
@@ -90,8 +96,8 @@ export default function AdminPage() {
               <a
                 className="admin-link-card"
                 href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
+                target={link.href.startsWith("/admin") ? undefined : "_blank"}
+                rel={link.href.startsWith("/admin") ? undefined : "noopener noreferrer"}
                 key={link.title}
               >
                 <h3>{link.title}</h3>
