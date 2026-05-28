@@ -29,7 +29,7 @@
 }
 .logoText span { color: #16a5a3; }
 .subtle { color: #707070; font-size: 12px; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .button, .ghostButton, .primaryButton {
   border: 0;
   border-radius: 999px;
@@ -42,9 +42,11 @@
 .button { background: #151515; color: #fff; }
 .primaryButton { background: #16a5a3; color: #fff; box-shadow: 0 10px 25px rgba(22,165,163,.20); }
 .ghostButton { background: #fff; color: #151515; border: 1px solid rgba(20,20,20,.12); }
+.primaryButton:disabled, .ghostButton:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
 .layout {
   display: grid;
-  grid-template-columns: 1fr 1.08fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  align-items: start;
   gap: 18px;
   padding: 22px;
 }
@@ -66,7 +68,6 @@
 }
 .clientScreen {
   padding: 24px;
-  min-height: calc(100vh - 145px);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -98,7 +99,11 @@
 .phaseCurrent { background: #e9f7f6; border: 1px solid rgba(22,165,163,.22); }
 .phaseName { font-weight: 800; }
 .phaseDesc { color: #606060; font-size: 13px; line-height: 1.55; margin-top: 4px; }
-.coachScreen { padding: 18px; display: grid; gap: 14px; max-height: calc(100vh - 112px); overflow: auto; }
+.coachScreen {
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
 .section { padding: 16px; border-radius: 20px; background: #fff; border: 1px solid rgba(20,20,20,.08); }
 .sectionTitle { margin: 0 0 12px; font-size: 15px; letter-spacing: -0.03em; }
 .formGrid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
@@ -135,11 +140,11 @@
 .clientSelect { min-width: 240px; }
 @media (max-width: 1080px) {
   .layout { grid-template-columns: 1fr; }
-  .coachScreen { max-height: none; }
 }
 @media (max-width: 720px) {
-  .topbar { align-items: flex-start; flex-direction: column; padding: 16px; }
+  .topbar { align-items: flex-start; flex-direction: column; padding: 16px; position: static; }
   .layout { padding: 12px; }
   .cardGrid, .formGrid { grid-template-columns: 1fr; }
   .clientHero h1 { font-size: 28px; }
+  .clientSelect { min-width: 100%; }
 }
