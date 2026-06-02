@@ -20,18 +20,11 @@ export default function NavLinks() {
   return (
     <nav className="nav" aria-label="주요 메뉴">
       {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={isActive(pathname, link.href) ? "nav-link active" : "nav-link"}
-        >
+        <Link key={link.href} href={link.href} className={isActive(pathname, link.href) ? "nav-link active" : "nav-link"}>
           {link.label}
         </Link>
       ))}
-      <Link
-        href="/contact"
-        className={pathname === "/contact" ? "nav-cta active" : "nav-cta"}
-      >
+      <Link href="/contact" className={pathname === "/contact" ? "nav-cta active" : "nav-cta"}>
         상담
       </Link>
     </nav>

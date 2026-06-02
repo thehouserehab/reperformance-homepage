@@ -8,9 +8,10 @@ export default function ServicesPage() {
       <section className="page-hero">
         <div className="container page-title">
           <p className="eyebrow">SERVICES</p>
-          <h1>재활을 입구로, 운동 복귀까지 이어갑니다.</h1>
+          <h1>재활 입구에서 움직임 복귀까지 이어갑니다.</h1>
           <p>
-            RePERFORMANCE는 통증과 불편함을 줄이는 데서 끝나지 않습니다. 다시 움직이고, 다시 운동하고, 더 오래 건강하게 유지할 수 있도록 단계적으로 설계합니다.
+            통증을 줄이는 데서 멈추지 않습니다. 다시 움직이고, 다시 운동하고, 더 오래 건강하게 유지할 수 있도록
+            단계적으로 설계합니다.
           </p>
         </div>
       </section>
@@ -30,7 +31,7 @@ export default function ServicesPage() {
                 <span>{item.target}</span>
                 <strong>핵심</strong>
                 <span>{item.message}</span>
-                <span className="more-link">상세 프로그램 보기 →</span>
+                <span className="more-link">상세 프로그램 보기</span>
               </div>
             </Link>
           ))}

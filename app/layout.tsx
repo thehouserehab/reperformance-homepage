@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "RePERFORMANCE | 전주 서신동 재활 트레이닝",
   description:
-    "Rehab to Performance. 전주 서신동 RePERFORMANCE는 재활에서 운동까지, 통증과 불편함을 운동으로 관리하는 재활 트레이닝 공간입니다.",
+    "전주 서신동 RePERFORMANCE. 재활에서 움직임, 그리고 다시 퍼포먼스까지 이어지는 개인 맞춤 재활 트레이닝 공간입니다.",
   keywords: [
     "RePERFORMANCE",
     "리퍼포먼스",
@@ -14,8 +14,8 @@ export const metadata: Metadata = {
     "부모님 재활",
     "시니어 재활",
     "선수 재활",
-    "학생 리컨디셔닝"
-  ]
+    "통증 운동",
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

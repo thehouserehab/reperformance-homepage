@@ -31,7 +31,9 @@ export function Footer() {
     <footer className="footer">
       <div className="container footer-inner">
         <p>© RePERFORMANCE. All rights reserved.</p>
-        <p>{site.address} · {site.phone}</p>
+        <p>
+          {site.address} · {site.phone}
+        </p>
       </div>
     </footer>
   );
@@ -42,16 +44,18 @@ export function ConsultationCTA({ compact = false }: { compact?: boolean }) {
     <section className={compact ? "consultation compact" : "consultation"}>
       <div className="container consultation-inner">
         <p className="eyebrow light-text">CONSULTATION</p>
-        <h2>지금 어디가 불편하신가요?</h2>
+        <h2>지금 몸에서 가장 불편한 움직임부터 확인해보세요.</h2>
         <p>
-          부위와 가장 힘든 동작만 알려주셔도 첫 방향을 잡아드릴 수 있습니다.
-          설문 작성 후 전화 또는 DM을 남겨주시면 확인 후 상담 방향을 안내드립니다.
+          통증 부위보다 중요한 것은 불편함이 생기는 동작입니다. 온라인 설문을 남겨주시면 현재 상태를 확인한 뒤
+          상담 방향을 안내해드립니다.
         </p>
         <div className="button-row">
           <a className="button cta-primary" href={site.notionSurveyHref} target="_blank" rel="noopener noreferrer">
-            온라인 설문 작성하기
+            온라인 설문 작성
           </a>
-          <a className="button cta-secondary" href={site.phoneHref}>전화 상담하기</a>
+          <a className="button cta-secondary" href={site.phoneHref}>
+            전화 상담
+          </a>
           <a className="button cta-secondary" href={site.instagramHref} target="_blank" rel="noopener noreferrer">
             인스타그램 DM
           </a>
