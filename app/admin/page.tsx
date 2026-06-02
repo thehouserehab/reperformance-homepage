@@ -89,6 +89,13 @@ export default function AdminPage() {
             상담, 고객관리, 매출, 문서, 할일을 대표자가 빠르게 확인하는 내부 운영 입구입니다. 공개 메뉴에는 노출하지 않고,
             실제 민감정보는 권한이 걸린 Google Workspace와 연동해서 관리합니다.
           </p>
+          <div className="button-row">
+            <a className="button primary" href="/admin/clients">고객관리</a>
+            <a className="button secondary" href="/admin/consultation">상담 화면</a>
+            <form action="/api/admin/logout" method="post">
+              <button className="button secondary" type="submit">로그아웃</button>
+            </form>
+          </div>
         </div>
       </section>
 
