@@ -1,5 +1,18 @@
 # RePERFORMANCE 계정/권한 설정
 
+RePERFORMANCE는 공개 로그인과 운영자 전용 접근을 분리합니다.
+
+```txt
+/login          = 회원, 트레이너, 관리자 공통 로그인
+/signup         = 회원가입 / 계정 신청
+/account        = 로그인한 계정의 마이페이지
+/find-account   = 아이디 / 비밀번호 찾기 안내
+/admin/login    = 운영자 전용 로그인
+/admin          = 운영관리
+/admin/clients  = 고객관리
+/admin/consultation = 고객상담
+```
+
 `/admin`, `/admin/clients`, `/admin/consultation`, `/api/rp/clients`는 로그인 세션과 역할 권한이 있어야 접근할 수 있습니다.
 
 접근 가능한 역할은 아래와 같습니다.
@@ -42,7 +55,7 @@ RP_AUTH_USERS=[{"username":"owner","password":"비밀번호","name":"정우현",
 owner   = 운영관리, 고객관리, 고객상담 접근 가능
 admin   = 운영관리, 고객관리, 고객상담 접근 가능
 trainer = 운영관리, 고객관리, 고객상담 접근 가능
-member  = 관리자 영역 접근 불가
+member  = /account 접근 가능, 관리자 영역 접근 불가
 ```
 
 ## 기존 방식도 유지됩니다
@@ -101,16 +114,23 @@ RP_API_SECRET=Apps Script API secret
 
 ## 로그인 주소
 
+공개 로그인:
+
+```txt
+https://reperformance.the-house-exercise.com/login
+```
+
+운영자 전용 로그인:
+
 ```txt
 https://reperformance.the-house-exercise.com/admin/login
 ```
 
-로그인 후 아래 내부 페이지에 접근할 수 있습니다.
+공개 로그인은 역할에 따라 자동으로 이동합니다.
 
 ```txt
-/admin
-/admin/clients
-/admin/consultation
+owner/admin/trainer → /admin
+member              → /account
 ```
 
 ## 주의
@@ -119,3 +139,4 @@ https://reperformance.the-house-exercise.com/admin/login
 - `RP_ADMIN_SESSION_SECRET`을 바꾸면 기존 로그인 세션은 모두 무효화됩니다.
 - 계정 추가/삭제는 환경변수를 수정한 뒤 Vercel 재배포를 실행하면 됩니다.
 - 가입 신청은 계정 생성을 자동 승인하지 않습니다. 신청 확인 후 `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_TRAINER_USERS` 중 하나에 계정을 등록해야 실제 로그인이 가능합니다.
+- 카카오 로그인, 문자 인증, 자동 비밀번호 재설정은 별도 OAuth/SMS/Auth 서비스 연결이 필요합니다.
