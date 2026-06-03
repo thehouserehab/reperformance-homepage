@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   createAdminSession,
-  findAuthAccount,
+  findAuthAccountFromStores,
   getAdminCookieOptions,
   hasStaffRole,
   sanitizeAdminNext,
@@ -38,7 +38,7 @@ function redirectToLogin(request, next, error = 'invalid') {
 export async function POST(request) {
   const payload = await readLoginPayload(request);
   const nextPath = sanitizeAdminNext(payload.next);
-  const account = findAuthAccount(payload.username, payload.password);
+  const account = await findAuthAccountFromStores(payload.username, payload.password);
 
   if (!account) return redirectToLogin(request, nextPath, 'invalid');
   if (!hasStaffRole(account.role)) return redirectToLogin(request, nextPath, 'forbidden');
