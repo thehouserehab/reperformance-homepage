@@ -60,7 +60,13 @@ function buildSafeRecord(record) {
 
 function getFailureStatus(error) {
   const message = String(error?.message || '');
-  if (message.includes('Apps Script') || message.includes('웹 앱 URL') || message.includes('자동 회원가입')) return 'setup';
+  if (
+    message.includes('Apps Script')
+    || message.includes('웹 앱 URL')
+    || message.includes('자동 회원가입')
+    || message.includes('RP_PASSWORD_HASH_SECRET')
+    || message.includes('RP_ADMIN_SESSION_SECRET')
+  ) return 'setup';
   return 'error';
 }
 
