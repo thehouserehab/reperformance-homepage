@@ -1,11 +1,13 @@
-.wrap {
+.wrap,
+.clientPage {
   min-height: 100vh;
   background: #f5f6f3;
   color: #17191d;
   font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.topbar {
+.topbar,
+.clientTopbar {
   position: sticky;
   top: 0;
   z-index: 20;
@@ -17,6 +19,10 @@
   border-bottom: 1px solid #e2e4df;
   background: rgba(255,255,255,.92);
   backdrop-filter: blur(14px);
+}
+
+.clientTopbar {
+  position: static;
 }
 
 .brand {
@@ -46,7 +52,9 @@
   color: #963724;
 }
 
-.actions {
+.actions,
+.clientStatusRow,
+.footerActions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -57,7 +65,6 @@
   margin: 0;
 }
 
-.button,
 .ghostButton,
 .primaryButton {
   min-height: 42px;
@@ -75,15 +82,9 @@
   transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
 }
 
-.button:hover,
 .ghostButton:hover,
 .primaryButton:hover {
   transform: translateY(-1px);
-}
-
-.button {
-  background: #17191d;
-  color: #fff;
 }
 
 .primaryButton {
@@ -105,197 +106,130 @@
   box-shadow: none;
 }
 
-.layout {
+.coachPageLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
   align-items: start;
   gap: 18px;
-  padding: 22px;
+  width: min(1440px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 22px 0;
 }
 
-.panel {
-  overflow: hidden;
-  border: 1px solid #e2e4df;
-  border-radius: 8px;
-  background: rgba(255,255,255,.82);
-  box-shadow: 0 20px 50px rgba(23,25,29,.06);
-}
-
-.panelHeader {
-  padding: 20px 22px 14px;
-  border-bottom: 1px solid #e2e4df;
-}
-
-.panelTitle {
-  margin: 0;
-  font-size: 19px;
-  letter-spacing: 0;
-}
-
-.clientScreen,
-.coachScreen {
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-}
-
-.clientHero {
-  padding: 28px;
-  border-radius: 8px;
-  background: linear-gradient(145deg, #11151b 0%, #26302f 58%, #087b72 100%);
-  color: white;
-}
-
-.clientHero h1 {
-  margin: 14px 0 12px;
-  font-size: clamp(30px, 4vw, 42px);
-  letter-spacing: 0;
-  line-height: 1.08;
-}
-
-.clientHero p {
-  margin: 0;
-  color: rgba(255,255,255,.78);
-  line-height: 1.65;
-}
-
-.heroBadge,
-.heroAlert {
-  display: inline-flex;
-  width: fit-content;
-  border-radius: 999px;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.heroBadge {
-  background: rgba(255,255,255,.14);
-  color: #fff;
-}
-
-.heroAlert {
-  background: #fff0eb;
-  color: #963724;
-}
-
-.stepList {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.stepItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255,255,255,.86);
-  font-size: 14px;
-}
-
-.stepNum {
-  width: 25px;
-  height: 25px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255,255,255,.13);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.cardGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 12px;
-}
-
-.card,
-.wideCard,
-.alertCard,
+.inputPanel,
+.livePreviewPanel,
 .section,
-.alertSection {
-  padding: 18px;
+.alertSection,
+.customerSection,
+.customerAlertSection,
+.finalSummarySection,
+.infoTile,
+.summaryBand,
+.nextStepBand {
+  border: 1px solid #e2e4df;
   border-radius: 8px;
   background: #fff;
-  border: 1px solid #e2e4df;
+  box-shadow: 0 16px 44px rgba(23,25,29,.045);
 }
 
-.wideCard,
-.alertCard {
-  grid-column: 1 / -1;
+.inputPanel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
 }
 
-.alertCard,
+.panelHeaderSplit {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+  padding: 10px 2px 14px;
+}
+
+.panelHeaderSplit h1 {
+  margin: 0 0 8px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.panelHeaderSplit p,
+.livePreviewPanel p,
+.customerText {
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.7;
+}
+
+.liveBadge,
+.heroBadge,
+.heroAlert,
+.statusPill,
+.dangerPill,
+.pill,
+.pillActive {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.liveBadge,
+.heroBadge,
+.statusPill {
+  background: #e9f7f6;
+  color: #087b72;
+  border: 1px solid rgba(8,123,114,.22);
+}
+
+.heroAlert,
+.dangerPill {
+  color: #963724;
+  background: #fff0eb;
+  border: 1px solid rgba(150,55,36,.18);
+}
+
+.section,
 .alertSection {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.alertSection,
+.customerAlertSection {
   border-color: rgba(150,55,36,.18);
   background: #fff7f4;
 }
 
-.cardLabel {
-  margin-bottom: 8px;
-  color: #5f6368;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-
-.cardValue {
-  font-size: 18px;
-  line-height: 1.45;
-  font-weight: 900;
-  letter-spacing: 0;
-}
-
-.cardText {
-  color: #4a4f55;
-  line-height: 1.7;
-  font-size: 14px;
-}
-
-.phaseBox {
-  display: grid;
-  gap: 10px;
-}
-
-.phaseRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
-  background: #f5f6f3;
-}
-
-.phaseCurrent {
-  background: #e9f7f6;
-  border: 1px solid rgba(8,123,114,.22);
-}
-
-.phaseName {
-  font-weight: 900;
-}
-
-.phaseDesc {
-  color: #5f6368;
-  font-size: 13px;
-  line-height: 1.55;
-  margin-top: 4px;
-}
-
 .sectionTitle {
-  margin: 0 0 12px;
-  font-size: 15px;
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.3;
   letter-spacing: 0;
 }
 
-.summaryGrid {
+.summaryGrid,
+.formGrid,
+.customerGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0,1fr));
   gap: 10px;
-  margin-top: 14px;
+}
+
+.customerGrid {
+  grid-template-columns: repeat(3, minmax(0,1fr));
+}
+
+.customerGridTwo {
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 10px;
 }
 
 .summaryGrid div {
@@ -317,21 +251,14 @@
   font-size: 13px;
 }
 
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 10px;
-}
-
-.field {
+.field,
+.fieldFull {
   display: grid;
   gap: 6px;
 }
 
 .fieldFull {
   grid-column: 1 / -1;
-  display: grid;
-  gap: 6px;
 }
 
 .label {
@@ -342,7 +269,8 @@
 
 .input,
 .select,
-.textarea {
+.textarea,
+.textareaLarge {
   width: 100%;
   border: 1px solid #d9ddd8;
   border-radius: 8px;
@@ -359,9 +287,16 @@
   line-height: 1.55;
 }
 
+.textareaLarge {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
 .input:focus,
 .select:focus,
-.textarea:focus {
+.textarea:focus,
+.textareaLarge:focus {
   border-color: #087b72;
   box-shadow: 0 0 0 4px rgba(8,123,114,.10);
 }
@@ -373,38 +308,15 @@
 }
 
 .pill,
-.pillActive,
-.statusPill,
-.dangerPill {
-  border-radius: 999px;
-  padding: 7px 10px;
+.pillActive {
   border: 1px solid #d9ddd8;
   background: #fbfbfa;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.pill {
   cursor: pointer;
 }
 
 .pillActive {
   background: #17191d;
   color: #fff;
-  cursor: pointer;
-}
-
-.statusPill {
-  color: #087b72;
-  background: #e9f7f6;
-  border-color: rgba(8,123,114,.22);
-}
-
-.dangerPill {
-  color: #963724;
-  background: #fff0eb;
-  border-color: rgba(150,55,36,.18);
 }
 
 .aiBox {
@@ -418,37 +330,309 @@
 }
 
 .footerActions {
-  display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 .clientSelect {
   min-width: 240px;
 }
 
+.livePreviewPanel {
+  min-height: 420px;
+  padding: 18px;
+}
+
+.previewSticky {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 14px;
+}
+
+.previewSticky h2 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.previewCard {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f5f6f3;
+  color: #4a4f55;
+  line-height: 1.55;
+}
+
+.previewCard strong {
+  color: #17191d;
+  font-size: 17px;
+}
+
+.clientOnePage {
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto;
+  padding: 22px 0 40px;
+  display: grid;
+  gap: 14px;
+}
+
+.presentationHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 24px;
+  align-items: end;
+  padding: 34px;
+  border-radius: 8px;
+  background: linear-gradient(145deg, #11151b 0%, #26302f 58%, #087b72 100%);
+  color: white;
+}
+
+.presentationHero h1 {
+  margin: 14px 0 12px;
+  font-size: clamp(38px, 5vw, 64px);
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.presentationHero p {
+  margin: 0;
+  color: rgba(255,255,255,.78);
+  line-height: 1.7;
+  font-size: 18px;
+}
+
+.heroMetaBox {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.12);
+}
+
+.heroMetaBox span {
+  color: rgba(255,255,255,.68);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.heroMetaBox strong {
+  color: #fff;
+  font-size: 18px;
+}
+
+.customerSection,
+.customerAlertSection,
+.finalSummarySection {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionHeading span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #e9f7f6;
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.sectionHeading h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.infoTile {
+  display: grid;
+  gap: 7px;
+  padding: 18px;
+}
+
+.infoTile span {
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.infoTile strong {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.infoTile p {
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.6;
+}
+
+.summaryBand,
+.nextStepBand {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  background: #f8faf8;
+}
+
+.summaryBand strong,
+.nextStepBand strong {
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.summaryBand p,
+.nextStepBand p,
+.finalSummarySection p {
+  margin: 0;
+  color: #4a4f55;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.chipDisplay {
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 13px;
+  border-radius: 999px;
+  background: #e9f7f6;
+  color: #087b72;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.painMeter {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e4df;
+}
+
+.painMeter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #087b72;
+}
+
+.phaseTimeline {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 10px;
+}
+
+.phaseStep,
+.phaseCurrent {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 160px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #f5f6f3;
+  border: 1px solid transparent;
+}
+
+.phaseCurrent {
+  background: #e9f7f6;
+  border-color: rgba(8,123,114,.22);
+}
+
+.phaseStep strong,
+.phaseCurrent strong {
+  line-height: 1.35;
+}
+
+.phaseStep p,
+.phaseCurrent p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.phaseCurrent span {
+  width: fit-content;
+  margin-top: auto;
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: #087b72;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.nextStepBand span {
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.finalSummarySection {
+  background: #11151b;
+  color: #fff;
+}
+
+.finalSummarySection .sectionHeading span {
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+
+.finalSummarySection h2,
+.finalSummarySection p {
+  color: #fff;
+}
+
 @media (max-width: 1180px) {
-  .layout {
+  .coachPageLayout {
     grid-template-columns: 1fr;
+  }
+
+  .previewSticky {
+    position: static;
+  }
+
+  .phaseTimeline {
+    grid-template-columns: repeat(2, minmax(0,1fr));
   }
 }
 
 @media (max-width: 760px) {
-  .topbar {
+  .topbar,
+  .clientTopbar {
     align-items: stretch;
     flex-direction: column;
     padding: 16px;
     position: static;
   }
 
-  .layout {
-    padding: 12px;
+  .coachPageLayout,
+  .clientOnePage {
+    width: calc(100% - 24px);
+    padding: 12px 0 24px;
   }
 
-  .cardGrid,
+  .panelHeaderSplit,
+  .presentationHero {
+    grid-template-columns: 1fr;
+  }
+
+  .summaryGrid,
   .formGrid,
-  .summaryGrid {
+  .customerGrid,
+  .customerGridTwo,
+  .phaseTimeline {
     grid-template-columns: 1fr;
   }
 
@@ -456,5 +640,14 @@
   .ghostButton,
   .primaryButton {
     width: 100%;
+  }
+
+  .presentationHero,
+  .customerSection,
+  .customerAlertSection,
+  .finalSummarySection,
+  .inputPanel,
+  .livePreviewPanel {
+    padding: 18px;
   }
 }
