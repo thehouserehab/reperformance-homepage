@@ -30,6 +30,9 @@ export default function Home() {
             <a href={site.notionSurveyHref} target="_blank" rel="noopener noreferrer" className="button primary">
               온라인 설문 작성
             </a>
+            <Link href="/signup" className="button hero-secondary">
+              회원가입
+            </Link>
             <Link href="/services" className="button hero-secondary">
               프로그램 보기
             </Link>
@@ -132,19 +135,19 @@ export default function Home() {
             </div>
           </div>
           <div className="contact-box accent-box">
-            <p className="eyebrow">CONTACT</p>
-            <h2>상담 신청</h2>
+            <p className="eyebrow">ACCOUNT</p>
+            <h2>회원가입 / 계정 신청</h2>
             <p>
-              설문 작성 후 전화 또는 DM으로 남겨주시면 확인 뒤 상담 방향을 안내해드립니다. 통증 부위보다 불편한
-              동작을 함께 알려주시면 더 정확합니다.
+              상담을 시작하는 회원, 고객관리 화면이 필요한 트레이너, 운영 권한이 필요한 관리자는 계정 신청을 남길 수 있습니다.
+              관리자와 트레이너 권한은 승인된 계정에만 부여됩니다.
             </p>
             <div className="button-row">
-              <a href={site.notionSurveyHref} target="_blank" rel="noopener noreferrer" className="button primary">
-                온라인 설문
-              </a>
-              <a href={site.phoneHref} className="button secondary">
-                전화 상담
-              </a>
+              <Link href="/signup" className="button primary">
+                회원가입
+              </Link>
+              <Link href="/admin/login" className="button secondary">
+                운영 로그인
+              </Link>
             </div>
           </div>
         </div>
