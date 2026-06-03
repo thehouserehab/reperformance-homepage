@@ -36,6 +36,11 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function readRequestedClientId() {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('clientId') || '';
+}
+
 function createInitialRecord(client = EMPTY_CLIENT) {
   return {
     consultationDate: today(),
@@ -73,12 +78,24 @@ function TogglePill({ active, children, onClick }) {
 function buildAiSummary(client, record, currentPhase) {
   const parqLine = client.parqYesItems?.length
     ? `${client.parqStatus}: ${client.parqYesItems.join(', ')}`
-    : 'PAR-Q 특이 응답 없음';
+    : 'PAR-Q 예 체크 항목 없음';
 
   return `AI 상담 요약\n\n- 회원 목표: ${record.memberGoal || '미입력'}\n- 코치 재정의 목표: ${record.coachGoal || '미입력'}\n- 주요 불편 부위: ${record.painAreas.length ? record.painAreas.join(', ') : '특이사항 없음'}\n- 통증 강도: ${record.painScore}/10\n- PAR-Q 확인: ${parqLine}\n- 초기 확인 질문: 통증 발생 동작, 최근 치료/주사/수술 여부, 운동 중 악화 기준\n- 초기 평가 추천: Squat, Hinge, Lunge, Balance, Breathing/Bracing\n- OPT Phase 후보: ${currentPhase?.label || 'Phase 미선택'} (${currentPhase?.clientLabel || ''})\n- 프로그램 설계 주의: 고강도 적용 전 통증 반응과 움직임 제어 능력 확인 필요`;
 }
 
+function formatList(value, fallback = '기록 없음') {
+  return Array.isArray(value) && value.length ? value.join(', ') : fallback;
+}
+
+function needsAttention(client) {
+  if (!client) return false;
+  if (Array.isArray(client.parqYesItems) && client.parqYesItems.length) return true;
+  if (client.parqStatus && client.parqStatus !== '정상') return true;
+  return Number(client.painScore) >= 7;
+}
+
 export default function RPConsultationMode({ clients: initialClients, onSave }) {
+  const [requestedClientId, setRequestedClientId] = useState('');
   const [clients, setClients] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients : SAMPLE_CLIENTS));
   const [clientId, setClientId] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients[0]?.id : ''));
   const [connectionStatus, setConnectionStatus] = useState('Google Sheets 연결 확인 중...');
@@ -88,13 +105,19 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
   const selectedClient = useMemo(() => clients.find((client) => client.id === clientId) || clients[0] || EMPTY_CLIENT, [clients, clientId]);
   const [record, setRecord] = useState(() => createInitialRecord(selectedClient));
   const currentPhase = RP_PHASES.find((phase) => phase.id === record.selectedPhase);
+  const attentionRequired = needsAttention(selectedClient);
+
+  useEffect(() => {
+    setRequestedClientId(readRequestedClientId());
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadClientsFromSheets() {
-      // 명시적으로 clients prop이 들어온 경우에는 외부에서 주입한 목록을 우선 사용한다.
       if (Array.isArray(initialClients) && initialClients.length) {
+        setClients(initialClients);
+        setClientId(initialClients[0]?.id || '');
         setConnectionStatus(`외부 주입 고객 목록 사용 · ${initialClients.length}명`);
         return;
       }
@@ -132,6 +155,11 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
   }, [initialClients]);
 
   useEffect(() => {
+    if (!requestedClientId || !clients.length) return;
+    if (clients.some((client) => client.id === requestedClientId)) setClientId(requestedClientId);
+  }, [clients, requestedClientId]);
+
+  useEffect(() => {
     if (!selectedClient || selectedClient.id === 'NO-CLIENT') return;
     const savedRaw = typeof window !== 'undefined' ? window.localStorage.getItem(`${STORAGE_KEY}:${selectedClient.id}`) : null;
     if (savedRaw) {
@@ -164,6 +192,8 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
   async function saveRecord() {
     const payload = {
       ...record,
+      clientId: selectedClient.id,
+      clientName: selectedClient.name,
       savedAt: new Date().toISOString(),
       clientSnapshot: selectedClient,
     };
@@ -201,17 +231,22 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
         <div className={styles.brand}>
           <div className={styles.logoText}><span>Re</span>PERFORMANCE</div>
           <div className={styles.subtle}>Consultation Mode · Client View + Coach View</div>
-          <div className={connectionError ? styles.subtle : styles.subtle}>{connectionStatus}</div>
-          {connectionError && <div className={styles.subtle}>오류: {connectionError}</div>}
+          <div className={connectionError ? styles.errorText : styles.subtle}>{connectionStatus}</div>
+          {connectionError && <div className={styles.errorText}>오류: {connectionError}</div>}
         </div>
         <div className={styles.actions}>
+          <a className={styles.ghostButton} href="/admin">운영 홈</a>
+          <a className={styles.ghostButton} href="/admin/clients">고객관리</a>
           <select className={`${styles.select} ${styles.clientSelect}`} value={clientId} onChange={(event) => setClientId(event.target.value)} disabled={!clients.length}>
             {clients.length ? clients.map((client) => (
               <option key={client.id} value={client.id}>{client.id} · {client.name}</option>
             )) : <option value="">회원 없음</option>}
           </select>
-          <button className={styles.ghostButton} type="button" onClick={exportJson} disabled={!clients.length}>JSON 내보내기</button>
+          <button className={styles.ghostButton} type="button" onClick={exportJson} disabled={!clients.length}>JSON</button>
           <button className={styles.primaryButton} type="button" onClick={saveRecord} disabled={!clients.length || isSaving}>{isSaving ? '저장 중...' : '상담 저장'}</button>
+          <form action="/api/admin/logout" method="post">
+            <button className={styles.ghostButton} type="submit">로그아웃</button>
+          </form>
         </div>
       </header>
 
@@ -219,10 +254,11 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
             <h2 className={styles.panelTitle}>고객 화면</h2>
-            <p className={styles.subtle}>회원에게 보여주는 설명용 화면입니다.</p>
+            <p className={styles.subtle}>회원에게 보여줄 수 있는 상담 안내 화면입니다.</p>
           </div>
           <div className={styles.clientScreen}>
             <div className={styles.clientHero}>
+              <span className={attentionRequired ? styles.heroAlert : styles.heroBadge}>{attentionRequired ? '추가 확인 필요' : '상담 진행 가능'}</span>
               <h1>{selectedClient.name}님 상담을 시작합니다.</h1>
               <p>현재 몸 상태와 운동 목표를 확인하고, 가장 안전한 운동 방향을 함께 정리합니다.</p>
               <div className={styles.stepList}>
@@ -234,14 +270,25 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
 
             <div className={styles.cardGrid}>
               <div className={styles.card}>
+                <div className={styles.cardLabel}>기본 정보</div>
+                <div className={styles.cardValue}>{selectedClient.id}</div>
+                <p className={styles.cardText}>{selectedClient.phone || '연락처 미입력'} · {selectedClient.route || '유입경로 미입력'}</p>
+              </div>
+              <div className={styles.card}>
+                <div className={styles.cardLabel}>현재 상태</div>
+                <div className={styles.cardValue}>{selectedClient.status || record.consultationStatus}</div>
+                <p className={styles.cardText}>담당 코치 · {record.coachName}</p>
+              </div>
+              <div className={styles.wideCard}>
                 <div className={styles.cardLabel}>운동 목표 정리</div>
                 <div className={styles.cardValue}>{record.memberGoal || '상담 중 목표를 정리합니다.'}</div>
               </div>
-              <div className={styles.card}>
+              <div className={styles.wideCard}>
                 <div className={styles.cardLabel}>현재 불편감</div>
                 <div className={styles.cardValue}>{record.painAreas.length ? record.painAreas.join(', ') : '특이 불편감 없음'}</div>
+                <p className={styles.cardText}>통증 강도 {record.painScore}/10 · {record.symptomMoves || '증상 발생 동작 미입력'}</p>
               </div>
-              <div className={styles.wideCard}>
+              <div className={attentionRequired ? styles.alertCard : styles.wideCard}>
                 <div className={styles.cardLabel}>건강 설문 확인</div>
                 <div className={styles.cardText}>
                   {selectedClient.parqStatus === '정상'
@@ -266,7 +313,7 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
               <div className={styles.wideCard}>
                 <div className={styles.cardLabel}>추천 진행 방향</div>
                 <div className={styles.cardValue}>{record.recommendedProgram}</div>
-                <p className={styles.cardText}>현재 목표와 신체 상태를 고려해 단계적으로 진행합니다. 상담 후 필요 시 초기 평가를 통해 정확한 운동 범위와 프로그램을 확정합니다.</p>
+                <p className={styles.cardText}>상담 후 필요 시 초기 평가를 통해 정확한 운동 범위와 프로그램을 확정합니다.</p>
               </div>
             </div>
           </div>
@@ -283,12 +330,18 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
               <div className={styles.pillRow}>
                 <span className={styles.statusPill}>{selectedClient.id}</span>
                 <span className={styles.statusPill}>{selectedClient.name}</span>
-                <span className={selectedClient.parqStatus === '정상' ? styles.statusPill : styles.dangerPill}>PAR-Q {selectedClient.parqStatus}</span>
+                <span className={attentionRequired ? styles.dangerPill : styles.statusPill}>PAR-Q {selectedClient.parqStatus}</span>
                 <span className={styles.statusPill}>{record.consultationStatus}</span>
+              </div>
+              <div className={styles.summaryGrid}>
+                <div><strong>목표</strong><span>{selectedClient.goal || '미입력'}</span></div>
+                <div><strong>목적</strong><span>{formatList(selectedClient.purpose)}</span></div>
+                <div><strong>불편 부위</strong><span>{formatList(selectedClient.painAreas, '특이사항 없음')}</span></div>
+                <div><strong>잔여회차</strong><span>{Number(selectedClient.remainingSessions) || 0}회</span></div>
               </div>
             </div>
 
-            <div className={styles.section}>
+            <div className={attentionRequired ? styles.alertSection : styles.section}>
               <h3 className={styles.sectionTitle}>PAR-Q 확인</h3>
               <div className={styles.cardText}>
                 {selectedClient.parqYesItems?.length ? selectedClient.parqYesItems.join(' / ') : '예 체크 항목 없음'}
