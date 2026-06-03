@@ -10,7 +10,7 @@ function isProtectedAccountPath(pathname) {
 }
 
 function isProtectedApiPath(pathname) {
-  return pathname.startsWith('/api/rp/clients');
+  return pathname.startsWith('/api/rp/clients') || pathname.startsWith('/api/rp/consultation-summary');
 }
 
 function buildStaffLoginUrl(request, error) {
@@ -68,5 +68,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/account/:path*', '/login', '/api/rp/clients/:path*'],
+  matcher: ['/admin/:path*', '/account/:path*', '/login', '/api/rp/clients/:path*', '/api/rp/consultation-summary/:path*'],
 };
