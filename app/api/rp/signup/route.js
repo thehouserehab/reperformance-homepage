@@ -1,39 +1,17 @@
 import { NextResponse } from 'next/server';
+import { ADMIN_COOKIE_NAME, createAdminSession, getAdminCookieOptions } from '../../../../lib/rpAdminAuth';
+import { getSheetRoleLabel, normalizeSheetRole, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
 
 export const dynamic = 'force-dynamic';
 
-const DEFAULT_STATUS = '승인 대기';
-const ROLE_LABELS = {
-  member: '회원',
-  trainer: '트레이너',
-  admin: '관리자',
-};
+const MEMBER_ACTIVE_STATUS = '활성';
+const STAFF_PENDING_STATUS = '승인 대기';
 
 function cleanEnvValue(value) {
   return String(value || '')
     .trim()
     .replace(/^["']|["']$/g, '')
     .trim();
-}
-
-function extractUrl(value) {
-  const cleaned = cleanEnvValue(value);
-  const match = cleaned.match(/https?:\/\/[^\s'"]+/);
-  return match ? match[0] : cleaned;
-}
-
-function getConfig() {
-  return {
-    webAppUrl: extractUrl(process.env.RP_SIGNUP_WEBAPP_URL || process.env.RP_SHEETS_WEBAPP_URL),
-    apiSecret: cleanEnvValue(process.env.RP_API_SECRET),
-  };
-}
-
-function normalizeRole(value) {
-  const role = cleanEnvValue(value).toLowerCase();
-  if (['admin', 'administrator', 'manager', '관리자'].includes(role)) return 'admin';
-  if (['trainer', 'coach', '트레이너', '코치'].includes(role)) return 'trainer';
-  return 'member';
 }
 
 async function readPayload(request) {
@@ -45,6 +23,8 @@ async function readPayload(request) {
       name: payload.name,
       username: payload.username || payload.email,
       phone: payload.phone,
+      password: payload.password,
+      passwordConfirm: payload.passwordConfirm || payload.confirmPassword,
       requestedRole: payload.requestedRole || payload.role,
       message: payload.message,
     };
@@ -55,89 +35,11 @@ async function readPayload(request) {
     name: formData.get('name'),
     username: formData.get('username') || formData.get('email'),
     phone: formData.get('phone'),
+    password: formData.get('password'),
+    passwordConfirm: formData.get('passwordConfirm') || formData.get('confirmPassword'),
     requestedRole: formData.get('requestedRole') || formData.get('role'),
     message: formData.get('message'),
   };
-}
-
-function buildScriptUrl(webAppUrl, action, apiSecret) {
-  const normalizedUrl = extractUrl(webAppUrl);
-
-  if (!normalizedUrl || !/^https?:\/\//i.test(normalizedUrl)) {
-    throw new Error('RP_SIGNUP_WEBAPP_URL 또는 RP_SHEETS_WEBAPP_URL 환경변수가 필요합니다.');
-  }
-
-  const url = new URL(normalizedUrl);
-  url.searchParams.set('action', action);
-
-  if (apiSecret) {
-    url.searchParams.set('secret', apiSecret);
-    url.searchParams.set('apiSecret', apiSecret);
-    url.searchParams.set('token', apiSecret);
-  }
-
-  return url.toString();
-}
-
-async function parseResponse(response) {
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch (_) {
-    return { ok: response.ok, raw: text.slice(0, 300) };
-  }
-}
-
-function buildConsultationFallbackRecord(record) {
-  return {
-    recordType: 'accountSignup',
-    consultationDate: record.requestedDate,
-    consultationStatus: DEFAULT_STATUS,
-    clientId: record.id,
-    clientName: record.name,
-    memberGoal: `${record.requestedRoleLabel} 계정 신청`,
-    coachGoal: '계정 승인 여부 확인 필요',
-    nextAction: '계정 승인 검토',
-    consultationResult: DEFAULT_STATUS,
-    coachMemo: record.message,
-    internalJudgment: `희망 아이디: ${record.username} / 연락처: ${record.phone}`,
-    signupRequest: record,
-  };
-}
-
-async function callSheetsSignup(record) {
-  const { webAppUrl, apiSecret } = getConfig();
-  const attempts = [
-    { action: 'saveSignupRequest', payload: { action: 'saveSignupRequest', request: record } },
-    { action: 'saveAccountSignup', payload: { action: 'saveAccountSignup', request: record } },
-    { action: 'saveSignup', payload: { action: 'saveSignup', request: record } },
-    { action: 'saveConsultation', payload: { action: 'saveConsultation', record: buildConsultationFallbackRecord(record) } },
-  ];
-  const errors = [];
-
-  for (const attempt of attempts) {
-    try {
-      const payload = { ...attempt.payload, secret: apiSecret, apiSecret, token: apiSecret };
-      const response = await fetch(buildScriptUrl(webAppUrl, attempt.action, apiSecret), {
-        method: 'POST',
-        cache: 'no-store',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
-      });
-      const data = await parseResponse(response);
-
-      if (response.ok && data?.ok !== false) {
-        return { ok: true, action: attempt.action, data };
-      }
-
-      errors.push(`${attempt.action}: ${data?.error || data?.raw || response.status}`);
-    } catch (error) {
-      errors.push(`${attempt.action}: ${error?.message || 'unknown error'}`);
-    }
-  }
-
-  throw new Error(errors.slice(0, 4).join(' / '));
 }
 
 function buildRedirect(request, status, role) {
@@ -151,34 +53,94 @@ function jsonResponse(payload, status = 200) {
   return NextResponse.json(payload, { status });
 }
 
+function buildSafeRecord(record) {
+  const { password, passwordConfirm, ...safeRecord } = record;
+  return safeRecord;
+}
+
+function getFailureStatus(error) {
+  const message = String(error?.message || '');
+  if (
+    message.includes('Apps Script')
+    || message.includes('웹 앱 URL')
+    || message.includes('자동 회원가입')
+    || message.includes('RP_PASSWORD_HASH_SECRET')
+    || message.includes('RP_ADMIN_SESSION_SECRET')
+  ) return 'setup';
+  return 'error';
+}
+
+async function buildSessionResponse(request, account) {
+  const session = await createAdminSession(account);
+  const response = NextResponse.redirect(new URL('/account?signup=created', request.url), { status: 303 });
+  response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions());
+  return response;
+}
+
 export async function POST(request) {
   const wantsJson = (request.headers.get('content-type') || '').includes('application/json');
   const payload = await readPayload(request);
-  const role = normalizeRole(payload.requestedRole);
+  const role = normalizeSheetRole(payload.requestedRole);
+  const roleLabel = getSheetRoleLabel(role);
+  const now = new Date().toISOString();
+  const isMember = role === 'member';
   const record = {
     id: `SIGNUP-${Date.now()}`,
-    requestedAt: new Date().toISOString(),
-    requestedDate: new Date().toISOString().slice(0, 10),
-    status: DEFAULT_STATUS,
+    requestedAt: now,
+    requestedDate: now.slice(0, 10),
+    status: isMember ? MEMBER_ACTIVE_STATUS : STAFF_PENDING_STATUS,
+    accountStatus: isMember ? 'active' : 'pending_approval',
     name: cleanEnvValue(payload.name),
     username: cleanEnvValue(payload.username),
     phone: cleanEnvValue(payload.phone),
+    password: cleanEnvValue(payload.password),
+    passwordConfirm: cleanEnvValue(payload.passwordConfirm),
     requestedRole: role,
-    requestedRoleLabel: ROLE_LABELS[role] || ROLE_LABELS.member,
+    requestedRoleLabel: roleLabel,
+    role,
+    roleLabel,
     message: cleanEnvValue(payload.message),
+    autoApproved: isMember,
+    approvalRequired: !isMember,
   };
 
-  if (!record.name || !record.username || !record.phone) {
-    if (wantsJson) return jsonResponse({ ok: false, error: '이름, 아이디, 연락처는 필수입니다.' }, 400);
+  if (!record.name || !record.username || !record.phone || !record.password) {
+    if (wantsJson) return jsonResponse({ ok: false, error: '이름, 아이디, 연락처, 비밀번호는 필수입니다.' }, 400);
+    return buildRedirect(request, 'invalid', role);
+  }
+
+  if (record.password.length < 6) {
+    if (wantsJson) return jsonResponse({ ok: false, error: '비밀번호는 6자 이상이어야 합니다.' }, 400);
+    return buildRedirect(request, 'invalid', role);
+  }
+
+  if (record.passwordConfirm && record.password !== record.passwordConfirm) {
+    if (wantsJson) return jsonResponse({ ok: false, error: '비밀번호 확인이 일치하지 않습니다.' }, 400);
     return buildRedirect(request, 'invalid', role);
   }
 
   try {
-    const result = await callSheetsSignup(record);
-    if (wantsJson) return jsonResponse({ ok: true, record, result });
-    return buildRedirect(request, 'success', role);
+    const result = await saveSheetAuthSignup(record);
+    const safeRecord = buildSafeRecord(record);
+
+    if (isMember) {
+      const account = result.account || { username: record.username, name: record.name, role: 'member' };
+
+      if (wantsJson) {
+        const response = jsonResponse({ ok: true, autoApproved: true, record: safeRecord, result });
+        const session = await createAdminSession(account);
+        response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions());
+        return response;
+      }
+
+      return buildSessionResponse(request, account);
+    }
+
+    if (wantsJson) return jsonResponse({ ok: true, autoApproved: false, pendingApproval: true, record: safeRecord, result });
+    return buildRedirect(request, 'pending', role);
   } catch (error) {
-    if (wantsJson) return jsonResponse({ ok: false, error: error?.message || '가입 신청 저장 중 오류가 발생했습니다.' }, 500);
-    return buildRedirect(request, 'error', role);
+    const status = getFailureStatus(error);
+    if (wantsJson) return jsonResponse({ ok: false, error: error?.message || '가입 처리 중 오류가 발생했습니다.' }, 500);
+    return buildRedirect(request, status, role);
   }
 }

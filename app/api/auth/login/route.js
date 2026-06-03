@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   createAdminSession,
-  findAuthAccount,
+  findAuthAccountFromStores,
   getAdminCookieOptions,
   hasStaffRole,
 } from '../../../../lib/rpAdminAuth';
@@ -45,7 +45,7 @@ function redirectToLogin(request, next, error = 'invalid') {
 
 export async function POST(request) {
   const payload = await readLoginPayload(request);
-  const account = findAuthAccount(payload.username, payload.password);
+  const account = await findAuthAccountFromStores(payload.username, payload.password);
 
   if (!account) return redirectToLogin(request, payload.next, 'invalid');
 

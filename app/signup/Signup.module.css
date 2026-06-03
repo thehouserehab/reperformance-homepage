@@ -98,6 +98,14 @@
   box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
 }
 
+.helperText {
+  margin: -2px 0 0;
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.6;
+}
+
 .checkLabel {
   grid-template-columns: 20px minmax(0, 1fr);
   align-items: start;
