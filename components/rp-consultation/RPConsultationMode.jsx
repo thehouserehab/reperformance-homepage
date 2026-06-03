@@ -149,6 +149,10 @@ function InfoTile({ label, value, text }) {
 function ClientPresentationView({ client, record, currentPhase, attentionRequired, connectionStatus, connectionError }) {
   const clientSummary = record.clientSummary || buildClientSummary(client, record, currentPhase);
   const purposes = record.purposes?.length ? record.purposes : client.purpose;
+  const painAreas = record.painAreas?.length ? record.painAreas.join(', ') : '특이사항 없음';
+  const parqText = client.parqYesItems?.length ? client.parqYesItems.join(' / ') : 'PAR-Q 예 체크 항목 없음';
+  const purposeText = formatList(purposes, '방문 목적 미입력');
+  const currentPhaseIndex = Math.max(0, RP_PHASES.findIndex((phase) => phase.id === record.selectedPhase));
 
   return (
     <main className={styles.clientPage}>
@@ -167,7 +171,7 @@ function ClientPresentationView({ client, record, currentPhase, attentionRequire
               {attentionRequired ? '추가 확인 필요' : '상담 진행 가능'}
             </span>
             <h1>{client.name}님 상담 안내</h1>
-            <p>현재 상태, 운동 목표, 권장 진행 방향을 한 화면에 정리했습니다.</p>
+            <p>{record.memberGoal || client.goal || '현재 상태와 운동 목표를 상담 중 정리하고 있습니다.'}</p>
           </div>
           <div className={styles.heroMetaBox}>
             <span>상담일</span>
@@ -177,82 +181,67 @@ function ClientPresentationView({ client, record, currentPhase, attentionRequire
           </div>
         </div>
 
-        <section className={styles.customerSection}>
-          <div className={styles.sectionHeading}>
-            <span>01</span>
-            <h2>기본 정보</h2>
-          </div>
-          <div className={styles.customerGrid}>
-            <InfoTile label="회원 ID" value={client.id || '미입력'} text={client.phone || '연락처 미입력'} />
-            <InfoTile label="현재 상태" value={client.status || record.consultationStatus || '상담 중'} text={`유입경로: ${client.route || '미입력'}`} />
-            <InfoTile label="운동 가능 빈도" value={record.weeklyFrequency || '주 2회'} text={`선호 시간: ${record.preferredTime || '미입력'}`} />
-          </div>
-        </section>
+        <div className={styles.monitorGrid}>
+          <section className={styles.clientPrimaryPanel}>
+            <div className={styles.sectionHeading}>
+              <span>01</span>
+              <h2>오늘 상담 핵심</h2>
+            </div>
+            <div className={styles.goalStatement}>
+              <strong>{record.coachGoal || record.memberGoal || client.goal || '운동 목표를 상담 중 정리합니다.'}</strong>
+              <p>{purposeText}</p>
+            </div>
+            <div className={styles.compactRows}>
+              <div>
+                <span>주요 불편 부위</span>
+                <strong>{painAreas}</strong>
+                <p>{record.symptomMoves || '증상 발생 동작 미입력'}</p>
+              </div>
+              <div>
+                <span>건강 설문</span>
+                <strong>{attentionRequired ? '추가 확인 필요' : '즉시 제한 항목 없음'}</strong>
+                <p>{parqText}</p>
+              </div>
+            </div>
+          </section>
 
-        <section className={styles.customerSection}>
-          <div className={styles.sectionHeading}>
-            <span>02</span>
-            <h2>목표와 방문 목적</h2>
-          </div>
-          <div className={styles.summaryBand}>
-            <strong>{record.memberGoal || client.goal || '운동 목표를 상담 중 정리합니다.'}</strong>
-            <p>{record.coachGoal || '코치가 상담 내용을 바탕으로 안전한 운동 목표를 함께 정리합니다.'}</p>
-          </div>
-          <div className={styles.chipDisplay}>{formatList(purposes, '방문 목적 미입력')}</div>
-        </section>
-
-        <section className={styles.customerSection}>
-          <div className={styles.sectionHeading}>
-            <span>03</span>
-            <h2>불편감 확인</h2>
-          </div>
-          <div className={styles.customerGridTwo}>
-            <InfoTile label="주요 부위" value={record.painAreas?.length ? record.painAreas.join(', ') : '특이사항 없음'} text={record.symptomMoves || '증상 발생 동작 미입력'} />
+          <aside className={styles.clientSignalPanel}>
+            <InfoTile label="회원 ID" value={client.id || '미입력'} text={client.status || record.consultationStatus || '상담 중'} />
+            <InfoTile label="운동 빈도" value={record.weeklyFrequency || '주 2회'} text={`선호 시간: ${record.preferredTime || '미입력'}`} />
             <div className={styles.infoTile}>
               <span>통증 강도</span>
               <strong>{record.painScore || 0}/10</strong>
               <div className={styles.painMeter}><span style={{ width: `${Math.min(100, Math.max(0, Number(record.painScore) * 10 || 0))}%` }} /></div>
             </div>
-          </div>
-        </section>
+            <InfoTile label="다음 단계" value={record.nextAction || '초기 평가 예약'} text={record.consultationResult || '초기 평가 예정'} />
+          </aside>
+        </div>
 
-        <section className={attentionRequired ? styles.customerAlertSection : styles.customerSection}>
-          <div className={styles.sectionHeading}>
-            <span>04</span>
-            <h2>건강 설문 확인</h2>
+        <section className={styles.monitorProgramPanel}>
+          <div className={styles.programHeader}>
+            <div className={styles.sectionHeading}>
+              <span>02</span>
+              <h2>추천 운동 단계</h2>
+            </div>
+            <div className={styles.programOutcome}>
+              <span>추천 프로그램</span>
+              <strong>{record.recommendedProgram}</strong>
+            </div>
           </div>
-          <p className={styles.customerText}>
-            {attentionRequired
-              ? '운동 설계 전 추가 확인이 필요한 항목이 있습니다. 담당 코치가 운동 범위와 강도를 조절해 안전하게 진행합니다.'
-              : '작성된 건강 설문 기준으로 즉시 제한해야 할 항목은 확인되지 않았습니다.'}
-          </p>
-          <p className={styles.customerText}>{client.parqYesItems?.length ? client.parqYesItems.join(' / ') : 'PAR-Q 예 체크 항목 없음'}</p>
-        </section>
-
-        <section className={styles.customerSection}>
-          <div className={styles.sectionHeading}>
-            <span>05</span>
-            <h2>운동 단계와 프로그램</h2>
-          </div>
-          <div className={styles.phaseTimeline}>
-            {RP_PHASES.map((phase) => (
-              <div key={phase.id} className={phase.id === record.selectedPhase ? styles.phaseCurrent : styles.phaseStep}>
+          <div className={styles.phaseRail}>
+            {RP_PHASES.map((phase, index) => (
+              <div key={phase.id} className={phase.id === record.selectedPhase ? styles.phaseRailActive : styles.phaseRailStep}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
                 <strong>{phase.clientLabel}</strong>
-                <p>{phase.desc}</p>
-                {phase.id === record.selectedPhase && <span>현재 추천</span>}
+                <em>{index <= currentPhaseIndex ? '진행 범위' : '다음 후보'}</em>
               </div>
             ))}
-          </div>
-          <div className={styles.nextStepBand}>
-            <span>추천 프로그램</span>
-            <strong>{record.recommendedProgram}</strong>
-            <p>{record.nextAction || '초기 평가 예약'} · {record.consultationResult || '초기 평가 예정'}</p>
           </div>
         </section>
 
         <section className={styles.finalSummarySection}>
           <div className={styles.sectionHeading}>
-            <span>06</span>
+            <span>03</span>
             <h2>최종 요약</h2>
           </div>
           <p>{clientSummary}</p>
