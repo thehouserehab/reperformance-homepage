@@ -44,9 +44,9 @@ export default async function SignupPage({ searchParams }) {
     <PageShell>
       <section className="page-hero signup-hero">
         <div className="container page-title">
-          <p className="eyebrow">ACCOUNT SIGNUP</p>
-          <h1>RePERFORMANCE 계정 신청</h1>
-          <p>회원, 트레이너, 관리자 계정을 신청합니다. 관리자와 트레이너 권한은 승인된 계정에만 부여됩니다.</p>
+          <p className="eyebrow">CREATE ACCOUNT</p>
+          <h1>RePERFORMANCE 회원가입</h1>
+          <p>회원, 트레이너, 관리자 계정을 신청합니다. 트레이너와 관리자 권한은 승인된 계정에만 부여됩니다.</p>
         </div>
       </section>
 
@@ -60,33 +60,60 @@ export default async function SignupPage({ searchParams }) {
               </div>
             )}
 
-            <div className={styles.formGrid}>
+            <div className={styles.formSection}>
+              <div className={styles.sectionTitle}>
+                <span>01</span>
+                <strong>기본 정보</strong>
+              </div>
+              <div className={styles.formGrid}>
+                <label>
+                  <span>아이디 또는 이메일</span>
+                  <input name="username" type="text" autoComplete="username" required />
+                </label>
+                <label>
+                  <span>이름</span>
+                  <input name="name" type="text" autoComplete="name" required />
+                </label>
+                <label>
+                  <span>연락처</span>
+                  <input name="phone" type="tel" autoComplete="tel" required />
+                </label>
+                <label>
+                  <span>신청 역할</span>
+                  <select name="requestedRole" defaultValue="member">
+                    <option value="member">회원</option>
+                    <option value="trainer">트레이너</option>
+                    <option value="admin">관리자</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className={styles.formSection}>
+              <div className={styles.sectionTitle}>
+                <span>02</span>
+                <strong>신청 내용</strong>
+              </div>
               <label>
-                <span>이름</span>
-                <input name="name" type="text" autoComplete="name" required />
-              </label>
-              <label>
-                <span>아이디 또는 이메일</span>
-                <input name="username" type="text" autoComplete="username" required />
-              </label>
-              <label>
-                <span>연락처</span>
-                <input name="phone" type="tel" autoComplete="tel" required />
-              </label>
-              <label>
-                <span>신청 역할</span>
-                <select name="requestedRole" defaultValue="member">
-                  <option value="member">회원</option>
-                  <option value="trainer">트레이너</option>
-                  <option value="admin">관리자</option>
-                </select>
+                <span>계정 신청 목적</span>
+                <textarea name="message" placeholder="예: 신규 트레이너 계정이 필요합니다. / 회원 상담 기록을 확인하고 싶습니다." />
               </label>
             </div>
 
-            <label>
-              <span>신청 내용</span>
-              <textarea name="message" placeholder="예: 신규 트레이너 계정이 필요합니다. / 회원 상담 기록을 확인하고 싶습니다." />
-            </label>
+            <div className={styles.formSection}>
+              <div className={styles.sectionTitle}>
+                <span>03</span>
+                <strong>동의</strong>
+              </div>
+              <label className={styles.checkLabel}>
+                <input name="privacyConsent" type="checkbox" value="yes" required />
+                <span>계정 신청 확인을 위해 이름, 연락처, 신청 내용을 저장하는 것에 동의합니다.</span>
+              </label>
+              <label className={styles.checkLabel}>
+                <input name="roleConsent" type="checkbox" value="yes" required />
+                <span>트레이너/관리자 권한은 승인 후 부여되며, 미승인 계정은 관리자 영역에 접근할 수 없음을 확인했습니다.</span>
+              </label>
+            </div>
 
             <button type="submit">가입 신청하기</button>
           </form>
@@ -103,12 +130,12 @@ export default async function SignupPage({ searchParams }) {
               ))}
             </div>
             <div className={styles.notice}>
-              <strong>관리자/트레이너 페이지 접근</strong>
+              <strong>운영 페이지 접근</strong>
               <span>운영관리, 고객관리, 고객상담 페이지는 승인된 관리자 또는 트레이너 계정으로만 접속할 수 있습니다.</span>
             </div>
             <div className={styles.actions}>
-              <Link href="/admin/login">운영 로그인</Link>
-              <Link href="/contact">상담 문의</Link>
+              <Link href="/login">로그인</Link>
+              <Link href="/find-account">계정 찾기</Link>
             </div>
           </aside>
         </div>
