@@ -23,6 +23,8 @@
 
 .clientTopbar {
   position: static;
+  min-height: 56px;
+  padding: 9px 24px;
 }
 
 .brand {
@@ -59,6 +61,19 @@
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.clientStatusRow {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.clientStatusRow .subtle,
+.clientStatusRow .errorText {
+  max-width: min(720px, 55vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .actions form {
@@ -124,6 +139,14 @@
 .customerAlertSection,
 .finalSummarySection,
 .infoTile,
+.clientPrimaryPanel,
+.clientSignalPanel,
+.monitorProgramPanel,
+.goalStatement,
+.compactRows div,
+.programOutcome,
+.phaseRailStep,
+.phaseRailActive,
 .summaryBand,
 .nextStepBand {
   border: 1px solid #e2e4df;
@@ -372,27 +395,28 @@
 }
 
 .clientOnePage {
-  width: min(1180px, calc(100% - 36px));
+  width: min(1360px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 22px 0 40px;
+  padding: 10px 0;
   display: grid;
-  gap: 14px;
+  gap: 8px;
 }
 
 .presentationHero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
-  gap: 24px;
-  align-items: end;
-  padding: 34px;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 14px;
+  align-items: center;
+  min-height: 112px;
+  padding: 16px 20px;
   border-radius: 8px;
   background: linear-gradient(145deg, #11151b 0%, #26302f 58%, #087b72 100%);
   color: white;
 }
 
 .presentationHero h1 {
-  margin: 14px 0 12px;
-  font-size: clamp(38px, 5vw, 64px);
+  margin: 8px 0 6px;
+  font-size: clamp(28px, 3.4vw, 46px);
   letter-spacing: 0;
   line-height: 1.05;
 }
@@ -400,14 +424,18 @@
 .presentationHero p {
   margin: 0;
   color: rgba(255,255,255,.78);
-  line-height: 1.7;
-  font-size: 18px;
+  line-height: 1.45;
+  font-size: 15px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .heroMetaBox {
   display: grid;
-  gap: 6px;
-  padding: 18px;
+  gap: 5px;
+  padding: 12px;
   border-radius: 8px;
   background: rgba(255,255,255,.12);
 }
@@ -420,26 +448,199 @@
 
 .heroMetaBox strong {
   color: #fff;
-  font-size: 18px;
+  font-size: 16px;
+}
+
+.monitorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(330px, .65fr);
+  gap: 10px;
+  min-height: 0;
+}
+
+.clientPrimaryPanel,
+.clientSignalPanel,
+.monitorProgramPanel {
+  min-height: 0;
+  box-shadow: 0 14px 34px rgba(23,25,29,.04);
+}
+
+.clientPrimaryPanel {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+}
+
+.clientSignalPanel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.goalStatement {
+  display: grid;
+  gap: 5px;
+  padding: 10px 12px;
+  background: #f8faf8;
+}
+
+.goalStatement strong {
+  font-size: 21px;
+  line-height: 1.25;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.goalStatement p {
+  margin: 0;
+  color: #087b72;
+  font-weight: 900;
+  line-height: 1.45;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.compactRows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+}
+
+.compactRows div {
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.compactRows span {
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.compactRows strong {
+  font-size: 16px;
+  line-height: 1.25;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.compactRows p {
+  display: none;
+}
+
+.monitorProgramPanel {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.programHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.programOutcome {
+  display: grid;
+  gap: 4px;
+  min-width: 280px;
+  padding: 8px 10px;
+  background: #f8faf8;
+  box-shadow: none;
+}
+
+.programOutcome span {
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.programOutcome strong {
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.phaseRail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0,1fr));
+  gap: 7px;
+}
+
+.phaseRailStep,
+.phaseRailActive {
+  display: grid;
+  gap: 3px;
+  min-height: 64px;
+  padding: 8px;
+  background: #f5f6f3;
+  box-shadow: none;
+}
+
+.phaseRailActive {
+  background: #e9f7f6;
+  border-color: rgba(8,123,114,.32);
+}
+
+.phaseRailStep span,
+.phaseRailActive span {
+  color: #087b72;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.phaseRailStep strong,
+.phaseRailActive strong {
+  line-height: 1.25;
+  font-size: 14px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.phaseRailStep em,
+.phaseRailActive em {
+  color: #6d7278;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.phaseRailActive em {
+  color: #087b72;
 }
 
 .customerSection,
 .customerAlertSection,
 .finalSummarySection {
   display: grid;
-  gap: 14px;
-  padding: 22px;
+  gap: 8px;
+  padding: 14px;
 }
 
 .sectionHeading {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .sectionHeading span {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -451,14 +652,15 @@
 
 .sectionHeading h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
   letter-spacing: 0;
 }
 
 .infoTile {
   display: grid;
-  gap: 7px;
-  padding: 18px;
+  gap: 5px;
+  min-height: 0;
+  padding: 12px;
 }
 
 .infoTile span {
@@ -468,14 +670,22 @@
 }
 
 .infoTile strong {
-  font-size: 20px;
+  font-size: 17px;
   line-height: 1.25;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 }
 
 .infoTile p {
   margin: 0;
   color: #5f6368;
-  line-height: 1.6;
+  line-height: 1.45;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .summaryBand,
@@ -582,6 +792,7 @@
 .finalSummarySection {
   background: #11151b;
   color: #fff;
+  min-height: 0;
 }
 
 .finalSummarySection .sectionHeading span {
@@ -592,6 +803,26 @@
 .finalSummarySection h2,
 .finalSummarySection p {
   color: #fff;
+}
+
+.finalSummarySection p {
+  line-height: 1.45;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+@media (min-width: 900px) {
+  .clientPage {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .clientOnePage {
+    height: calc(100vh - 56px);
+    grid-template-rows: auto minmax(172px, 1fr) auto minmax(92px, auto);
+  }
 }
 
 @media (max-width: 1180px) {
@@ -632,8 +863,21 @@
   .formGrid,
   .customerGrid,
   .customerGridTwo,
+  .monitorGrid,
+  .clientSignalPanel,
+  .compactRows,
+  .phaseRail,
   .phaseTimeline {
     grid-template-columns: 1fr;
+  }
+
+  .programHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .programOutcome {
+    min-width: 0;
   }
 
   .clientSelect,
@@ -643,6 +887,8 @@
   }
 
   .presentationHero,
+  .clientPrimaryPanel,
+  .monitorProgramPanel,
   .customerSection,
   .customerAlertSection,
   .finalSummarySection,
