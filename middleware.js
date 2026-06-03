@@ -5,14 +5,24 @@ function isProtectedAdminPath(pathname) {
   return pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
 }
 
+function isProtectedAccountPath(pathname) {
+  return pathname.startsWith('/account');
+}
+
 function isProtectedApiPath(pathname) {
   return pathname.startsWith('/api/rp/clients');
 }
 
-function buildLoginUrl(request, error) {
+function buildStaffLoginUrl(request, error) {
   const loginUrl = new URL('/admin/login', request.url);
   loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
   if (error) loginUrl.searchParams.set('error', error);
+  return loginUrl;
+}
+
+function buildPublicLoginUrl(request) {
+  const loginUrl = new URL('/login', request.url);
+  loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`);
   return loginUrl;
 }
 
@@ -31,8 +41,18 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  if (!isProtectedAdminPath(pathname) && !isProtectedApiPath(pathname)) {
+  if (pathname === '/login') {
+    if (session) return NextResponse.redirect(new URL(canUseStaffArea ? '/admin' : '/account', request.url));
     return NextResponse.next();
+  }
+
+  if (!isProtectedAdminPath(pathname) && !isProtectedAccountPath(pathname) && !isProtectedApiPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  if (isProtectedAccountPath(pathname)) {
+    if (session) return NextResponse.next();
+    return NextResponse.redirect(buildPublicLoginUrl(request));
   }
 
   if (canUseStaffArea) return NextResponse.next();
@@ -44,9 +64,9 @@ export async function middleware(request) {
     );
   }
 
-  return NextResponse.redirect(buildLoginUrl(request, session ? 'forbidden' : undefined));
+  return NextResponse.redirect(buildStaffLoginUrl(request, session ? 'forbidden' : undefined));
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/rp/clients/:path*'],
+  matcher: ['/admin/:path*', '/account/:path*', '/login', '/api/rp/clients/:path*'],
 };

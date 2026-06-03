@@ -33,8 +33,8 @@ export default function Home() {
             <Link href="/signup" className="button hero-secondary">
               회원가입
             </Link>
-            <Link href="/services" className="button hero-secondary">
-              프로그램 보기
+            <Link href="/login" className="button hero-secondary">
+              로그인
             </Link>
           </div>
           <div className="proof-strip" aria-label="RePERFORMANCE 운영 기준">
@@ -136,17 +136,17 @@ export default function Home() {
           </div>
           <div className="contact-box accent-box">
             <p className="eyebrow">ACCOUNT</p>
-            <h2>회원가입 / 계정 신청</h2>
+            <h2>회원가입 / 로그인</h2>
             <p>
               상담을 시작하는 회원, 고객관리 화면이 필요한 트레이너, 운영 권한이 필요한 관리자는 계정 신청을 남길 수 있습니다.
-              관리자와 트레이너 권한은 승인된 계정에만 부여됩니다.
+              로그인 후 권한에 따라 마이페이지 또는 운영관리 화면으로 이동합니다.
             </p>
             <div className="button-row">
               <Link href="/signup" className="button primary">
                 회원가입
               </Link>
-              <Link href="/admin/login" className="button secondary">
-                운영 로그인
+              <Link href="/login" className="button secondary">
+                로그인
               </Link>
             </div>
           </div>

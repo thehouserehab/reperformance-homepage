@@ -9,6 +9,7 @@ const links = [
   { href: "/coach", label: "코치" },
   { href: "/location", label: "위치" },
   { href: "/signup", label: "회원가입" },
+  { href: "/login", label: "로그인" },
 ];
 
 function isActive(pathname: string, href: string) {

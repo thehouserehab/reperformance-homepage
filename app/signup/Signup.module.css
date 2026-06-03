@@ -15,8 +15,38 @@
 
 .form {
   display: grid;
-  gap: 18px;
+  gap: 20px;
   padding: 30px;
+}
+
+.formSection {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e4df;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionTitle span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #eff8f6;
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.sectionTitle strong {
+  color: #17191d;
+  font-size: 18px;
 }
 
 .formGrid {
@@ -30,7 +60,7 @@
   gap: 8px;
 }
 
-.form span {
+.form label > span {
   color: #4a4f55;
   font-size: 13px;
   font-weight: 900;
@@ -66,6 +96,30 @@
 .form textarea:focus {
   border-color: #087b72;
   box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+}
+
+.checkLabel {
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px !important;
+  padding: 12px;
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fbfbfa;
+}
+
+.checkLabel input {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+  padding: 0;
+}
+
+.checkLabel span {
+  color: #4a4f55;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .form button,
