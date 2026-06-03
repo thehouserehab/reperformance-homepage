@@ -14,6 +14,8 @@ import {
 import { fetchRpClients, saveRpConsultation } from './rpSheetsClient';
 
 const STORAGE_KEY = 'rp-consultation-mode-v1';
+const LIVE_STORAGE_KEY = 'rp-consultation-live-view-v1';
+const LIVE_CHANNEL_NAME = 'rp-consultation-live-channel';
 
 const EMPTY_CLIENT = {
   id: 'NO-CLIENT',
@@ -41,6 +43,12 @@ function readRequestedClientId() {
   return new URLSearchParams(window.location.search).get('clientId') || '';
 }
 
+function readRequestedViewMode() {
+  if (typeof window === 'undefined') return 'coach';
+  const view = new URLSearchParams(window.location.search).get('view');
+  return view === 'client' ? 'client' : 'coach';
+}
+
 function createInitialRecord(client = EMPTY_CLIENT) {
   return {
     consultationDate: today(),
@@ -63,6 +71,7 @@ function createInitialRecord(client = EMPTY_CLIENT) {
     nextAction: '초기 평가 예약',
     coachMemo: '',
     internalJudgment: '',
+    clientSummary: '',
     aiSummary: '',
   };
 }
@@ -75,39 +84,400 @@ function TogglePill({ active, children, onClick }) {
   );
 }
 
-function buildAiSummary(client, record, currentPhase) {
-  const parqLine = client.parqYesItems?.length
-    ? `${client.parqStatus}: ${client.parqYesItems.join(', ')}`
-    : 'PAR-Q 예 체크 항목 없음';
-
-  return `AI 상담 요약\n\n- 회원 목표: ${record.memberGoal || '미입력'}\n- 코치 재정의 목표: ${record.coachGoal || '미입력'}\n- 주요 불편 부위: ${record.painAreas.length ? record.painAreas.join(', ') : '특이사항 없음'}\n- 통증 강도: ${record.painScore}/10\n- PAR-Q 확인: ${parqLine}\n- 초기 확인 질문: 통증 발생 동작, 최근 치료/주사/수술 여부, 운동 중 악화 기준\n- 초기 평가 추천: Squat, Hinge, Lunge, Balance, Breathing/Bracing\n- OPT Phase 후보: ${currentPhase?.label || 'Phase 미선택'} (${currentPhase?.clientLabel || ''})\n- 프로그램 설계 주의: 고강도 적용 전 통증 반응과 움직임 제어 능력 확인 필요`;
-}
-
 function formatList(value, fallback = '기록 없음') {
   return Array.isArray(value) && value.length ? value.join(', ') : fallback;
 }
 
-function needsAttention(client) {
+function needsAttention(client, record) {
   if (!client) return false;
   if (Array.isArray(client.parqYesItems) && client.parqYesItems.length) return true;
   if (client.parqStatus && client.parqStatus !== '정상') return true;
-  return Number(client.painScore) >= 7;
+  return Number(record?.painScore || client.painScore) >= 7;
+}
+
+function buildClientSummary(client, record, currentPhase) {
+  const painText = record.painAreas?.length ? `${record.painAreas.join(', ')} 부위` : '특이 불편 부위 없음';
+  const phaseText = currentPhase?.clientLabel || '움직임 안정화 단계';
+
+  return [
+    `${client.name}님은 ${record.memberGoal || client.goal || '운동 목표 확인'}을 중심으로 상담을 진행 중입니다.`,
+    `현재 확인된 불편감은 ${painText}이며 통증 강도는 ${record.painScore || 0}/10입니다.`,
+    `초기 운동 방향은 ${phaseText}를 기준으로 안전한 범위에서 시작합니다.`,
+    `다음 단계는 ${record.nextAction || '초기 평가 예약'}입니다.`,
+  ].join('\n');
+}
+
+function buildCoachSummary(client, record, currentPhase) {
+  const parqLine = client.parqYesItems?.length
+    ? `${client.parqStatus}: ${client.parqYesItems.join(', ')}`
+    : 'PAR-Q 예 체크 항목 없음';
+
+  return [
+    '코치 상담 요약',
+    `- 회원 목표: ${record.memberGoal || '미입력'}`,
+    `- 코치 재정의 목표: ${record.coachGoal || '미입력'}`,
+    `- 주요 불편 부위: ${record.painAreas?.length ? record.painAreas.join(', ') : '특이사항 없음'}`,
+    `- 통증 강도: ${record.painScore}/10`,
+    `- PAR-Q 확인: ${parqLine}`,
+    `- OPT Phase 후보: ${currentPhase?.label || 'Phase 미선택'} (${currentPhase?.clientLabel || ''})`,
+    `- 다음 액션: ${record.nextAction || '미입력'}`,
+  ].join('\n');
+}
+
+function parseLivePayload(raw) {
+  try {
+    return typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch (_) {
+    return null;
+  }
+}
+
+function getClientLiveStorageKey(clientId) {
+  return `${LIVE_STORAGE_KEY}:${clientId || 'default'}`;
+}
+
+function InfoTile({ label, value, text }) {
+  return (
+    <div className={styles.infoTile}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {text && <p>{text}</p>}
+    </div>
+  );
+}
+
+function ClientPresentationView({ client, record, currentPhase, attentionRequired, connectionStatus, connectionError }) {
+  const clientSummary = record.clientSummary || buildClientSummary(client, record, currentPhase);
+  const purposes = record.purposes?.length ? record.purposes : client.purpose;
+
+  return (
+    <main className={styles.clientPage}>
+      <header className={styles.clientTopbar}>
+        <div className={styles.logoText}><span>Re</span>PERFORMANCE</div>
+        <div className={styles.clientStatusRow}>
+          <span className={connectionError ? styles.errorText : styles.subtle}>{connectionError ? `오류: ${connectionError}` : connectionStatus}</span>
+          <a className={styles.ghostButton} href={`/admin/consultation?clientId=${encodeURIComponent(client.id || '')}`}>코치 입력</a>
+        </div>
+      </header>
+
+      <section className={styles.clientOnePage}>
+        <div className={styles.presentationHero}>
+          <div>
+            <span className={attentionRequired ? styles.heroAlert : styles.heroBadge}>
+              {attentionRequired ? '추가 확인 필요' : '상담 진행 가능'}
+            </span>
+            <h1>{client.name}님 상담 안내</h1>
+            <p>현재 상태, 운동 목표, 권장 진행 방향을 한 화면에 정리했습니다.</p>
+          </div>
+          <div className={styles.heroMetaBox}>
+            <span>상담일</span>
+            <strong>{record.consultationDate || today()}</strong>
+            <span>담당 코치</span>
+            <strong>{record.coachName || '정우현'}</strong>
+          </div>
+        </div>
+
+        <section className={styles.customerSection}>
+          <div className={styles.sectionHeading}>
+            <span>01</span>
+            <h2>기본 정보</h2>
+          </div>
+          <div className={styles.customerGrid}>
+            <InfoTile label="회원 ID" value={client.id || '미입력'} text={client.phone || '연락처 미입력'} />
+            <InfoTile label="현재 상태" value={client.status || record.consultationStatus || '상담 중'} text={`유입경로: ${client.route || '미입력'}`} />
+            <InfoTile label="운동 가능 빈도" value={record.weeklyFrequency || '주 2회'} text={`선호 시간: ${record.preferredTime || '미입력'}`} />
+          </div>
+        </section>
+
+        <section className={styles.customerSection}>
+          <div className={styles.sectionHeading}>
+            <span>02</span>
+            <h2>목표와 방문 목적</h2>
+          </div>
+          <div className={styles.summaryBand}>
+            <strong>{record.memberGoal || client.goal || '운동 목표를 상담 중 정리합니다.'}</strong>
+            <p>{record.coachGoal || '코치가 상담 내용을 바탕으로 안전한 운동 목표를 함께 정리합니다.'}</p>
+          </div>
+          <div className={styles.chipDisplay}>{formatList(purposes, '방문 목적 미입력')}</div>
+        </section>
+
+        <section className={styles.customerSection}>
+          <div className={styles.sectionHeading}>
+            <span>03</span>
+            <h2>불편감 확인</h2>
+          </div>
+          <div className={styles.customerGridTwo}>
+            <InfoTile label="주요 부위" value={record.painAreas?.length ? record.painAreas.join(', ') : '특이사항 없음'} text={record.symptomMoves || '증상 발생 동작 미입력'} />
+            <div className={styles.infoTile}>
+              <span>통증 강도</span>
+              <strong>{record.painScore || 0}/10</strong>
+              <div className={styles.painMeter}><span style={{ width: `${Math.min(100, Math.max(0, Number(record.painScore) * 10 || 0))}%` }} /></div>
+            </div>
+          </div>
+        </section>
+
+        <section className={attentionRequired ? styles.customerAlertSection : styles.customerSection}>
+          <div className={styles.sectionHeading}>
+            <span>04</span>
+            <h2>건강 설문 확인</h2>
+          </div>
+          <p className={styles.customerText}>
+            {attentionRequired
+              ? '운동 설계 전 추가 확인이 필요한 항목이 있습니다. 담당 코치가 운동 범위와 강도를 조절해 안전하게 진행합니다.'
+              : '작성된 건강 설문 기준으로 즉시 제한해야 할 항목은 확인되지 않았습니다.'}
+          </p>
+          <p className={styles.customerText}>{client.parqYesItems?.length ? client.parqYesItems.join(' / ') : 'PAR-Q 예 체크 항목 없음'}</p>
+        </section>
+
+        <section className={styles.customerSection}>
+          <div className={styles.sectionHeading}>
+            <span>05</span>
+            <h2>운동 단계와 프로그램</h2>
+          </div>
+          <div className={styles.phaseTimeline}>
+            {RP_PHASES.map((phase) => (
+              <div key={phase.id} className={phase.id === record.selectedPhase ? styles.phaseCurrent : styles.phaseStep}>
+                <strong>{phase.clientLabel}</strong>
+                <p>{phase.desc}</p>
+                {phase.id === record.selectedPhase && <span>현재 추천</span>}
+              </div>
+            ))}
+          </div>
+          <div className={styles.nextStepBand}>
+            <span>추천 프로그램</span>
+            <strong>{record.recommendedProgram}</strong>
+            <p>{record.nextAction || '초기 평가 예약'} · {record.consultationResult || '초기 평가 예정'}</p>
+          </div>
+        </section>
+
+        <section className={styles.finalSummarySection}>
+          <div className={styles.sectionHeading}>
+            <span>06</span>
+            <h2>최종 요약</h2>
+          </div>
+          <p>{clientSummary}</p>
+        </section>
+      </section>
+    </main>
+  );
+}
+
+function CoachInputView({
+  client,
+  record,
+  currentPhase,
+  attentionRequired,
+  clients,
+  clientId,
+  connectionStatus,
+  connectionError,
+  isSaving,
+  isSummarizing,
+  onClientChange,
+  onFieldChange,
+  onArrayToggle,
+  onOpenClientView,
+  onGenerateSummary,
+  onSave,
+  onExport,
+}) {
+  return (
+    <main className={styles.wrap}>
+      <header className={styles.topbar}>
+        <div className={styles.brand}>
+          <div className={styles.logoText}><span>Re</span>PERFORMANCE</div>
+          <div className={styles.subtle}>Coach Input · Live Client Presentation</div>
+          <div className={connectionError ? styles.errorText : styles.subtle}>{connectionError ? `오류: ${connectionError}` : connectionStatus}</div>
+        </div>
+        <div className={styles.actions}>
+          <a className={styles.ghostButton} href="/admin">운영 홈</a>
+          <a className={styles.ghostButton} href="/admin/clients">고객관리</a>
+          <select className={`${styles.select} ${styles.clientSelect}`} value={clientId} onChange={(event) => onClientChange(event.target.value)} disabled={!clients.length}>
+            {clients.length ? clients.map((item) => (
+              <option key={item.id} value={item.id}>{item.id} · {item.name}</option>
+            )) : <option value="">회원 없음</option>}
+          </select>
+          <button className={styles.primaryButton} type="button" onClick={onOpenClientView} disabled={!clients.length}>고객 화면 열기</button>
+          <form action="/api/admin/logout" method="post">
+            <button className={styles.ghostButton} type="submit">로그아웃</button>
+          </form>
+        </div>
+      </header>
+
+      <div className={styles.coachPageLayout}>
+        <section className={styles.inputPanel}>
+          <div className={styles.panelHeaderSplit}>
+            <div>
+              <h1>코치 입력 화면</h1>
+              <p>고객에게 보여주지 않을 내부 판단과 상담 기록을 이곳에서 정리합니다.</p>
+            </div>
+            <span className={styles.liveBadge}>Live Sync</span>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>회원 요약</h2>
+            <div className={styles.pillRow}>
+              <span className={styles.statusPill}>{client.id}</span>
+              <span className={styles.statusPill}>{client.name}</span>
+              <span className={attentionRequired ? styles.dangerPill : styles.statusPill}>PAR-Q {client.parqStatus}</span>
+              <span className={styles.statusPill}>{record.consultationStatus}</span>
+            </div>
+            <div className={styles.summaryGrid}>
+              <div><strong>기존 목표</strong><span>{client.goal || '미입력'}</span></div>
+              <div><strong>방문 목적</strong><span>{formatList(client.purpose)}</span></div>
+              <div><strong>불편 부위</strong><span>{formatList(client.painAreas, '특이사항 없음')}</span></div>
+              <div><strong>잔여회차</strong><span>{Number(client.remainingSessions) || 0}회</span></div>
+            </div>
+          </div>
+
+          <div className={attentionRequired ? styles.alertSection : styles.section}>
+            <h2 className={styles.sectionTitle}>PAR-Q 확인</h2>
+            <p className={styles.cardText}>{client.parqYesItems?.length ? client.parqYesItems.join(' / ') : '예 체크 항목 없음'}</p>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>상담 입력</h2>
+            <div className={styles.formGrid}>
+              <label className={styles.fieldFull}>
+                <span className={styles.label}>회원이 말한 목표</span>
+                <textarea className={styles.textarea} value={record.memberGoal} onChange={(e) => onFieldChange('memberGoal', e.target.value)} />
+              </label>
+              <label className={styles.fieldFull}>
+                <span className={styles.label}>코치가 재정의한 목표</span>
+                <textarea className={styles.textarea} value={record.coachGoal} onChange={(e) => onFieldChange('coachGoal', e.target.value)} placeholder="예: 무릎 통증을 관리하면서 하체 정렬과 기본 근력을 회복한다." />
+              </label>
+              <div className={styles.fieldFull}>
+                <span className={styles.label}>방문 목적</span>
+                <div className={styles.pillRow}>
+                  {VISIT_PURPOSES.map((item) => <TogglePill key={item} active={record.purposes.includes(item)} onClick={() => onArrayToggle('purposes', item)}>{item}</TogglePill>)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>통증/불편감</h2>
+            <div className={styles.formGrid}>
+              <div className={styles.fieldFull}>
+                <span className={styles.label}>주요 불편 부위</span>
+                <div className={styles.pillRow}>
+                  {PAIN_AREAS.map((item) => <TogglePill key={item} active={record.painAreas.includes(item)} onClick={() => onArrayToggle('painAreas', item)}>{item}</TogglePill>)}
+                </div>
+              </div>
+              <label className={styles.field}>
+                <span className={styles.label}>통증 강도 0~10</span>
+                <input className={styles.input} type="number" min="0" max="10" value={record.painScore} onChange={(e) => onFieldChange('painScore', Number(e.target.value))} />
+              </label>
+              <label className={styles.field}>
+                <span className={styles.label}>주당 가능 횟수</span>
+                <select className={styles.select} value={record.weeklyFrequency} onChange={(e) => onFieldChange('weeklyFrequency', e.target.value)}>
+                  {['주 1회', '주 2회', '주 3회', '주 4회 이상'].map((item) => <option key={item}>{item}</option>)}
+                </select>
+              </label>
+              <label className={styles.field}>
+                <span className={styles.label}>선호 시간</span>
+                <select className={styles.select} value={record.preferredTime} onChange={(e) => onFieldChange('preferredTime', e.target.value)}>
+                  {['오전', '오후', '저녁', '협의 필요'].map((item) => <option key={item}>{item}</option>)}
+                </select>
+              </label>
+              <label className={styles.fieldFull}>
+                <span className={styles.label}>증상 발생 동작 / 악화 요인</span>
+                <textarea className={styles.textarea} value={record.symptomMoves} onChange={(e) => onFieldChange('symptomMoves', e.target.value)} />
+              </label>
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>프로그램 방향</h2>
+            <div className={styles.formGrid}>
+              <label className={styles.field}>
+                <span className={styles.label}>추천 OPT Phase</span>
+                <select className={styles.select} value={record.selectedPhase} onChange={(e) => onFieldChange('selectedPhase', e.target.value)}>
+                  {RP_PHASES.map((phase) => <option key={phase.id} value={phase.id}>{phase.label} · {phase.clientLabel}</option>)}
+                </select>
+              </label>
+              <label className={styles.field}>
+                <span className={styles.label}>추천 프로그램</span>
+                <select className={styles.select} value={record.recommendedProgram} onChange={(e) => onFieldChange('recommendedProgram', e.target.value)}>
+                  {PROGRAMS.map((program) => <option key={program}>{program}</option>)}
+                </select>
+              </label>
+              <label className={styles.field}>
+                <span className={styles.label}>상담 결과</span>
+                <select className={styles.select} value={record.consultationResult} onChange={(e) => onFieldChange('consultationResult', e.target.value)}>
+                  {CONSULTATION_RESULTS.map((item) => <option key={item}>{item}</option>)}
+                </select>
+              </label>
+              <label className={styles.field}>
+                <span className={styles.label}>다음 액션</span>
+                <select className={styles.select} value={record.nextAction} onChange={(e) => onFieldChange('nextAction', e.target.value)}>
+                  {NEXT_ACTIONS.map((item) => <option key={item}>{item}</option>)}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>고객용 최종 요약</h2>
+            <textarea className={styles.textareaLarge} value={record.clientSummary} onChange={(e) => onFieldChange('clientSummary', e.target.value)} placeholder="고객 화면 하단에 표시될 짧은 최종 요약입니다." />
+            <div className={styles.footerActions}>
+              <button className={styles.ghostButton} type="button" onClick={onGenerateSummary} disabled={isSummarizing}>{isSummarizing ? 'AI 요약 중...' : 'AI 요약 생성'}</button>
+            </div>
+          </div>
+
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>코치 내부 메모</h2>
+            <textarea className={styles.textareaLarge} value={record.internalJudgment} onChange={(e) => onFieldChange('internalJudgment', e.target.value)} placeholder="회원에게 보여주지 않는 내부 판단과 상담 전략을 기록합니다." />
+            {record.aiSummary && <div className={styles.aiBox}>{record.aiSummary}</div>}
+          </div>
+
+          <div className={styles.footerActions}>
+            <button className={styles.ghostButton} type="button" onClick={onExport} disabled={!clients.length}>JSON 내보내기</button>
+            <button className={styles.primaryButton} type="button" onClick={onSave} disabled={!clients.length || isSaving}>{isSaving ? '저장 중...' : '상담 저장'}</button>
+          </div>
+        </section>
+
+        <aside className={styles.livePreviewPanel}>
+          <div className={styles.previewSticky}>
+            <span className={styles.liveBadge}>실시간 고객 화면</span>
+            <h2>{client.name}님 화면에 반영 중</h2>
+            <p>고객에게 보여줄 전체 화면은 새 창으로 열어 사용합니다. 이 미리보기에는 고객용 정보만 축약 표시됩니다.</p>
+            <div className={styles.previewCard}>
+              <strong>{record.memberGoal || client.goal || '운동 목표 미입력'}</strong>
+              <span>{record.painAreas?.length ? record.painAreas.join(', ') : '특이 불편감 없음'} · 통증 {record.painScore || 0}/10</span>
+              <span>{currentPhase?.clientLabel || '움직임 안정화 단계'}</span>
+              <span>{record.recommendedProgram}</span>
+            </div>
+            <button className={styles.primaryButton} type="button" onClick={onOpenClientView} disabled={!clients.length}>고객 화면 새 창</button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
 }
 
 export default function RPConsultationMode({ clients: initialClients, onSave }) {
+  const [viewMode, setViewMode] = useState('coach');
   const [requestedClientId, setRequestedClientId] = useState('');
   const [clients, setClients] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients : SAMPLE_CLIENTS));
   const [clientId, setClientId] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients[0]?.id : ''));
   const [connectionStatus, setConnectionStatus] = useState('Google Sheets 연결 확인 중...');
   const [connectionError, setConnectionError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [livePayload, setLivePayload] = useState(null);
 
   const selectedClient = useMemo(() => clients.find((client) => client.id === clientId) || clients[0] || EMPTY_CLIENT, [clients, clientId]);
   const [record, setRecord] = useState(() => createInitialRecord(selectedClient));
-  const currentPhase = RP_PHASES.find((phase) => phase.id === record.selectedPhase);
-  const attentionRequired = needsAttention(selectedClient);
+  const currentPhase = RP_PHASES.find((phase) => phase.id === record.selectedPhase) || RP_PHASES[0];
+  const presentationClient = livePayload?.client || selectedClient;
+  const presentationRecord = livePayload?.record || record;
+  const presentationPhase = RP_PHASES.find((phase) => phase.id === presentationRecord.selectedPhase) || currentPhase;
+  const attentionRequired = needsAttention(viewMode === 'client' ? presentationClient : selectedClient, viewMode === 'client' ? presentationRecord : record);
 
   useEffect(() => {
+    const requestedView = readRequestedViewMode();
+    setViewMode(requestedView);
     setRequestedClientId(readRequestedClientId());
   }, []);
 
@@ -117,7 +487,7 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
     async function loadClientsFromSheets() {
       if (Array.isArray(initialClients) && initialClients.length) {
         setClients(initialClients);
-        setClientId(initialClients[0]?.id || '');
+        setClientId((current) => current || initialClients[0]?.id || '');
         setConnectionStatus(`외부 주입 고객 목록 사용 · ${initialClients.length}명`);
         return;
       }
@@ -131,7 +501,7 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
 
         if (sheetClients.length) {
           setClients(sheetClients);
-          setClientId(sheetClients[0].id);
+          setClientId((current) => current || sheetClients[0].id);
           setConnectionStatus(`Google Sheets 연결 성공 · ${sheetClients.length}명 불러옴`);
         } else {
           setClients([]);
@@ -141,7 +511,7 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
       } catch (error) {
         if (cancelled) return;
         setClients(SAMPLE_CLIENTS);
-        setClientId(SAMPLE_CLIENTS[0]?.id || '');
+        setClientId((current) => current || SAMPLE_CLIENTS[0]?.id || '');
         setConnectionStatus('Google Sheets 연결 실패 · 샘플 고객 표시 중');
         setConnectionError(error?.message || '알 수 없는 연결 오류');
       }
@@ -171,6 +541,67 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
     setRecord(createInitialRecord(selectedClient));
   }, [selectedClient]);
 
+  useEffect(() => {
+    if (viewMode !== 'coach' || !selectedClient?.id || selectedClient.id === 'NO-CLIENT') return;
+    const payload = {
+      clientId: selectedClient.id,
+      client: selectedClient,
+      record: {
+        ...record,
+        clientId: selectedClient.id,
+        clientName: selectedClient.name,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      window.localStorage.setItem(`${STORAGE_KEY}:${selectedClient.id}`, JSON.stringify(payload.record));
+      window.localStorage.setItem(LIVE_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(getClientLiveStorageKey(selectedClient.id), JSON.stringify(payload));
+    } catch (_) {}
+
+    if ('BroadcastChannel' in window) {
+      const channel = new BroadcastChannel(LIVE_CHANNEL_NAME);
+      channel.postMessage(payload);
+      channel.close();
+    }
+  }, [viewMode, selectedClient, record]);
+
+  useEffect(() => {
+    if (viewMode !== 'client') return undefined;
+
+    function applyPayload(payload) {
+      if (!payload?.record || !payload?.client) return;
+      const payloadClientId = payload.clientId || payload.client.id;
+      if (clientId && payloadClientId && payloadClientId !== clientId) return;
+      setLivePayload(payload);
+    }
+
+    if (typeof window !== 'undefined') {
+      const preferredRaw = window.localStorage.getItem(getClientLiveStorageKey(clientId || requestedClientId));
+      const fallbackRaw = window.localStorage.getItem(LIVE_STORAGE_KEY);
+      applyPayload(parseLivePayload(preferredRaw || fallbackRaw));
+    }
+
+    function handleStorage(event) {
+      if (!event.key || (!event.key.startsWith(LIVE_STORAGE_KEY))) return;
+      applyPayload(parseLivePayload(event.newValue));
+    }
+
+    window.addEventListener('storage', handleStorage);
+
+    let channel;
+    if ('BroadcastChannel' in window) {
+      channel = new BroadcastChannel(LIVE_CHANNEL_NAME);
+      channel.onmessage = (event) => applyPayload(event.data);
+    }
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      if (channel) channel.close();
+    };
+  }, [viewMode, clientId, requestedClientId]);
+
   function updateField(key, value) {
     setRecord((prev) => ({ ...prev, [key]: value }));
   }
@@ -185,8 +616,50 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
     });
   }
 
-  function generateSummary() {
-    updateField('aiSummary', buildAiSummary(selectedClient, record, currentPhase));
+  function openClientView() {
+    if (typeof window === 'undefined') return;
+    const url = new URL('/admin/consultation', window.location.origin);
+    url.searchParams.set('view', 'client');
+    if (selectedClient?.id) url.searchParams.set('clientId', selectedClient.id);
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
+  }
+
+  async function generateSummary() {
+    const fallbackClientSummary = buildClientSummary(selectedClient, record, currentPhase);
+    const fallbackCoachSummary = buildCoachSummary(selectedClient, record, currentPhase);
+
+    try {
+      setIsSummarizing(true);
+      const response = await fetch('/api/rp/consultation-summary', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          client: selectedClient,
+          record,
+          phase: currentPhase,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || payload?.ok === false) throw new Error(payload?.error || 'AI 요약 생성 실패');
+
+      setRecord((prev) => ({
+        ...prev,
+        clientSummary: payload.clientSummary || payload.summary || fallbackClientSummary,
+        aiSummary: payload.coachSummary || payload.summary || fallbackCoachSummary,
+      }));
+    } catch (error) {
+      setRecord((prev) => ({
+        ...prev,
+        clientSummary: fallbackClientSummary,
+        aiSummary: `${fallbackCoachSummary}\n\nAI 연결 상태: ${error?.message || '설정 필요'}`,
+      }));
+    } finally {
+      setIsSummarizing(false);
+    }
   }
 
   async function saveRecord() {
@@ -225,225 +698,38 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
     URL.revokeObjectURL(url);
   }
 
+  if (viewMode === 'client') {
+    return (
+      <ClientPresentationView
+        client={presentationClient}
+        record={presentationRecord}
+        currentPhase={presentationPhase}
+        attentionRequired={attentionRequired}
+        connectionStatus={connectionStatus}
+        connectionError={connectionError}
+      />
+    );
+  }
+
   return (
-    <main className={styles.wrap}>
-      <header className={styles.topbar}>
-        <div className={styles.brand}>
-          <div className={styles.logoText}><span>Re</span>PERFORMANCE</div>
-          <div className={styles.subtle}>Consultation Mode · Client View + Coach View</div>
-          <div className={connectionError ? styles.errorText : styles.subtle}>{connectionStatus}</div>
-          {connectionError && <div className={styles.errorText}>오류: {connectionError}</div>}
-        </div>
-        <div className={styles.actions}>
-          <a className={styles.ghostButton} href="/admin">운영 홈</a>
-          <a className={styles.ghostButton} href="/admin/clients">고객관리</a>
-          <select className={`${styles.select} ${styles.clientSelect}`} value={clientId} onChange={(event) => setClientId(event.target.value)} disabled={!clients.length}>
-            {clients.length ? clients.map((client) => (
-              <option key={client.id} value={client.id}>{client.id} · {client.name}</option>
-            )) : <option value="">회원 없음</option>}
-          </select>
-          <button className={styles.ghostButton} type="button" onClick={exportJson} disabled={!clients.length}>JSON</button>
-          <button className={styles.primaryButton} type="button" onClick={saveRecord} disabled={!clients.length || isSaving}>{isSaving ? '저장 중...' : '상담 저장'}</button>
-          <form action="/api/admin/logout" method="post">
-            <button className={styles.ghostButton} type="submit">로그아웃</button>
-          </form>
-        </div>
-      </header>
-
-      <div className={styles.layout}>
-        <section className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <h2 className={styles.panelTitle}>고객 화면</h2>
-            <p className={styles.subtle}>회원에게 보여줄 수 있는 상담 안내 화면입니다.</p>
-          </div>
-          <div className={styles.clientScreen}>
-            <div className={styles.clientHero}>
-              <span className={attentionRequired ? styles.heroAlert : styles.heroBadge}>{attentionRequired ? '추가 확인 필요' : '상담 진행 가능'}</span>
-              <h1>{selectedClient.name}님 상담을 시작합니다.</h1>
-              <p>현재 몸 상태와 운동 목표를 확인하고, 가장 안전한 운동 방향을 함께 정리합니다.</p>
-              <div className={styles.stepList}>
-                {['운동 목적 확인', '현재 불편감 확인', '건강 설문 확인', '운동 단계 안내', '다음 진행 절차 안내'].map((step, index) => (
-                  <div className={styles.stepItem} key={step}><span className={styles.stepNum}>{index + 1}</span>{step}</div>
-                ))}
-              </div>
-            </div>
-
-            <div className={styles.cardGrid}>
-              <div className={styles.card}>
-                <div className={styles.cardLabel}>기본 정보</div>
-                <div className={styles.cardValue}>{selectedClient.id}</div>
-                <p className={styles.cardText}>{selectedClient.phone || '연락처 미입력'} · {selectedClient.route || '유입경로 미입력'}</p>
-              </div>
-              <div className={styles.card}>
-                <div className={styles.cardLabel}>현재 상태</div>
-                <div className={styles.cardValue}>{selectedClient.status || record.consultationStatus}</div>
-                <p className={styles.cardText}>담당 코치 · {record.coachName}</p>
-              </div>
-              <div className={styles.wideCard}>
-                <div className={styles.cardLabel}>운동 목표 정리</div>
-                <div className={styles.cardValue}>{record.memberGoal || '상담 중 목표를 정리합니다.'}</div>
-              </div>
-              <div className={styles.wideCard}>
-                <div className={styles.cardLabel}>현재 불편감</div>
-                <div className={styles.cardValue}>{record.painAreas.length ? record.painAreas.join(', ') : '특이 불편감 없음'}</div>
-                <p className={styles.cardText}>통증 강도 {record.painScore}/10 · {record.symptomMoves || '증상 발생 동작 미입력'}</p>
-              </div>
-              <div className={attentionRequired ? styles.alertCard : styles.wideCard}>
-                <div className={styles.cardLabel}>건강 설문 확인</div>
-                <div className={styles.cardText}>
-                  {selectedClient.parqStatus === '정상'
-                    ? '작성해주신 내용 기준으로 운동 시작 전 추가 확인이 필요한 항목은 확인되지 않았습니다.'
-                    : '운동 설계 시 고려해야 할 항목이 확인되었습니다. 담당 코치가 현재 상태를 추가로 확인한 뒤 안전한 운동 범위와 진행 방향을 안내드립니다.'}
-                </div>
-              </div>
-              <div className={styles.wideCard}>
-                <div className={styles.cardLabel}>RePERFORMANCE 운동 단계</div>
-                <div className={styles.phaseBox}>
-                  {RP_PHASES.map((phase) => (
-                    <div key={phase.id} className={`${styles.phaseRow} ${phase.id === record.selectedPhase ? styles.phaseCurrent : ''}`}>
-                      <div>
-                        <div className={styles.phaseName}>{phase.clientLabel}</div>
-                        <div className={styles.phaseDesc}>{phase.desc}</div>
-                      </div>
-                      {phase.id === record.selectedPhase && <span className={styles.statusPill}>현재 추천</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.wideCard}>
-                <div className={styles.cardLabel}>추천 진행 방향</div>
-                <div className={styles.cardValue}>{record.recommendedProgram}</div>
-                <p className={styles.cardText}>상담 후 필요 시 초기 평가를 통해 정확한 운동 범위와 프로그램을 확정합니다.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <h2 className={styles.panelTitle}>코치 입력 화면</h2>
-            <p className={styles.subtle}>상담 기록, 내부 판단, 저장용 화면입니다. 고객에게 노출하지 않습니다.</p>
-          </div>
-          <div className={styles.coachScreen}>
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>회원 요약</h3>
-              <div className={styles.pillRow}>
-                <span className={styles.statusPill}>{selectedClient.id}</span>
-                <span className={styles.statusPill}>{selectedClient.name}</span>
-                <span className={attentionRequired ? styles.dangerPill : styles.statusPill}>PAR-Q {selectedClient.parqStatus}</span>
-                <span className={styles.statusPill}>{record.consultationStatus}</span>
-              </div>
-              <div className={styles.summaryGrid}>
-                <div><strong>목표</strong><span>{selectedClient.goal || '미입력'}</span></div>
-                <div><strong>목적</strong><span>{formatList(selectedClient.purpose)}</span></div>
-                <div><strong>불편 부위</strong><span>{formatList(selectedClient.painAreas, '특이사항 없음')}</span></div>
-                <div><strong>잔여회차</strong><span>{Number(selectedClient.remainingSessions) || 0}회</span></div>
-              </div>
-            </div>
-
-            <div className={attentionRequired ? styles.alertSection : styles.section}>
-              <h3 className={styles.sectionTitle}>PAR-Q 확인</h3>
-              <div className={styles.cardText}>
-                {selectedClient.parqYesItems?.length ? selectedClient.parqYesItems.join(' / ') : '예 체크 항목 없음'}
-              </div>
-            </div>
-
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>상담 입력</h3>
-              <div className={styles.formGrid}>
-                <label className={styles.fieldFull}>
-                  <span className={styles.label}>회원이 말한 목표</span>
-                  <textarea className={styles.textarea} value={record.memberGoal} onChange={(e) => updateField('memberGoal', e.target.value)} />
-                </label>
-                <label className={styles.fieldFull}>
-                  <span className={styles.label}>코치가 재정의한 목표</span>
-                  <textarea className={styles.textarea} value={record.coachGoal} onChange={(e) => updateField('coachGoal', e.target.value)} placeholder="예: 무릎 통증을 관리하면서 하체 정렬과 기본 근력을 회복한다." />
-                </label>
-                <div className={styles.fieldFull}>
-                  <span className={styles.label}>방문 목적</span>
-                  <div className={styles.pillRow}>
-                    {VISIT_PURPOSES.map((item) => <TogglePill key={item} active={record.purposes.includes(item)} onClick={() => toggleArrayValue('purposes', item)}>{item}</TogglePill>)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>통증/불편감</h3>
-              <div className={styles.formGrid}>
-                <div className={styles.fieldFull}>
-                  <span className={styles.label}>주요 불편 부위</span>
-                  <div className={styles.pillRow}>
-                    {PAIN_AREAS.map((item) => <TogglePill key={item} active={record.painAreas.includes(item)} onClick={() => toggleArrayValue('painAreas', item)}>{item}</TogglePill>)}
-                  </div>
-                </div>
-                <label className={styles.field}>
-                  <span className={styles.label}>통증 강도 0~10</span>
-                  <input className={styles.input} type="number" min="0" max="10" value={record.painScore} onChange={(e) => updateField('painScore', Number(e.target.value))} />
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>주당 가능 횟수</span>
-                  <select className={styles.select} value={record.weeklyFrequency} onChange={(e) => updateField('weeklyFrequency', e.target.value)}>
-                    {['주 1회', '주 2회', '주 3회', '주 4회 이상'].map((item) => <option key={item}>{item}</option>)}
-                  </select>
-                </label>
-                <label className={styles.fieldFull}>
-                  <span className={styles.label}>증상 발생 동작 / 악화 요인</span>
-                  <textarea className={styles.textarea} value={record.symptomMoves} onChange={(e) => updateField('symptomMoves', e.target.value)} />
-                </label>
-              </div>
-            </div>
-
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>프로그램 방향</h3>
-              <div className={styles.formGrid}>
-                <label className={styles.field}>
-                  <span className={styles.label}>추천 OPT Phase</span>
-                  <select className={styles.select} value={record.selectedPhase} onChange={(e) => updateField('selectedPhase', e.target.value)}>
-                    {RP_PHASES.map((phase) => <option key={phase.id} value={phase.id}>{phase.label} · {phase.clientLabel}</option>)}
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>추천 프로그램</span>
-                  <select className={styles.select} value={record.recommendedProgram} onChange={(e) => updateField('recommendedProgram', e.target.value)}>
-                    {PROGRAMS.map((program) => <option key={program}>{program}</option>)}
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>상담 결과</span>
-                  <select className={styles.select} value={record.consultationResult} onChange={(e) => updateField('consultationResult', e.target.value)}>
-                    {CONSULTATION_RESULTS.map((item) => <option key={item}>{item}</option>)}
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>다음 액션</span>
-                  <select className={styles.select} value={record.nextAction} onChange={(e) => updateField('nextAction', e.target.value)}>
-                    {NEXT_ACTIONS.map((item) => <option key={item}>{item}</option>)}
-                  </select>
-                </label>
-              </div>
-            </div>
-
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>코치 내부 메모</h3>
-              <textarea className={styles.textarea} value={record.internalJudgment} onChange={(e) => updateField('internalJudgment', e.target.value)} placeholder="회원에게 보여주지 않는 내부 판단과 상담 전략을 기록합니다." />
-            </div>
-
-            <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>AI 내부 보조</h3>
-              <div className={styles.footerActions}>
-                <button className={styles.ghostButton} type="button" onClick={generateSummary}>상담 요약 생성</button>
-              </div>
-              {record.aiSummary && <div className={styles.aiBox}>{record.aiSummary}</div>}
-            </div>
-
-            <div className={styles.footerActions}>
-              <button className={styles.ghostButton} type="button" onClick={exportJson} disabled={!clients.length}>JSON 내보내기</button>
-              <button className={styles.primaryButton} type="button" onClick={saveRecord} disabled={!clients.length || isSaving}>{isSaving ? '저장 중...' : '상담 저장'}</button>
-            </div>
-          </div>
-        </section>
-      </div>
-    </main>
+    <CoachInputView
+      client={selectedClient}
+      record={record}
+      currentPhase={currentPhase}
+      attentionRequired={attentionRequired}
+      clients={clients}
+      clientId={clientId}
+      connectionStatus={connectionStatus}
+      connectionError={connectionError}
+      isSaving={isSaving}
+      isSummarizing={isSummarizing}
+      onClientChange={setClientId}
+      onFieldChange={updateField}
+      onArrayToggle={toggleArrayValue}
+      onOpenClientView={openClientView}
+      onGenerateSummary={generateSummary}
+      onSave={saveRecord}
+      onExport={exportJson}
+    />
   );
 }
