@@ -1,0 +1,171 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.form,
+.sidePanel {
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+}
+
+.form {
+  display: grid;
+  gap: 18px;
+  padding: 30px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.form label {
+  display: grid;
+  gap: 8px;
+}
+
+.form span {
+  color: #4a4f55;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.form input,
+.form select,
+.form textarea {
+  width: 100%;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  background: #fbfbfa;
+  color: #17191d;
+  font: inherit;
+  outline: none;
+}
+
+.form input,
+.form select {
+  min-height: 50px;
+  padding: 0 14px;
+}
+
+.form textarea {
+  min-height: 130px;
+  padding: 14px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  border-color: #087b72;
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+}
+
+.form button,
+.actions a {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #087b72;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.success,
+.error {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+
+.success {
+  border: 1px solid rgba(8, 123, 114, .18);
+  background: #eff8f6;
+  color: #355a56;
+}
+
+.error {
+  border: 1px solid rgba(150, 55, 36, .18);
+  background: #fff0eb;
+  color: #963724;
+}
+
+.sidePanel {
+  display: grid;
+  gap: 18px;
+  padding: 30px;
+}
+
+.sidePanel h2 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+.roleList {
+  display: grid;
+  gap: 10px;
+}
+
+.roleCard,
+.notice {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f7f7f4;
+}
+
+.roleCard strong,
+.notice strong {
+  color: #087b72;
+}
+
+.roleCard span,
+.notice span {
+  color: #5f6368;
+  line-height: 1.7;
+}
+
+.notice {
+  background: #eff8f6;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.actions a:last-child {
+  background: #17191d;
+}
+
+@media (max-width: 900px) {
+  .layout,
+  .formGrid,
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .form,
+  .sidePanel {
+    padding: 24px;
+  }
+}

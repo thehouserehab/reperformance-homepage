@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   createAdminSession,
-  findAdminAccount,
+  findAuthAccount,
   getAdminCookieOptions,
+  hasStaffRole,
   sanitizeAdminNext,
 } from '../../../../lib/rpAdminAuth';
 
@@ -27,7 +28,7 @@ async function readLoginPayload(request) {
   };
 }
 
-function redirectToLogin(request, next, error = '1') {
+function redirectToLogin(request, next, error = 'invalid') {
   const loginUrl = new URL('/admin/login', request.url);
   loginUrl.searchParams.set('error', error);
   loginUrl.searchParams.set('next', sanitizeAdminNext(next));
@@ -37,9 +38,10 @@ function redirectToLogin(request, next, error = '1') {
 export async function POST(request) {
   const payload = await readLoginPayload(request);
   const nextPath = sanitizeAdminNext(payload.next);
-  const account = findAdminAccount(payload.username, payload.password);
+  const account = findAuthAccount(payload.username, payload.password);
 
   if (!account) return redirectToLogin(request, nextPath, 'invalid');
+  if (!hasStaffRole(account.role)) return redirectToLogin(request, nextPath, 'forbidden');
 
   let session;
   try {
