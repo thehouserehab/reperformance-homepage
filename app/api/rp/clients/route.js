@@ -113,7 +113,7 @@ function getValue(record, candidates) {
 }
 
 function splitList(value) {
-  if (Array.isArray(value)) return value.filter(Boolean);
+  if (Array.isArray(value)) return value.filter(Boolean).map((item) => String(item).trim()).filter(Boolean);
   if (!value) return [];
   return String(value)
     .split(/[,\/·|]/)
@@ -177,6 +177,86 @@ function normalizeClients(data) {
   return raw.map(mapClient).filter(Boolean);
 }
 
+function buildManualClientId() {
+  const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
+  return `RP-${stamp}`;
+}
+
+function toFiniteNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeManualClient(input = {}) {
+  const now = new Date().toISOString();
+  const id = cleanEnvValue(input.id || input.clientId || input.memberId || input['회원ID']) || buildManualClientId();
+  const name = cleanEnvValue(input.name || input.clientName || input.memberName || input['회원명'] || input['이름']);
+  const phone = cleanEnvValue(input.phone || input['연락처'] || input['전화번호']);
+  const birth = cleanEnvValue(input.birth || input['생년월일']);
+  const gender = cleanEnvValue(input.gender || input['성별']);
+  const route = cleanEnvValue(input.route || input['유입경로'] || input['방문경로']) || '관리자 직접 추가';
+  const memberType = cleanEnvValue(input.memberType || input['회원구분'] || input['구분']);
+  const status = cleanEnvValue(input.status || input['회원상태'] || input['상태']) || '상담 전';
+  const coachName = cleanEnvValue(input.coachName || input.coach || input['담당코치'] || input['담당자']) || '정우현';
+  const parqStatus = cleanEnvValue(input.parqStatus || input.PARQ || input['PAR-Q']) || '미작성';
+  const parqYesItems = splitList(input.parqYesItems || input['PAR-Q 예항목']);
+  const purpose = splitList(input.purpose || input.purposes || input['방문목적'] || input['목적']);
+  const painAreas = splitList(input.painAreas || input.painArea || input['불편부위'] || input['통증부위']);
+  const painScore = Math.min(10, Math.max(0, toFiniteNumber(input.painScore || input['통증강도'])));
+  const totalSessions = Math.max(0, toFiniteNumber(input.totalSessions || input['총회차']));
+  const remainingSessions = Math.max(0, toFiniteNumber(input.remainingSessions || input['잔여회차']));
+  const goal = cleanEnvValue(input.goal || input['목표'] || input['운동목표']);
+  const concern = cleanEnvValue(input.concern || input.caution || input.memo || input['주의사항'] || input['메모']);
+
+  if (!name) throw new Error('고객 이름은 필수입니다.');
+
+  return {
+    id,
+    clientId: id,
+    memberId: id,
+    회원ID: id,
+    name,
+    clientName: name,
+    memberName: name,
+    회원명: name,
+    phone,
+    연락처: phone,
+    birth,
+    생년월일: birth,
+    gender,
+    성별: gender,
+    route,
+    유입경로: route,
+    memberType,
+    회원구분: memberType,
+    status,
+    회원상태: status,
+    coachName,
+    담당코치: coachName,
+    parqStatus,
+    'PAR-Q': parqStatus,
+    parqYesItems,
+    'PAR-Q 예항목': parqYesItems.join(', '),
+    goal,
+    목표: goal,
+    purpose,
+    방문목적: purpose.join(', '),
+    painAreas,
+    불편부위: painAreas.join(', '),
+    painScore,
+    통증강도: painScore,
+    concern,
+    주의사항: concern,
+    totalSessions,
+    총회차: totalSessions,
+    remainingSessions,
+    잔여회차: remainingSessions,
+    createdAt: now,
+    등록일: now.slice(0, 10),
+    source: 'admin-direct-add',
+  };
+}
+
 async function parseScriptResponse(response) {
   const text = await response.text();
   try {
@@ -210,6 +290,40 @@ async function callSheetsApi(body, options = {}) {
   }
 
   return data;
+}
+
+function resolveCreatedClient(data, fallbackRecord) {
+  const clientList = normalizeClients(data);
+  if (clientList.length) return clientList[0];
+
+  const candidates = [data?.client, data?.member, data?.record, data?.row, fallbackRecord].filter(Boolean);
+  for (const candidate of candidates) {
+    const client = mapClient(candidate);
+    if (client) return client;
+  }
+
+  return mapClient(fallbackRecord);
+}
+
+async function addClientWithAttempts(record) {
+  const actions = ['addClient', 'createClient', 'saveClient', 'upsertClient', 'addMember', 'createMember', 'saveMember', 'upsertMember'];
+  const errors = [];
+
+  for (const action of actions) {
+    try {
+      const data = await callSheetsApi({ action, client: record, member: record, record });
+      return {
+        ok: true,
+        action,
+        data,
+        client: resolveCreatedClient(data, record),
+      };
+    } catch (error) {
+      errors.push(`${action}: ${error?.message || 'unknown error'}`);
+    }
+  }
+
+  throw new Error(`고객 추가 Apps Script 액션이 실패했습니다. ${errors.slice(0, 4).join(' / ')}`);
 }
 
 async function fetchMembersCsvClients() {
@@ -276,6 +390,12 @@ export async function POST(request) {
     if (action === 'debug') {
       const data = await callSheetsApi({ action: 'debug' }, { method: 'GET' });
       return NextResponse.json({ ok: true, ...data });
+    }
+
+    if (action === 'addClient') {
+      const record = normalizeManualClient(payload?.client || payload?.record || {});
+      const result = await addClientWithAttempts(record);
+      return NextResponse.json({ ok: true, ...result, record });
     }
 
     if (action !== 'saveConsultation') return NextResponse.json({ ok: false, error: `지원하지 않는 action입니다: ${action}` }, { status: 400 });
