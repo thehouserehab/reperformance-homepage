@@ -17,6 +17,29 @@ export async function fetchRpClients() {
   return Array.isArray(payload.clients) ? payload.clients : [];
 }
 
+export async function addRpClient(client) {
+  const response = await fetch('/api/rp/clients', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      action: 'addClient',
+      client,
+    }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok || payload?.ok === false) {
+    const message = payload?.error || `고객을 Google Sheets에 추가하지 못했습니다. (${response.status})`;
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
 export async function saveRpConsultation(record) {
   const response = await fetch('/api/rp/clients', {
     method: 'POST',
