@@ -21,6 +21,7 @@ Vercel Project Settings > Environment Variables에 아래 값을 추가합니다
 
 ```txt
 RP_NOTION_SYNC_SECRET=긴_랜덤_비밀값
+CRON_SECRET=긴_랜덤_비밀값
 NOTION_API_KEY=secret_xxx
 NOTION_SURVEY_DATA_SOURCE_ID=노션_설문_data_source_id
 ```
@@ -28,6 +29,7 @@ NOTION_SURVEY_DATA_SOURCE_ID=노션_설문_data_source_id
 참고:
 
 - `RP_NOTION_SYNC_SECRET`은 webhook 호출 권한 확인용입니다. 없으면 `CRON_SECRET` 또는 `RP_API_SECRET`을 대신 사용합니다.
+- `CRON_SECRET`은 Vercel Cron 권한 확인용입니다. 하루 1회 누락된 설문을 자동으로 다시 동기화할 때 사용됩니다.
 - Notion의 새 API에서는 `NOTION_SURVEY_DATA_SOURCE_ID`를 권장합니다.
 - 예전 database API만 사용할 수 있으면 `NOTION_SURVEY_DATABASE_ID`를 대신 넣을 수 있습니다.
 - 회사 DB를 쓰는 경우 `DATABASE_URL`/`RP_DATABASE_URL`이 있으면 DB에 저장됩니다.
@@ -82,7 +84,17 @@ https://reperformance.the-house-exercise.com/api/rp/notion-survey?secret=RP_NOTI
 https://reperformance.the-house-exercise.com/api/rp/notion-survey?secret=RP_NOTION_SYNC_SECRET값&limit=5&dryRun=1
 ```
 
-## 6. 인식하는 주요 항목명
+## 6. 자동 백업 동기화
+
+`vercel.json`에 Vercel Cron을 추가했습니다. Vercel은 매일 07:00 KST에 아래 경로를 호출해 최근 설문 50건을 다시 동기화합니다.
+
+```txt
+/api/rp/notion-survey-cron
+```
+
+이 백업 동기화는 즉시 등록용 webhook을 대체하지 않습니다. Notion 자동화 webhook은 설문 직후 즉시 등록용이고, Vercel Cron은 webhook이 누락됐을 때 다시 맞춰주는 안전장치입니다.
+
+## 7. 인식하는 주요 항목명
 
 Notion 설문 속성명은 아래 이름을 우선 인식합니다.
 
