@@ -12,7 +12,37 @@ function formatList(value, fallback = '없음') {
   return fallback;
 }
 
+function isPeExamClient(client, record) {
+  const text = [
+    client?.memberType,
+    client?.goal,
+    record?.memberGoal,
+    record?.coachGoal,
+    formatList(client?.purpose, ''),
+    formatList(record?.purposes, ''),
+  ].join(' ');
+
+  return text.includes('체대입시') || text.includes('입시');
+}
+
+function formatPeExamHeadline(record) {
+  return [
+    record?.peExamTargetUniversities || '희망 대학 미입력',
+    record?.peExamTargetDepartment || '목표 학과 미입력',
+    formatList(record?.peExamPracticalEvents, '실기 종목 미입력'),
+  ].join(' · ');
+}
+
 function fallbackClientSummary(client, record, phase) {
+  if (isPeExamClient(client, record)) {
+    return [
+      `${client?.name || '회원'}님은 체대입시 준비를 위해 운동 관리와 입시 상담을 함께 진행합니다.`,
+      `현재 목표는 ${formatPeExamHeadline(record)} 기준으로 정리 중입니다.`,
+      `실기 준비는 ${record?.peExamTrainingFocus || record?.coachGoal || '부족한 체력 요소와 종목별 기록을 확인한 뒤'} 단계적으로 보완합니다.`,
+      `다음 단계는 ${record?.nextAction || '실기 기록 측정과 지원 전략 상담'}입니다.`,
+    ].join('\n');
+  }
+
   const painAreas = formatList(record?.painAreas, '특이 불편 부위 없음');
   return [
     `${client?.name || '회원'}님은 ${record?.memberGoal || client?.goal || '운동 목표 확인'}을 중심으로 상담을 진행 중입니다.`,
@@ -23,10 +53,19 @@ function fallbackClientSummary(client, record, phase) {
 }
 
 function fallbackCoachSummary(client, record, phase) {
+  const peExamLines = isPeExamClient(client, record) ? [
+    `- 체대입시 목표: ${formatPeExamHeadline(record)}`,
+    `- 현재 실기 기록: ${record?.peExamRecordStatus || '미입력'}`,
+    `- 내신/수능 상태: ${record?.peExamAcademicStatus || '미입력'}`,
+    `- 입시 상담 주제: ${formatList(record?.peExamConsultingTopics, '미입력')}`,
+    `- 원서 전략: ${record?.peExamApplicationStrategy || '미입력'}`,
+  ] : [];
+
   return [
     '코치 상담 요약',
     `- 회원 목표: ${record?.memberGoal || client?.goal || '미입력'}`,
     `- 코치 목표: ${record?.coachGoal || '미입력'}`,
+    ...peExamLines,
     `- 불편 부위: ${formatList(record?.painAreas, '특이사항 없음')}`,
     `- 통증 강도: ${record?.painScore || 0}/10`,
     `- PAR-Q: ${client?.parqStatus || '확인 필요'} / ${formatList(client?.parqYesItems, '예 체크 항목 없음')}`,
@@ -72,15 +111,24 @@ function parseJsonObject(text) {
 }
 
 function buildPrompt(client, record, phase) {
+  const peExamClient = isPeExamClient(client, record);
+
   return JSON.stringify({
-    task: 'RePERFORMANCE 운동 상담 내용을 바탕으로 고객용 짧은 요약과 코치용 내부 요약을 작성합니다. 의료 진단처럼 표현하지 말고, 운동 상담 보조 정보로만 정리합니다.',
+    task: peExamClient
+      ? 'RePERFORMANCE 체대입시생 상담 내용을 바탕으로 고객용 짧은 요약과 코치용 내부 요약을 작성합니다. 운동 관리와 입시 상담을 함께 정리하되, 합격 보장이나 의료 진단처럼 표현하지 않습니다.'
+      : 'RePERFORMANCE 운동 상담 내용을 바탕으로 고객용 짧은 요약과 코치용 내부 요약을 작성합니다. 의료 진단처럼 표현하지 말고, 운동 상담 보조 정보로만 정리합니다.',
     requiredOutput: {
-      clientSummary: '고객에게 보여줄 수 있는 한국어 3~4문장. 쉽고 안심되는 표현. 내부 판단, 위험한 단정, 진단명 금지.',
-      coachSummary: '코치가 참고할 한국어 bullet 5~7개. 확인할 질문, 주의점, 다음 액션 포함.',
+      clientSummary: peExamClient
+        ? '고객에게 보여줄 수 있는 한국어 3~4문장. 체대입시 운동 준비와 입시상담 방향을 함께 설명. 쉽고 안심되는 표현. 합격 보장, 내부 판단, 위험한 단정, 진단명 금지.'
+        : '고객에게 보여줄 수 있는 한국어 3~4문장. 쉽고 안심되는 표현. 내부 판단, 위험한 단정, 진단명 금지.',
+      coachSummary: peExamClient
+        ? '코치가 참고할 한국어 bullet 6~8개. 실기 기록, 부족 체력, 내신/수능, 지원전략, 부상관리, 다음 액션 포함.'
+        : '코치가 참고할 한국어 bullet 5~7개. 확인할 질문, 주의점, 다음 액션 포함.',
     },
     client: {
       id: client?.id,
       name: client?.name,
+      memberType: client?.memberType,
       status: client?.status,
       parqStatus: client?.parqStatus,
       parqYesItems: client?.parqYesItems || [],
@@ -101,6 +149,16 @@ function buildPrompt(client, record, phase) {
       consultationResult: record?.consultationResult,
       nextAction: record?.nextAction,
       internalJudgment: record?.internalJudgment,
+      peExam: peExamClient ? {
+        targetUniversities: record?.peExamTargetUniversities,
+        targetDepartment: record?.peExamTargetDepartment,
+        academicStatus: record?.peExamAcademicStatus,
+        practicalEvents: record?.peExamPracticalEvents || [],
+        recordStatus: record?.peExamRecordStatus,
+        trainingFocus: record?.peExamTrainingFocus,
+        consultingTopics: record?.peExamConsultingTopics || [],
+        applicationStrategy: record?.peExamApplicationStrategy,
+      } : null,
     },
   });
 }

@@ -6,6 +6,8 @@ export const RP_PHASES = [
   { id: 'phase5', label: 'OPT Phase 5', clientLabel: '퍼포먼스 향상 단계', desc: '스피드, 파워, 점프, 방향전환 등 실제 수행 능력을 강화합니다.' },
 ];
 
+export const MEMBER_TYPES = ['일반회원', '재활회원', '시니어', '선수/학생', '체대입시생'];
+
 export const VISIT_PURPOSES = [
   '통증 관리',
   '재활 후 운동 복귀',
@@ -17,6 +19,29 @@ export const VISIT_PURPOSES = [
   '운동 습관 형성',
   '체대입시/실기 준비',
   '기타',
+];
+
+export const PE_EXAM_EVENTS = [
+  '제자리멀리뛰기',
+  '윗몸일으키기',
+  '왕복달리기',
+  '10m 왕복달리기',
+  '배근력',
+  '좌전굴',
+  '메디신볼던지기',
+  '농구',
+  '축구',
+  '기타',
+];
+
+export const PE_EXAM_CONSULTATION_TOPICS = [
+  '희망 대학',
+  '목표 학과',
+  '내신/수능',
+  '실기 반영 비율',
+  '지원 가능 대학',
+  '원서 전략',
+  '부상 관리',
 ];
 
 export const PAIN_AREAS = ['목', '어깨', '팔꿈치', '손목', '허리', '고관절', '무릎', '발목', '발', '전신 피로', '기타'];
@@ -32,6 +57,9 @@ export const PROGRAMS = [
   '일반 PT 4회',
   '일반 PT 8회',
   '일반 PT 12회',
+  '체대입시 실기 트레이닝 4회',
+  '체대입시 실기 트레이닝 8회',
+  '체대입시 실기 트레이닝 12회',
 ];
 
 export const NEXT_ACTIONS = [
@@ -40,6 +68,9 @@ export const NEXT_ACTIONS = [
   '추가 PAR-Q 설문 발송',
   '의료진 확인 후 재상담',
   '프로그램 초안 생성',
+  '체대입시 목표 대학 분석',
+  '체대입시 실기 기록 측정',
+  '체대입시 상담 일정 조율',
   '팔로업 연락',
   '상담 종료',
 ];
