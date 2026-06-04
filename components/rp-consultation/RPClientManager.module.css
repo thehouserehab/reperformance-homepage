@@ -52,6 +52,7 @@
   border-radius: 999px;
   padding: 0 15px;
   border: 1px solid transparent;
+  font: inherit;
   font-size: 14px;
   font-weight: 900;
   cursor: pointer;
@@ -67,6 +68,12 @@
   background: #fff;
   color: #17191d;
   border-color: #d9ddd8;
+}
+
+.primaryButton:disabled,
+.ghostButton:disabled {
+  opacity: .48;
+  cursor: not-allowed;
 }
 
 .hero {
@@ -132,7 +139,8 @@
 .sidebar,
 .detailPanel,
 .card,
-.infoCard {
+.infoCard,
+.addPanel {
   border: 1px solid #e2e4df;
   border-radius: 8px;
   background: #fff;
@@ -155,6 +163,100 @@
   color: #087b72;
   font-size: 30px;
   line-height: 1;
+}
+
+.addPanel {
+  display: grid;
+  gap: 18px;
+  margin: 0 28px 18px;
+  padding: 20px;
+  box-shadow: 0 16px 42px rgba(23, 25, 29, .05);
+}
+
+.addPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e4df;
+}
+
+.addPanelHeader h2 {
+  margin: 0 0 8px;
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.addPanelHeader p:not(.eyebrow) {
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.65;
+}
+
+.addForm {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.addForm label {
+  display: grid;
+  gap: 7px;
+}
+
+.addForm label span {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.addForm input,
+.addForm select,
+.addForm textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fbfbfa;
+  color: #17191d;
+  font: inherit;
+  outline: none;
+}
+
+.addForm textarea {
+  min-height: 88px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.addForm input:focus,
+.addForm select:focus,
+.addForm textarea:focus {
+  border-color: #087b72;
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+}
+
+.fieldWide {
+  grid-column: span 2;
+}
+
+.addFormActions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.addForm .errorStatus {
+  grid-column: 1 / -1;
+  margin-top: 0;
 }
 
 .board {
@@ -421,26 +523,42 @@
   .detailPanel {
     min-height: auto;
   }
+
+  .addForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
   .topbar,
-  .detailHeader {
+  .detailHeader,
+  .addPanelHeader {
     flex-direction: column;
     align-items: stretch;
   }
 
   .hero,
   .board,
-  .topbar {
+  .topbar,
+  .addPanel {
     padding-left: 16px;
     padding-right: 16px;
   }
 
+  .addPanel {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+
   .statGrid,
   .infoGrid,
-  .twoColumn {
+  .twoColumn,
+  .addForm {
     grid-template-columns: 1fr;
+  }
+
+  .fieldWide {
+    grid-column: auto;
   }
 
   .primaryButton,
