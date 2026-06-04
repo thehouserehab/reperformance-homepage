@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import styles from './RPClientManager.module.css';
-import { SAMPLE_CLIENTS } from './rpConsultationSchema';
+import { MEMBER_TYPES, SAMPLE_CLIENTS } from './rpConsultationSchema';
 import { addRpClient, fetchRpClients } from './rpSheetsClient';
 
 const STATUS_FILTERS = ['전체', '상담 전', '상담 중', '등록', '보류', '추가 확인'];
@@ -12,6 +12,7 @@ const DIRECT_CLIENT_INITIAL_STATE = {
   birth: '',
   gender: '',
   route: '현장 등록',
+  memberType: '일반회원',
   status: '상담 전',
   coachName: '정우현',
   goal: '',
@@ -39,6 +40,17 @@ function splitInput(value) {
     .split(/[,/·|]/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function isPeExamClient(client) {
+  const text = [
+    client?.memberType,
+    client?.goal,
+    formatList(client?.purpose, ''),
+    client?.concern,
+  ].join(' ');
+
+  return text.includes('체대입시') || text.includes('입시');
 }
 
 function buildLocalClient(record) {
@@ -152,6 +164,7 @@ export default function RPClientManager() {
         client.name,
         client.phone,
         client.status,
+        client.memberType,
         client.route,
         client.goal,
         formatList(client.purpose, ''),
@@ -171,12 +184,14 @@ export default function RPClientManager() {
     const attention = clients.filter((client) => getRiskLabel(client) !== '일반').length;
     const registered = clients.filter((client) => String(client.status || '').includes('등록')).length;
     const activeSessions = clients.filter((client) => Number(client.remainingSessions) > 0).length;
+    const peExam = clients.filter(isPeExamClient).length;
 
     return [
       { label: '전체 고객', value: `${total}명` },
       { label: '주의 확인', value: `${attention}명` },
       { label: '등록 상태', value: `${registered}명` },
       { label: '잔여회차 있음', value: `${activeSessions}명` },
+      { label: '체대입시생', value: `${peExam}명` },
     ];
   }, [clients]);
 
@@ -306,6 +321,13 @@ export default function RPClientManager() {
             <label>
               <span>유입경로</span>
               <input value={newClient.route} onChange={(event) => updateNewClient('route', event.target.value)} />
+            </label>
+            <label>
+              <span>회원구분</span>
+              <select value={newClient.memberType} onChange={(event) => updateNewClient('memberType', event.target.value)}>
+                <option value="">미입력</option>
+                {MEMBER_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+              </select>
             </label>
             <label>
               <span>상태</span>
@@ -464,6 +486,14 @@ export default function RPClientManager() {
                   </div>
                 </div>
               </div>
+
+              {isPeExamClient(selectedClient) && (
+                <div className={styles.card}>
+                  <span className={styles.cardLabel}>체대입시 관리</span>
+                  <p className={styles.largeText}>운동 준비와 입시 상담을 함께 관리하는 회원입니다.</p>
+                  <p className={styles.muted}>상담 화면에서 희망 대학, 목표 학과, 실기 종목, 현재 기록, 내신/수능 상태, 원서 전략을 함께 정리합니다.</p>
+                </div>
+              )}
 
               <div className={styles.twoColumn}>
                 <div className={styles.card}>
