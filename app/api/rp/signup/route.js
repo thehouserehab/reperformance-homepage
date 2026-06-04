@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME, createAdminSession, getAdminCookieOptions } from '../../../../lib/rpAdminAuth';
 import { getSheetRoleLabel, normalizeSheetRole, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
+import { isDatabaseConfigured, isDatabaseOnlyMode, saveDatabaseAuthSignup } from '../../../../lib/rpDatabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,12 +59,26 @@ function buildSafeRecord(record) {
   return safeRecord;
 }
 
+async function saveAuthSignup(record) {
+  if (isDatabaseConfigured()) {
+    try {
+      return await saveDatabaseAuthSignup(record);
+    } catch (error) {
+      if (isDatabaseOnlyMode()) throw error;
+    }
+  }
+
+  return saveSheetAuthSignup(record);
+}
+
 function getFailureStatus(error) {
   const message = String(error?.message || '');
   if (
     message.includes('Apps Script')
     || message.includes('웹 앱 URL')
     || message.includes('자동 회원가입')
+    || message.includes('DATABASE_URL')
+    || message.includes('RP_DATABASE_URL')
     || message.includes('RP_PASSWORD_HASH_SECRET')
     || message.includes('RP_ADMIN_SESSION_SECRET')
   ) return 'setup';
@@ -120,7 +135,7 @@ export async function POST(request) {
   }
 
   try {
-    const result = await saveSheetAuthSignup(record);
+    const result = await saveAuthSignup(record);
     const safeRecord = buildSafeRecord(record);
 
     if (isMember) {

@@ -1,4 +1,11 @@
 import { NextResponse } from 'next/server';
+import {
+  isDatabaseConfigured,
+  isDatabaseOnlyMode,
+  listDatabaseClients,
+  saveDatabaseClient,
+  saveDatabaseConsultation,
+} from '../../../../lib/rpDatabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -6,15 +13,19 @@ const DEFAULT_SHEET_ID = '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E';
 const DEFAULT_MEMBERS_GID = '122819871';
 
 function cleanEnvValue(value) {
-  return String(value || '')
-    .trim()
-    .replace(/^['"]|['"]$/g, '')
-    .trim();
+  const text = String(value || '').trim();
+  const quote = String.fromCharCode(34);
+
+  if ((text.startsWith('\'') && text.endsWith('\'')) || (text.startsWith(quote) && text.endsWith(quote))) {
+    return text.slice(1, -1).trim();
+  }
+
+  return text;
 }
 
 function extractUrl(value) {
   const cleaned = cleanEnvValue(value);
-  const match = cleaned.match(/https?:\/\/[^\s'"]+/);
+  const match = cleaned.match(/https?:\/\/[^\s]+/);
   return match ? match[0] : cleaned;
 }
 
@@ -49,6 +60,7 @@ function buildScriptUrl(webAppUrl, body, apiSecret) {
 
 function parseCsv(text) {
   const rows = [];
+  const quote = String.fromCharCode(34);
   let row = [];
   let value = '';
   let inQuotes = false;
@@ -57,13 +69,13 @@ function parseCsv(text) {
     const char = text[i];
     const next = text[i + 1];
 
-    if (char === '"' && inQuotes && next === '"') {
-      value += '"';
+    if (char === quote && inQuotes && next === quote) {
+      value += quote;
       i += 1;
       continue;
     }
 
-    if (char === '"') {
+    if (char === quote) {
       inQuotes = !inQuotes;
       continue;
     }
@@ -116,7 +128,7 @@ function splitList(value) {
   if (Array.isArray(value)) return value.filter(Boolean).map((item) => String(item).trim()).filter(Boolean);
   if (!value) return [];
   return String(value)
-    .split(/[,\/·|]/)
+    .split(/[,/·|]/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
@@ -214,45 +226,45 @@ function normalizeManualClient(input = {}) {
     id,
     clientId: id,
     memberId: id,
-    회원ID: id,
+    '회원ID': id,
     name,
     clientName: name,
     memberName: name,
-    회원명: name,
+    '회원명': name,
     phone,
-    연락처: phone,
+    '연락처': phone,
     birth,
-    생년월일: birth,
+    '생년월일': birth,
     gender,
-    성별: gender,
+    '성별': gender,
     route,
-    유입경로: route,
+    '유입경로': route,
     memberType,
-    회원구분: memberType,
+    '회원구분': memberType,
     status,
-    회원상태: status,
+    '회원상태': status,
     coachName,
-    담당코치: coachName,
+    '담당코치': coachName,
     parqStatus,
     'PAR-Q': parqStatus,
     parqYesItems,
     'PAR-Q 예항목': parqYesItems.join(', '),
     goal,
-    목표: goal,
+    '목표': goal,
     purpose,
-    방문목적: purpose.join(', '),
+    '방문목적': purpose.join(', '),
     painAreas,
-    불편부위: painAreas.join(', '),
+    '불편부위': painAreas.join(', '),
     painScore,
-    통증강도: painScore,
+    '통증강도': painScore,
     concern,
-    주의사항: concern,
+    '주의사항': concern,
     totalSessions,
-    총회차: totalSessions,
+    '총회차': totalSessions,
     remainingSessions,
-    잔여회차: remainingSessions,
+    '잔여회차': remainingSessions,
     createdAt: now,
-    등록일: now.slice(0, 10),
+    '등록일': now.slice(0, 10),
     source: 'admin-direct-add',
   };
 }
@@ -314,9 +326,11 @@ async function addClientWithAttempts(record) {
       const data = await callSheetsApi({ action, client: record, member: record, record });
       return {
         ok: true,
+        source: 'apps-script',
         action,
         data,
         client: resolveCreatedClient(data, record),
+        record,
       };
     } catch (error) {
       errors.push(`${action}: ${error?.message || 'unknown error'}`);
@@ -373,12 +387,55 @@ async function listClientsWithFallbacks() {
   throw new Error(`회원 데이터를 찾지 못했습니다. ${errors.slice(0, 5).join(' / ')}`);
 }
 
+async function listClientsFromPreferredStore() {
+  if (isDatabaseConfigured()) {
+    try {
+      const clients = await listDatabaseClients();
+      if (clients.length || isDatabaseOnlyMode()) {
+        return { ok: true, source: 'database', action: 'listDatabaseClients', method: 'SQL', clients };
+      }
+    } catch (error) {
+      if (isDatabaseOnlyMode()) throw error;
+    }
+  }
+
+  return listClientsWithFallbacks();
+}
+
+async function addClientToPreferredStore(input) {
+  if (isDatabaseConfigured()) {
+    try {
+      const result = await saveDatabaseClient(input);
+      return { source: 'database', method: 'SQL', ...result };
+    } catch (error) {
+      if (isDatabaseOnlyMode()) throw error;
+    }
+  }
+
+  const record = normalizeManualClient(input);
+  return addClientWithAttempts(record);
+}
+
+async function saveConsultationToPreferredStore(record) {
+  if (isDatabaseConfigured()) {
+    try {
+      const result = await saveDatabaseConsultation(record);
+      return { source: 'database', method: 'SQL', ...result };
+    } catch (error) {
+      if (isDatabaseOnlyMode()) throw error;
+    }
+  }
+
+  const data = await callSheetsApi({ action: 'saveConsultation', record });
+  return { source: 'apps-script', action: 'saveConsultation', ...data };
+}
+
 export async function GET() {
   try {
-    const data = await listClientsWithFallbacks();
+    const data = await listClientsFromPreferredStore();
     return NextResponse.json({ ok: true, source: data.source, action: data.action, method: data.method, clients: data.clients, count: data.clients.length });
   } catch (error) {
-    return NextResponse.json({ ok: false, error: error?.message || 'Google Sheets 고객 목록 조회 중 오류가 발생했습니다.', clients: [] }, { status: 500 });
+    return NextResponse.json({ ok: false, error: error?.message || '고객 목록 조회 중 오류가 발생했습니다.', clients: [] }, { status: 500 });
   }
 }
 
@@ -388,21 +445,24 @@ export async function POST(request) {
     const action = payload?.action || 'saveConsultation';
 
     if (action === 'debug') {
+      if (isDatabaseOnlyMode()) {
+        return NextResponse.json({ ok: true, source: 'database', databaseConfigured: isDatabaseConfigured(), dataSource: 'database' });
+      }
+
       const data = await callSheetsApi({ action: 'debug' }, { method: 'GET' });
       return NextResponse.json({ ok: true, ...data });
     }
 
     if (action === 'addClient') {
-      const record = normalizeManualClient(payload?.client || payload?.record || {});
-      const result = await addClientWithAttempts(record);
-      return NextResponse.json({ ok: true, ...result, record });
+      const result = await addClientToPreferredStore(payload?.client || payload?.record || {});
+      return NextResponse.json({ ok: true, ...result });
     }
 
     if (action !== 'saveConsultation') return NextResponse.json({ ok: false, error: `지원하지 않는 action입니다: ${action}` }, { status: 400 });
 
-    const data = await callSheetsApi({ action: 'saveConsultation', record: payload?.record || {} });
-    return NextResponse.json({ ok: true, ...data });
+    const result = await saveConsultationToPreferredStore(payload?.record || {});
+    return NextResponse.json({ ok: true, ...result });
   } catch (error) {
-    return NextResponse.json({ ok: false, error: error?.message || 'Google Sheets 상담 기록 저장 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: error?.message || '상담 기록 저장 중 오류가 발생했습니다.' }, { status: 500 });
   }
 }
