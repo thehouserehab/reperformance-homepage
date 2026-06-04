@@ -3,9 +3,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import styles from './RPClientManager.module.css';
 import { SAMPLE_CLIENTS } from './rpConsultationSchema';
-import { fetchRpClients } from './rpSheetsClient';
+import { addRpClient, fetchRpClients } from './rpSheetsClient';
 
 const STATUS_FILTERS = ['전체', '상담 전', '상담 중', '등록', '보류', '추가 확인'];
+const DIRECT_CLIENT_INITIAL_STATE = {
+  name: '',
+  phone: '',
+  birth: '',
+  gender: '',
+  route: '현장 등록',
+  status: '상담 전',
+  coachName: '정우현',
+  goal: '',
+  purpose: '',
+  painAreas: '',
+  painScore: 0,
+  concern: '',
+  totalSessions: 0,
+  remainingSessions: 0,
+};
 
 function formatList(value, fallback = '기록 없음') {
   if (Array.isArray(value) && value.length) return value.join(', ');
@@ -15,6 +31,38 @@ function formatList(value, fallback = '기록 없음') {
 
 function normalizeText(value) {
   return String(value || '').toLowerCase().replace(/\s+/g, '');
+}
+
+function splitInput(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).map((item) => String(item).trim()).filter(Boolean);
+  return String(value || '')
+    .split(/[,/·|]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function buildLocalClient(record) {
+  const id = record.id || `RP-${Date.now()}`;
+  return {
+    id,
+    name: record.name,
+    phone: record.phone || '',
+    birth: record.birth || '',
+    gender: record.gender || '',
+    route: record.route || '현장 등록',
+    memberType: record.memberType || '',
+    status: record.status || '상담 전',
+    coachName: record.coachName || '정우현',
+    parqStatus: '미작성',
+    parqYesItems: [],
+    goal: record.goal || '',
+    purpose: splitInput(record.purpose),
+    painAreas: splitInput(record.painAreas),
+    painScore: Number(record.painScore) || 0,
+    concern: record.concern || '',
+    totalSessions: Number(record.totalSessions) || 0,
+    remainingSessions: Number(record.remainingSessions) || 0,
+  };
 }
 
 function getParqLevel(client) {
@@ -50,6 +98,11 @@ export default function RPClientManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState('Google Sheets 연결 확인 중...');
   const [connectionError, setConnectionError] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newClient, setNewClient] = useState(DIRECT_CLIENT_INITIAL_STATE);
+  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [addClientError, setAddClientError] = useState('');
+  const [addClientStatus, setAddClientStatus] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -127,6 +180,58 @@ export default function RPClientManager() {
     ];
   }, [clients]);
 
+  function updateNewClient(field, value) {
+    setNewClient((current) => ({ ...current, [field]: value }));
+  }
+
+  function closeAddForm() {
+    setShowAddForm(false);
+    setAddClientError('');
+    setNewClient(DIRECT_CLIENT_INITIAL_STATE);
+  }
+
+  async function handleAddClient(event) {
+    event.preventDefault();
+    const name = newClient.name.trim();
+
+    if (!name) {
+      setAddClientError('고객 이름은 필수입니다.');
+      return;
+    }
+
+    const clientRecord = {
+      ...newClient,
+      name,
+      purpose: splitInput(newClient.purpose),
+      painAreas: splitInput(newClient.painAreas),
+      painScore: Number(newClient.painScore) || 0,
+      totalSessions: Number(newClient.totalSessions) || 0,
+      remainingSessions: Number(newClient.remainingSessions) || 0,
+      parqStatus: '미작성',
+      parqYesItems: [],
+    };
+
+    try {
+      setIsAddingClient(true);
+      setAddClientError('');
+      setAddClientStatus('');
+      const result = await addRpClient(clientRecord);
+      const createdClient = result.client || buildLocalClient(result.record || clientRecord);
+
+      setClients((current) => [createdClient, ...current.filter((client) => client.id !== createdClient.id)]);
+      setSelectedId(createdClient.id);
+      setStatusFilter('전체');
+      setQuery('');
+      setAddClientStatus(`${createdClient.name} 고객을 추가했습니다.`);
+      setShowAddForm(false);
+      setNewClient(DIRECT_CLIENT_INITIAL_STATE);
+    } catch (error) {
+      setAddClientError(error?.message || '고객 추가 중 오류가 발생했습니다.');
+    } finally {
+      setIsAddingClient(false);
+    }
+  }
+
   return (
     <main className={styles.wrap}>
       <header className={styles.topbar}>
@@ -135,8 +240,11 @@ export default function RPClientManager() {
           <p className={styles.subtle}>Client Management · Google Sheets 기반 고객관리</p>
         </div>
         <div className={styles.actions}>
+          <button className={styles.primaryButton} type="button" onClick={() => setShowAddForm((current) => !current)}>
+            {showAddForm ? '추가 닫기' : '고객 추가'}
+          </button>
           <a className={styles.ghostButton} href="/admin">운영 홈</a>
-          <a className={styles.primaryButton} href="/admin/consultation">상담 화면</a>
+          <a className={styles.ghostButton} href="/admin/consultation">상담 화면</a>
         </div>
       </header>
 
@@ -150,6 +258,7 @@ export default function RPClientManager() {
           <div className={connectionError ? styles.errorStatus : styles.connectionStatus}>
             {connectionStatus}{connectionError ? ` · ${connectionError}` : ''}
           </div>
+          {addClientStatus && <div className={styles.connectionStatus}>{addClientStatus}</div>}
         </div>
         <div className={styles.statGrid}>
           {stats.map((item) => (
@@ -160,6 +269,96 @@ export default function RPClientManager() {
           ))}
         </div>
       </section>
+
+      {showAddForm && (
+        <section className={styles.addPanel}>
+          <div className={styles.addPanelHeader}>
+            <div>
+              <p className={styles.eyebrow}>DIRECT CLIENT ADD</p>
+              <h2>PAR-Q 없이 고객 직접 추가</h2>
+              <p>이름만 필수이며, PAR-Q 상태는 자동으로 미작성으로 기록됩니다.</p>
+            </div>
+            <button className={styles.ghostButton} type="button" onClick={closeAddForm}>취소</button>
+          </div>
+
+          <form className={styles.addForm} onSubmit={handleAddClient}>
+            <label>
+              <span>고객명 *</span>
+              <input value={newClient.name} onChange={(event) => updateNewClient('name', event.target.value)} placeholder="예: 홍길동" required />
+            </label>
+            <label>
+              <span>연락처</span>
+              <input value={newClient.phone} onChange={(event) => updateNewClient('phone', event.target.value)} placeholder="010-0000-0000" />
+            </label>
+            <label>
+              <span>생년월일</span>
+              <input value={newClient.birth} onChange={(event) => updateNewClient('birth', event.target.value)} placeholder="YYYY-MM-DD" />
+            </label>
+            <label>
+              <span>성별</span>
+              <select value={newClient.gender} onChange={(event) => updateNewClient('gender', event.target.value)}>
+                <option value="">미입력</option>
+                <option value="남">남</option>
+                <option value="여">여</option>
+                <option value="기타">기타</option>
+              </select>
+            </label>
+            <label>
+              <span>유입경로</span>
+              <input value={newClient.route} onChange={(event) => updateNewClient('route', event.target.value)} />
+            </label>
+            <label>
+              <span>상태</span>
+              <select value={newClient.status} onChange={(event) => updateNewClient('status', event.target.value)}>
+                <option>상담 전</option>
+                <option>상담 중</option>
+                <option>등록 대기</option>
+                <option>등록</option>
+                <option>보류</option>
+              </select>
+            </label>
+            <label>
+              <span>담당 코치</span>
+              <input value={newClient.coachName} onChange={(event) => updateNewClient('coachName', event.target.value)} />
+            </label>
+            <label>
+              <span>통증 강도</span>
+              <input type="number" min="0" max="10" value={newClient.painScore} onChange={(event) => updateNewClient('painScore', event.target.value)} />
+            </label>
+            <label className={styles.fieldWide}>
+              <span>목표</span>
+              <input value={newClient.goal} onChange={(event) => updateNewClient('goal', event.target.value)} placeholder="예: 허리 통증 없이 운동 재개" />
+            </label>
+            <label>
+              <span>방문 목적</span>
+              <input value={newClient.purpose} onChange={(event) => updateNewClient('purpose', event.target.value)} placeholder="쉼표로 구분" />
+            </label>
+            <label>
+              <span>불편 부위</span>
+              <input value={newClient.painAreas} onChange={(event) => updateNewClient('painAreas', event.target.value)} placeholder="예: 허리, 무릎" />
+            </label>
+            <label>
+              <span>총회차</span>
+              <input type="number" min="0" value={newClient.totalSessions} onChange={(event) => updateNewClient('totalSessions', event.target.value)} />
+            </label>
+            <label>
+              <span>잔여회차</span>
+              <input type="number" min="0" value={newClient.remainingSessions} onChange={(event) => updateNewClient('remainingSessions', event.target.value)} />
+            </label>
+            <label className={styles.fieldWide}>
+              <span>메모</span>
+              <textarea value={newClient.concern} onChange={(event) => updateNewClient('concern', event.target.value)} placeholder="현장 상담 전 확인할 내용을 기록합니다." />
+            </label>
+
+            {addClientError && <div className={styles.errorStatus}>{addClientError}</div>}
+
+            <div className={styles.addFormActions}>
+              <button className={styles.ghostButton} type="button" onClick={closeAddForm}>취소</button>
+              <button className={styles.primaryButton} type="submit" disabled={isAddingClient}>{isAddingClient ? '추가 중...' : '고객 추가'}</button>
+            </div>
+          </form>
+        </section>
+      )}
 
       <section className={styles.board}>
         <aside className={styles.sidebar}>
