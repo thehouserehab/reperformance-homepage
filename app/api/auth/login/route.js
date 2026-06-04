@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   createAdminSession,
-  findAuthAccountFromStores,
   getAdminCookieOptions,
   hasStaffRole,
 } from '../../../../lib/rpAdminAuth';
+import { findAuthAccountFromStores } from '../../../../lib/rpAuthStores';
 
 async function readLoginPayload(request) {
   const contentType = request.headers.get('content-type') || '';
