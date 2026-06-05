@@ -27,9 +27,9 @@ export default function Home() {
             있는 방향으로 회복과 훈련을 연결합니다.
           </p>
           <div className="hero-actions">
-            <a href={site.notionSurveyHref} target="_blank" rel="noopener noreferrer" className="button primary">
-              온라인 설문 작성
-            </a>
+            <Link href={site.serviceApplyHref} className="button primary">
+              서비스 신청하기
+            </Link>
             <Link href="/signup" className="button hero-secondary">
               회원가입
             </Link>
@@ -64,12 +64,12 @@ export default function Home() {
           </div>
           <div className="grid-3">
             {serviceItems.map((item) => (
-              <Link href={item.href} className="card interactive-card" key={item.href}>
+              <Link href={item.applyHref} className="card interactive-card" key={item.href}>
                 <span className="card-number">{item.number}</span>
                 <p className="card-label">{item.label}</p>
                 <h3>{item.title}</h3>
                 <p>{item.target}</p>
-                <span className="more-link">자세히 보기</span>
+                <span className="more-link">서비스 신청</span>
               </Link>
             ))}
           </div>
@@ -142,8 +142,8 @@ export default function Home() {
               로그인 후 권한에 따라 마이페이지 또는 운영관리 화면으로 이동합니다.
             </p>
             <div className="button-row">
-              <Link href="/signup" className="button primary">
-                회원가입
+              <Link href="/apply" className="button primary">
+                서비스 신청
               </Link>
               <Link href="/login" className="button secondary">
                 로그인

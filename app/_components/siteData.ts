@@ -8,6 +8,7 @@ export const site = {
   instagramHref: "https://www.instagram.com/reperformance_trainer",
   notionSurveyHref:
     "https://fearless-okapi-9c9.notion.site/2cdfab3c9eaa80e8a936e85baa1f3b59?pvs=105",
+  serviceApplyHref: "/apply",
   naverMapHref: "https://naver.me/5BwnMHha",
   ownerWorkspaceHref: "https://drive.google.com/drive/folders/1X_bDnaAW89nuKdj5dZ48sMwkfvamqogy",
   chatGptHref: "https://chatgpt.com/",
@@ -23,6 +24,9 @@ export const serviceItems = [
     label: "Senior Rehab",
     title: "시니어 재활 트레이닝",
     href: "/services/senior-rehab",
+    applyHref: "/apply?service=senior-rehab",
+    applicationValue: "senior-rehab",
+    memberType: "시니어",
     target: "부모님 세대, 보행·계단·허리·무릎·어깨 불편감",
     message: "아픈 몸을 참는 일상에서, 다시 편하게 움직이는 일상으로.",
     description:
@@ -34,6 +38,9 @@ export const serviceItems = [
     label: "Athlete Reconditioning",
     title: "선수·학생 리컨디셔닝",
     href: "/services/athlete-reconditioning",
+    applyHref: "/apply?service=athlete-reconditioning",
+    applicationValue: "athlete-reconditioning",
+    memberType: "선수/학생",
     target: "복귀 준비 선수, 유소년 선수, 취미·동호회 선수",
     message: "재활에서 복귀까지, 다시 경기장으로 돌아가기 위한 과정.",
     description:
@@ -45,11 +52,28 @@ export const serviceItems = [
     label: "Pain Care",
     title: "일반인 통증 케어 & 근력 회복",
     href: "/services/pain-care",
+    applyHref: "/apply?service=pain-care",
+    applicationValue: "pain-care",
+    memberType: "일반회원",
     target: "어깨·허리·무릎 불편감, 운동 초보, 체력 저하",
     message: "통증을 참고 버티는 운동이 아니라, 몸에 맞게 조절하는 운동.",
     description:
       "현재 몸 상태와 움직임을 확인하고, 무리 없는 범위에서 운동을 시작합니다. 통증 관리, 근력 회복, 체력 향상을 함께 목표로 합니다.",
     bullets: ["통증 부위 및 불편 동작 체크", "자세 및 움직임 확인", "가동성·안정성 운동", "기초 근력 운동", "생활 속 운동 습관 안내"],
+  },
+  {
+    number: "04",
+    label: "PE Exam",
+    title: "체대입시 운동 + 입시상담",
+    href: "/services/pe-exam",
+    applyHref: "/apply?service=pe-exam",
+    applicationValue: "pe-exam",
+    memberType: "체대입시생",
+    target: "체대입시 준비생, 실기 기록 향상, 목표 대학·학과 상담이 필요한 학생",
+    message: "실기 운동 준비와 입시 전략을 한 흐름으로 관리합니다.",
+    description:
+      "희망 대학, 목표 학과, 실기 종목, 현재 기록, 내신·수능 상황을 함께 확인하고 운동 계획과 입시 상담 방향을 연결합니다.",
+    bullets: ["희망 대학 및 목표 학과 확인", "실기 종목별 기록 체크", "부족 체력 요소 분석", "부상 방지 운동 루틴", "지원 전략 상담 메모"],
   },
 ];
 

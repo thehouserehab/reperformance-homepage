@@ -1,0 +1,345 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.form,
+.sidePanel {
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+}
+
+.form {
+  display: grid;
+  gap: 20px;
+  padding: 30px;
+}
+
+.formSection {
+  display: grid;
+  gap: 15px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e4df;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionTitle span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #eff8f6;
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.sectionTitle strong {
+  color: #17191d;
+  font-size: 18px;
+}
+
+.serviceGrid,
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.serviceOption,
+.checkCard,
+.parqCard,
+.agreeLabel {
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fbfbfa;
+}
+
+.serviceOption {
+  min-height: 150px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.serviceOption:has(input:checked) {
+  border-color: rgba(8, 123, 114, .44);
+  background: #eff8f6;
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, .08);
+}
+
+.serviceOption input,
+.checkCard input,
+.parqCard input,
+.agreeLabel input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: #087b72;
+}
+
+.serviceText {
+  display: grid;
+  gap: 7px;
+}
+
+.serviceText em {
+  color: #087b72;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.serviceText strong {
+  color: #17191d;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.serviceText small {
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.form label {
+  display: grid;
+  gap: 8px;
+}
+
+.form label > span,
+.groupLabel {
+  color: #4a4f55;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.form input[type='text'],
+.form input[type='tel'],
+.form select,
+.form textarea {
+  width: 100%;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  background: #fbfbfa;
+  color: #17191d;
+  font: inherit;
+  outline: none;
+}
+
+.form input[type='text'],
+.form input[type='tel'],
+.form select {
+  min-height: 50px;
+  padding: 0 14px;
+}
+
+.form textarea {
+  min-height: 120px;
+  padding: 14px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  border-color: #087b72;
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+}
+
+.checkGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkCard {
+  min-height: 42px;
+  display: inline-flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 8px !important;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.checkCard span {
+  color: #40464d;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.checkCard:has(input:checked) {
+  border-color: rgba(8, 123, 114, .32);
+  background: #eff8f6;
+}
+
+.helperText {
+  margin: -2px 0 0;
+  color: #5f6368;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.65;
+}
+
+.parqList {
+  display: grid;
+  gap: 10px;
+}
+
+.parqCard,
+.agreeLabel {
+  display: grid !important;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px !important;
+  padding: 13px;
+}
+
+.parqCard span,
+.agreeLabel span {
+  color: #4a4f55;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.parqCard:has(input:checked) {
+  border-color: rgba(150, 55, 36, .24);
+  background: #fff7f4;
+}
+
+.agreeLabel {
+  background: #eff8f6;
+}
+
+.submitButton,
+.sideActions a {
+  min-height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #087b72;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.success,
+.error {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+
+.success {
+  border: 1px solid rgba(8, 123, 114, .18);
+  background: #eff8f6;
+  color: #355a56;
+}
+
+.error {
+  border: 1px solid rgba(150, 55, 36, .18);
+  background: #fff0eb;
+  color: #963724;
+}
+
+.sidePanel {
+  display: grid;
+  gap: 18px;
+  padding: 30px;
+  position: sticky;
+  top: 104px;
+}
+
+.sidePanel h2 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+.flowList {
+  display: grid;
+  gap: 10px;
+}
+
+.flowList div,
+.notice {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f7f7f4;
+}
+
+.flowList strong,
+.notice strong {
+  color: #087b72;
+}
+
+.flowList span,
+.notice span {
+  color: #5f6368;
+  line-height: 1.7;
+}
+
+.notice {
+  background: #eff8f6;
+}
+
+.sideActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sideActions a:last-child {
+  background: #17191d;
+}
+
+@media (max-width: 980px) {
+  .layout,
+  .serviceGrid,
+  .formGrid,
+  .sideActions {
+    grid-template-columns: 1fr;
+  }
+
+  .sidePanel {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .form,
+  .sidePanel {
+    padding: 24px;
+  }
+
+  .checkGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}

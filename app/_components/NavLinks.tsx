@@ -26,8 +26,8 @@ export default function NavLinks() {
           {link.label}
         </Link>
       ))}
-      <Link href="/contact" className={pathname === "/contact" ? "nav-cta active" : "nav-cta"}>
-        상담
+      <Link href="/apply" className={pathname === "/apply" ? "nav-cta active" : "nav-cta"}>
+        신청
       </Link>
     </nav>
   );
