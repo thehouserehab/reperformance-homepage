@@ -71,10 +71,77 @@
   color: #9a5b0f;
 }
 
+.pe-standalone-page {
+  min-height: 100vh;
+  background: #f4f6f8;
+}
+
+.pe-standalone-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 70;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(12, 16, 24, 0.78);
+  backdrop-filter: blur(14px);
+}
+
+.pe-standalone-nav-inner {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.pe-standalone-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  color: #fff;
+  line-height: 1;
+}
+
+.pe-standalone-brand strong {
+  font-size: clamp(20px, 2.2vw, 28px);
+  font-weight: 950;
+}
+
+.pe-standalone-brand span {
+  color: #ffb15f;
+  font-size: clamp(17px, 1.8vw, 23px);
+  font-weight: 950;
+}
+
+.pe-standalone-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pe-standalone-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.pe-standalone-actions a:last-child {
+  border-color: transparent;
+  background: #ff8a1f;
+  color: #10141d;
+}
+
 .pe-motivation-hero {
   position: relative;
-  min-height: calc(100vh - 82px);
-  padding: 118px 0 92px;
+  min-height: 100vh;
+  padding: 132px 0 92px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -260,6 +327,30 @@
 .pe-final-section {
   background:
     linear-gradient(135deg, #10141d 0%, #142235 54%, #0c6059 100%);
+}
+
+.pe-standalone-footer {
+  padding: 28px 0;
+  background: #0d1118;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.pe-standalone-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.pe-standalone-footer strong {
+  color: #fff;
+}
+
+.pe-standalone-footer a {
+  color: #ffb15f;
+  font-weight: 900;
 }
 
 .pe-exam-hero {
@@ -736,7 +827,25 @@
 @media (max-width: 900px) {
   .pe-motivation-hero {
     min-height: auto;
-    padding: 82px 0 66px;
+    padding: 116px 0 66px;
+  }
+
+  .pe-standalone-nav-inner {
+    height: auto;
+    min-height: 76px;
+    padding: 12px 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pe-standalone-actions {
+    width: 100%;
+  }
+
+  .pe-standalone-actions a {
+    flex: 1;
+    justify-content: center;
   }
 
   .pe-motivation-bg {

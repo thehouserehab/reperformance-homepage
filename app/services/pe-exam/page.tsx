@@ -1,10 +1,16 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import PeExamCalendar from "./PeExamCalendar";
-import { ConsultationCTA, PageShell } from "../../_components/SiteChrome";
-import { serviceItems } from "../../_components/siteData";
+import { serviceItems, site } from "../../_components/siteData";
 
 const item = serviceItems[3];
+
+export const metadata: Metadata = {
+  title: "RePERFORMANCE 체대입시",
+  description:
+    "RePERFORMANCE 체대입시. 실기 기록, 입시 일정, 목표 대학 전략, 컨디션 관리를 한 흐름으로 연결하는 체대입시 전용 페이지입니다.",
+};
 
 const admissionSchedule = [
   {
@@ -245,7 +251,20 @@ const managementSteps = [
 
 export default function PeExamPage() {
   return (
-    <PageShell>
+    <main className="pe-standalone-page">
+      <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
+        <div className="container pe-standalone-nav-inner">
+          <Link href="/pe-exam" className="pe-standalone-brand" aria-label="RePERFORMANCE 체대입시 홈">
+            <strong>RePERFORMANCE</strong>
+            <span>체대입시</span>
+          </Link>
+          <div className="pe-standalone-actions">
+            <a href={site.phoneHref}>{site.phone}</a>
+            <Link href={item.applyHref}>상담 신청</Link>
+          </div>
+        </div>
+      </header>
+
       <section className="pe-motivation-hero">
         <Image
           src="/images/coach-card.jpg"
@@ -263,7 +282,7 @@ export default function PeExamPage() {
             체대입시는 막연히 열심히 하는 싸움이 아닙니다. 목표 대학, 성적, 실기 기록, 일정, 컨디션을 한 화면에서
             관리하며 합격 가능성을 매주 끌어올립니다.
           </p>
-          <div className="button-row">
+            <div className="button-row">
             <Link className="button pe-hero-primary" href={item.applyHref}>
               체대입시 상담 신청
             </Link>
@@ -482,19 +501,25 @@ export default function PeExamPage() {
               신청서를 남기면 목표 대학, 현재 성적, 실기 기록, 부상 이력, 운동 가능 시간을 기준으로 상담 방향을
               정리합니다. PAR-Q 설문까지 완료하면 첫 상담에서 더 빠르게 운동 계획을 잡을 수 있습니다.
             </p>
-            <div className="button-row">
+          <div className="button-row">
               <Link className="button primary" href={item.applyHref}>
                 체대입시 상담 신청
               </Link>
-              <Link className="button secondary" href="/services">
-                전체 서비스 보기
+              <Link className="button secondary" href="/apply?service=pe-exam">
+                PAR-Q 설문까지 진행
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <ConsultationCTA />
-    </PageShell>
+      <footer className="pe-standalone-footer">
+        <div className="container pe-standalone-footer-inner">
+          <strong>RePERFORMANCE 체대입시</strong>
+          <span>{site.address}</span>
+          <a href={site.phoneHref}>{site.phone}</a>
+        </div>
+      </footer>
+    </main>
   );
 }

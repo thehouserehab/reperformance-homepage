@@ -65,7 +65,7 @@ export const serviceItems = [
     number: "04",
     label: "PE Exam",
     title: "체대입시 운동 + 입시상담",
-    href: "/services/pe-exam",
+    href: "/pe-exam",
     applyHref: "/apply?service=pe-exam",
     applicationValue: "pe-exam",
     memberType: "체대입시생",

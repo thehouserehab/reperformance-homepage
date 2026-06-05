@@ -78,7 +78,7 @@ export default function Home() {
                   <p className="card-label">{item.label}</p>
                   <h3>{item.title}</h3>
                   <p>{item.target}</p>
-                  <span className="more-link">{isPeExam ? "체대입시 페이지 열기" : "서비스 신청"}</span>
+                  <span className="more-link">{isPeExam ? "RePERFORMANCE 체대입시 새창 열기" : "서비스 신청"}</span>
                 </Link>
               );
             })}
