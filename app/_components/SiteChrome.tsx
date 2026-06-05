@@ -46,13 +46,12 @@ export function ConsultationCTA({ compact = false }: { compact?: boolean }) {
         <p className="eyebrow light-text">CONSULTATION</p>
         <h2>지금 몸에서 가장 불편한 움직임부터 확인해보세요.</h2>
         <p>
-          통증 부위보다 중요한 것은 불편함이 생기는 동작입니다. 온라인 설문을 남겨주시면 현재 상태를 확인한 뒤
-          상담 방향을 안내해드립니다.
+          원하는 서비스를 고르고 기본 정보와 PAR-Q 확인을 남겨주시면 현재 상태를 확인한 뒤 상담 방향을 안내해드립니다.
         </p>
         <div className="button-row">
-          <a className="button cta-primary" href={site.notionSurveyHref} target="_blank" rel="noopener noreferrer">
-            온라인 설문 작성
-          </a>
+          <Link className="button cta-primary" href={site.serviceApplyHref}>
+            서비스 신청하기
+          </Link>
           <a className="button cta-secondary" href={site.phoneHref}>
             전화 상담
           </a>

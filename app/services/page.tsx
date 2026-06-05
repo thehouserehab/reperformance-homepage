@@ -19,7 +19,7 @@ export default function ServicesPage() {
       <section className="section">
         <div className="container service-stack">
           {serviceItems.map((item) => (
-            <Link href={item.href} className="wide-card interactive-card" key={item.href}>
+            <Link href={item.applyHref} className="wide-card interactive-card" key={item.href}>
               <div>
                 <span className="card-number">{item.number}</span>
                 <p className="card-label">{item.label}</p>
@@ -31,7 +31,7 @@ export default function ServicesPage() {
                 <span>{item.target}</span>
                 <strong>핵심</strong>
                 <span>{item.message}</span>
-                <span className="more-link">상세 프로그램 보기</span>
+                <span className="more-link">이 서비스 신청하기</span>
               </div>
             </Link>
           ))}
