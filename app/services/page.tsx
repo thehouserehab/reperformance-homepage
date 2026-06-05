@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PeExamWindowLink from "../_components/PeExamWindowLink";
 import { ConsultationCTA, PageShell } from "../_components/SiteChrome";
 import { serviceItems } from "../_components/siteData";
 
@@ -20,15 +21,8 @@ export default function ServicesPage() {
         <div className="container service-stack">
           {serviceItems.map((item) => {
             const isPeExam = item.applicationValue === "pe-exam";
-
-            return (
-              <Link
-                href={isPeExam ? item.href : item.applyHref}
-                target={isPeExam ? "_blank" : undefined}
-                rel={isPeExam ? "noopener noreferrer" : undefined}
-                className={`wide-card interactive-card ${isPeExam ? "feature-service-card" : ""}`}
-                key={item.href}
-              >
+            const cardContent = (
+              <>
                 <div>
                   <span className="card-number">{item.number}</span>
                   <p className="card-label">{item.label}</p>
@@ -42,6 +36,24 @@ export default function ServicesPage() {
                   <span>{item.message}</span>
                   <span className="more-link">{isPeExam ? "RePERFORMANCE 체대입시 새창 열기" : "이 서비스 신청하기"}</span>
                 </div>
+              </>
+            );
+
+            if (isPeExam) {
+              return (
+                <PeExamWindowLink href={item.href} className="wide-card interactive-card feature-service-card" key={item.href}>
+                  {cardContent}
+                </PeExamWindowLink>
+              );
+            }
+
+            return (
+              <Link
+                href={item.applyHref}
+                className="wide-card interactive-card"
+                key={item.href}
+              >
+                {cardContent}
               </Link>
             );
           })}
