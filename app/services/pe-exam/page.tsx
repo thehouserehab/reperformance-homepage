@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PeExamCalendar from "./PeExamCalendar";
 import { ConsultationCTA, PageShell } from "../../_components/SiteChrome";
 import { serviceItems } from "../../_components/siteData";
 
@@ -6,63 +7,91 @@ const item = serviceItems[3];
 
 const admissionSchedule = [
   {
-    period: "2026.08.31",
+    month: "2026.08",
+    range: "08.31",
+    label: "자료 기준",
     title: "수시 학생부 작성 기준일",
     note: "수시 지원 전 학교생활기록부 기준일을 확인합니다.",
+    tone: "document",
   },
   {
-    period: "2026.09.07 ~ 09.11",
+    month: "2026.09",
+    range: "09.07 ~ 09.11",
+    label: "원서접수",
     title: "수시 원서접수",
     note: "기간 중 3일 이상 대학별로 운영됩니다.",
+    tone: "application",
   },
   {
-    period: "2026.09.12 ~ 12.17",
+    month: "2026.09-12",
+    range: "09.12 ~ 12.17",
+    label: "수시 전형",
     title: "수시 전형기간",
     note: "대학별 실기, 면접, 서류 일정이 이 기간 안에서 진행됩니다.",
+    tone: "exam",
   },
   {
-    period: "2026.11.19",
+    month: "2026.11",
+    range: "11.19",
+    label: "수능",
     title: "2027학년도 수능",
     note: "수능 이후 정시 지원 전략과 실기 컨디션을 다시 조정합니다.",
+    tone: "exam",
   },
   {
-    period: "2026.12.11",
+    month: "2026.12",
+    range: "12.11",
+    label: "성적",
     title: "수능 성적 통지",
     note: "실제 성적 기준으로 가군, 나군, 다군 조합을 점검합니다.",
+    tone: "decision",
   },
   {
-    period: "2027.01.04 ~ 01.07",
+    month: "2027.01",
+    range: "01.04 ~ 01.07",
+    label: "원서접수",
     title: "정시 원서접수",
     note: "기간 중 3일 이상 대학별로 운영됩니다.",
+    tone: "application",
   },
   {
-    period: "2027.01.11 ~ 02.01",
+    month: "2027.01-02",
+    range: "01.11 ~ 02.01",
+    label: "정시 전형",
     title: "정시 가군, 나군, 다군 전형",
     note: "가군 01.11~01.17, 나군 01.18~01.24, 다군 01.25~02.01입니다.",
+    tone: "exam",
   },
   {
-    period: "2027.02.05까지",
+    month: "2027.02",
+    range: "02.05까지",
+    label: "합격발표",
     title: "정시 합격자 발표",
     note: "합격, 예비, 추가 충원 가능성을 함께 확인합니다.",
+    tone: "decision",
   },
-];
+] as const;
 
 const consultingPoints = [
   {
     title: "목표 대학과 모집단위",
     text: "체육교육과, 스포츠과학과, 운동건강관리, 경찰/군 관련 학과 등 목표를 구분해 지원 방향을 정리합니다.",
+    tone: "strategy",
   },
   {
     title: "내신, 수능, 실기 비율",
     text: "대학별 반영 비율이 다르기 때문에 현재 성적과 실기 기록을 같은 표 안에서 비교합니다.",
+    tone: "score",
   },
   {
     title: "실기 종목별 기록",
     text: "제자리멀리뛰기, 윗몸일으키기, 왕복달리기, 좌전굴, 배근력 등 대학별 종목을 기록으로 관리합니다.",
+    tone: "record",
   },
   {
     title: "부상 이력과 컨디션",
     text: "무릎, 발목, 허리, 어깨 상태를 확인해 기록 향상과 부상 방지를 동시에 설계합니다.",
+    tone: "condition",
   },
 ];
 
@@ -214,7 +243,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section pe-section-consulting">
         <div className="container grid-2">
           <div className="contact-box">
             <p className="eyebrow">WHY</p>
@@ -231,7 +260,7 @@ export default function PeExamPage() {
             <h2>상담에서 먼저 확인하는 것</h2>
             <div className="info-list">
               {consultingPoints.map((point) => (
-                <div className="info-item" key={point.title}>
+                <div className={`info-item pe-info-item ${point.tone}`} key={point.title}>
                   <strong>Check</strong>
                   <span>
                     <b>{point.title}</b>
@@ -245,25 +274,17 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section light">
+      <section className="section pe-section-schedule">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">2027 ADMISSION SCHEDULE</p>
-            <h2>2027학년도 체대입시 주요 일정</h2>
+            <h2>2027학년도 체대입시 주요 일정을 캘린더로 봅니다.</h2>
             <p>
               아래 일정은 한국대학교육협의회 2027학년도 대학입학전형기본사항을 기준으로 정리했습니다. 대학별
               세부 실기 일정과 모집요강은 반드시 각 대학 발표 자료로 다시 확인합니다.
             </p>
           </div>
-          <div className="grid-3">
-            {admissionSchedule.map((schedule) => (
-              <div className="card" key={schedule.title}>
-                <span className="card-number">{schedule.period}</span>
-                <h3>{schedule.title}</h3>
-                <p>{schedule.note}</p>
-              </div>
-            ))}
-          </div>
+          <PeExamCalendar events={admissionSchedule} />
           <div className="notice">
             수시모집은 최대 6개 전형 이내에서 복수지원이 가능하며, 정시모집은 가군, 나군, 다군별로 1회씩
             지원할 수 있습니다. 세부 예외와 제한 사항은 대학별 모집요강을 확인해야 합니다.
@@ -271,7 +292,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section pe-section-guides">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">UNIVERSITY GUIDE LINKS</p>
@@ -283,7 +304,12 @@ export default function PeExamPage() {
           </div>
           <div className="grid-3">
             {officialGuideLinks.map((link) => (
-              <div className="card" key={link.university}>
+              <div
+                className={`card pe-guide-card ${
+                  link.region === "공통" ? "common" : link.region === "전북" ? "local" : link.region === "서울" ? "seoul" : "metro"
+                }`}
+                key={link.university}
+              >
                 <p className="card-label">{link.region}</p>
                 <h3>{link.university}</h3>
                 <p>{link.focus}</p>
@@ -300,7 +326,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section light">
+      <section className="section light pe-section-update">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">UPDATE RULE</p>
@@ -321,7 +347,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section pe-section-practical">
         <div className="container detail-grid">
           <div className="contact-box">
             <p className="eyebrow">PRACTICAL TEST</p>
@@ -353,7 +379,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section light">
+      <section className="section light pe-section-management">
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">MANAGEMENT SYSTEM</p>
@@ -375,7 +401,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section pe-section-student">
         <div className="container grid-2">
           <div className="contact-box accent-box">
             <p className="eyebrow">FOR STUDENTS</p>
