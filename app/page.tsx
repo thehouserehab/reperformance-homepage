@@ -62,16 +62,26 @@ export default function Home() {
               조정합니다.
             </p>
           </div>
-          <div className="grid-3">
-            {serviceItems.map((item) => (
-              <Link href={item.applyHref} className="card interactive-card" key={item.href}>
-                <span className="card-number">{item.number}</span>
-                <p className="card-label">{item.label}</p>
-                <h3>{item.title}</h3>
-                <p>{item.target}</p>
-                <span className="more-link">서비스 신청</span>
-              </Link>
-            ))}
+          <div className="grid-2 home-service-grid">
+            {serviceItems.map((item) => {
+              const isPeExam = item.applicationValue === "pe-exam";
+
+              return (
+                <Link
+                  href={isPeExam ? item.href : item.applyHref}
+                  target={isPeExam ? "_blank" : undefined}
+                  rel={isPeExam ? "noopener noreferrer" : undefined}
+                  className={`card interactive-card ${isPeExam ? "feature-service-card" : ""}`}
+                  key={item.href}
+                >
+                  <span className="card-number">{item.number}</span>
+                  <p className="card-label">{item.label}</p>
+                  <h3>{item.title}</h3>
+                  <p>{item.target}</p>
+                  <span className="more-link">{isPeExam ? "체대입시 페이지 열기" : "서비스 신청"}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
