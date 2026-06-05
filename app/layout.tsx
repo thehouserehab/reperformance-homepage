@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./detail-pages.css";
 
 export const metadata: Metadata = {
   title: "RePERFORMANCE | 전주 서신동 재활 트레이닝",
