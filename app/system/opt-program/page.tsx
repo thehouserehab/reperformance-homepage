@@ -84,6 +84,11 @@ export default function OptProgramPage() {
                 설문 단계 보기
               </Link>
             </div>
+            <div className="system-hero-badges" aria-label="OPT 프로그램 핵심 흐름">
+              <span>Warm-up</span>
+              <span>Strength</span>
+              <span>Cool-down</span>
+            </div>
           </div>
           <div className="system-visual-card">
             <Image src="/images/coach-card.jpg" alt="RePERFORMANCE 프로그램 진행 현장" width={720} height={900} />
