@@ -78,6 +78,11 @@ export default function OnlineSurveyPage() {
                 다음 단계 보기
               </Link>
             </div>
+            <div className="system-hero-badges" aria-label="온라인 설문 핵심 흐름">
+              <span>목표 확인</span>
+              <span>PAR-Q</span>
+              <span>첫 수업 반영</span>
+            </div>
           </div>
           <div className="system-visual-card">
             <Image src="/images/coach-card.jpg" alt="RePERFORMANCE 상담과 트레이닝 현장" width={720} height={900} />

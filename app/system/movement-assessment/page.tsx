@@ -85,6 +85,11 @@ export default function MovementAssessmentPage() {
                 평가 신청하기
               </Link>
             </div>
+            <div className="system-hero-badges" aria-label="움직임 평가 핵심 흐름">
+              <span>관찰</span>
+              <span>테스트</span>
+              <span>운동 조절</span>
+            </div>
           </div>
         </div>
       </section>
