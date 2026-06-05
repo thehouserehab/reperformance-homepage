@@ -77,6 +77,98 @@ const practicalEvents = [
   "농구, 축구 등 대학별 선택 종목",
 ];
 
+const guideLastUpdatedAt = "2026.06.05";
+
+const officialGuideLinks = [
+  {
+    region: "공통",
+    university: "대입정보포털 어디가",
+    focus: "대학별 전형, 모집요강, 입시결과 통합 확인",
+    href: "https://www.adiga.kr/",
+  },
+  {
+    region: "전북",
+    university: "전북대학교",
+    focus: "체육교육과, 스포츠과학과 관련 전형 확인",
+    href: "https://enter.jbnu.ac.kr/mainIntro/intro.do",
+  },
+  {
+    region: "전북",
+    university: "전주대학교",
+    focus: "운동처방, 생활체육, 경기지도 관련 모집요강 확인",
+    href: "https://iphak.jj.ac.kr/",
+  },
+  {
+    region: "전북",
+    university: "원광대학교",
+    focus: "스포츠과학, 체육 관련 모집단위 확인",
+    href: "https://ipsi.wku.ac.kr/mainIntro/intro.do",
+  },
+  {
+    region: "서울",
+    university: "한국체육대학교",
+    focus: "체육계열 특화 대학, 실기종목과 전형별 모집요강 확인",
+    href: "https://www.knsu.ac.kr/ipsi",
+  },
+  {
+    region: "서울",
+    university: "서울대학교",
+    focus: "체육교육과 전형, 수시/정시 자료 확인",
+    href: "https://admission.snu.ac.kr/",
+  },
+  {
+    region: "서울",
+    university: "연세대학교",
+    focus: "스포츠응용산업학과 등 체육계열 전형 확인",
+    href: "https://admission.yonsei.ac.kr/",
+  },
+  {
+    region: "서울",
+    university: "고려대학교",
+    focus: "체육교육과, 국제스포츠학부 관련 전형 확인",
+    href: "https://oku.korea.ac.kr/oku/index.do",
+  },
+  {
+    region: "수도권",
+    university: "경희대학교",
+    focus: "체육대학 모집요강과 실기 반영 방식 확인",
+    href: "https://iphak.khu.ac.kr/main.do",
+  },
+  {
+    region: "수도권",
+    university: "중앙대학교",
+    focus: "체육교육과 전형, 실기/수능 반영 방식 확인",
+    href: "https://admission.cau.ac.kr/main.htm",
+  },
+  {
+    region: "수도권",
+    university: "단국대학교",
+    focus: "스포츠과학대학, 생활체육, 운동처방재활 관련 확인",
+    href: "https://ipsi.dankook.ac.kr/jukjeon/main.html",
+  },
+  {
+    region: "수도권",
+    university: "용인대학교",
+    focus: "무도, 체육, 경호, 스포츠 관련 전형 확인",
+    href: "https://ipsi.yongin.ac.kr/",
+  },
+];
+
+const updatePolicies = [
+  {
+    title: "정기 업데이트",
+    text: "수시 모집요강 발표 전후, 정시 모집요강 발표 전후, 원서접수 직전에는 우선 확인합니다.",
+  },
+  {
+    title: "학생별 목표 대학",
+    text: "상담에서 목표 대학이 정해지면 해당 대학 모집요강, 실기종목, 반영비율을 별도 관리표에 추가합니다.",
+  },
+  {
+    title: "공식 자료 우선",
+    text: "블로그나 요약 자료보다 대학 입학처, 대입정보포털, 대교협 자료를 기준으로 업데이트합니다.",
+  },
+];
+
 const managementSteps = [
   {
     number: "01",
@@ -175,6 +267,56 @@ export default function PeExamPage() {
           <div className="notice">
             수시모집은 최대 6개 전형 이내에서 복수지원이 가능하며, 정시모집은 가군, 나군, 다군별로 1회씩
             지원할 수 있습니다. 세부 예외와 제한 사항은 대학별 모집요강을 확인해야 합니다.
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">UNIVERSITY GUIDE LINKS</p>
+            <h2>대학별 모집요강을 공식 링크로 바로 확인합니다.</h2>
+            <p>
+              체대입시 모집요강은 대학별로 발표 시기와 실기 반영 방식이 달라집니다. 아래 링크는 2026년 6월
+              5일 기준 공식 입학처와 대입정보포털 접속을 확인한 대표 링크입니다.
+            </p>
+          </div>
+          <div className="grid-3">
+            {officialGuideLinks.map((link) => (
+              <div className="card" key={link.university}>
+                <p className="card-label">{link.region}</p>
+                <h3>{link.university}</h3>
+                <p>{link.focus}</p>
+                <a className="more-link" href={link.href} target="_blank" rel="noopener noreferrer">
+                  공식 모집요강 확인
+                </a>
+              </div>
+            ))}
+          </div>
+          <div className="notice">
+            마지막 링크 확인일: {guideLastUpdatedAt}. 대학별 PDF 파일은 매년 주소가 바뀔 수 있어, 페이지에서는
+            공식 입학처와 모집요강 게시판으로 연결합니다.
+          </div>
+        </div>
+      </section>
+
+      <section className="section light">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">UPDATE RULE</p>
+            <h2>리퍼포먼스가 직접 확인하고 업데이트합니다.</h2>
+            <p>
+              단순 링크 모음에서 끝나지 않도록, 상담 중인 학생의 목표 대학은 별도 관리표로 정리하고 일정 기간마다
+              모집요강 변경 여부를 확인합니다.
+            </p>
+          </div>
+          <div className="grid-3">
+            {updatePolicies.map((policy) => (
+              <div className="card" key={policy.title}>
+                <h3>{policy.title}</h3>
+                <p>{policy.text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
