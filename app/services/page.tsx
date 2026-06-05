@@ -18,23 +18,33 @@ export default function ServicesPage() {
 
       <section className="section">
         <div className="container service-stack">
-          {serviceItems.map((item) => (
-            <Link href={item.applyHref} className="wide-card interactive-card" key={item.href}>
-              <div>
-                <span className="card-number">{item.number}</span>
-                <p className="card-label">{item.label}</p>
-                <h2>{item.title}</h2>
-                <p>{item.description}</p>
-              </div>
-              <div className="mini-list">
-                <strong>대상</strong>
-                <span>{item.target}</span>
-                <strong>핵심</strong>
-                <span>{item.message}</span>
-                <span className="more-link">이 서비스 신청하기</span>
-              </div>
-            </Link>
-          ))}
+          {serviceItems.map((item) => {
+            const isPeExam = item.applicationValue === "pe-exam";
+
+            return (
+              <Link
+                href={isPeExam ? item.href : item.applyHref}
+                target={isPeExam ? "_blank" : undefined}
+                rel={isPeExam ? "noopener noreferrer" : undefined}
+                className={`wide-card interactive-card ${isPeExam ? "feature-service-card" : ""}`}
+                key={item.href}
+              >
+                <div>
+                  <span className="card-number">{item.number}</span>
+                  <p className="card-label">{item.label}</p>
+                  <h2>{item.title}</h2>
+                  <p>{item.description}</p>
+                </div>
+                <div className="mini-list">
+                  <strong>대상</strong>
+                  <span>{item.target}</span>
+                  <strong>핵심</strong>
+                  <span>{item.message}</span>
+                  <span className="more-link">{isPeExam ? "새 창에서 체대입시 페이지 보기" : "이 서비스 신청하기"}</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
