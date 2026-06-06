@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import PeExamCalendar from "./PeExamCalendar";
 import styles from "./PeExamCare.module.css";
+import { peExamDetailPages } from "./peExamData";
 import { serviceItems, site } from "../../_components/siteData";
 
 const item = serviceItems[3];
@@ -98,6 +99,29 @@ export default function PeExamPage() {
             <div><strong>6</strong><span>전문 관리 모듈</span></div>
             <div><strong>WEEKLY</strong><span>기록·컨디션 업데이트</span></div>
             <div><strong>3-WAY</strong><span>학생·코치·학부모 공유</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className={cx("section", styles.hubSection)}>
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">PE EXAM PAGES</p>
+            <h2>체대입시 관리 내용을 페이지별로 나눠서 확인합니다.</h2>
+            <p>
+              목표 대학 전략, 기록 관리, 주간 훈련, 컨디션, 학부모 리포트, 실전 시뮬레이션을 각각의 전문 페이지에서
+              확인할 수 있습니다.
+            </p>
+          </div>
+          <div className={styles.hubGrid}>
+            {peExamDetailPages.map((page) => (
+              <Link className={styles.hubCard} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
+                <p>{page.label}</p>
+                <h3>{page.title}</h3>
+                <span>{page.description}</span>
+                <strong>자세히 보기</strong>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
