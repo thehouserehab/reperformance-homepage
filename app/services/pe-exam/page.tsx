@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./PeExamCare.module.css";
+import slideStyles from "./PeExamSlide.module.css";
 import { peExamDetailPages } from "./peExamData";
 import { serviceItems, site } from "../../_components/siteData";
 
@@ -38,7 +39,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 export default function PeExamPage() {
   return (
-    <main className={cx("pe-standalone-page", styles.page)}>
+    <main className={cx("pe-standalone-page", "pe-slide-snap", styles.page, slideStyles.slidePage)}>
       <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
         <div className="container pe-standalone-nav-inner">
           <Link href="/pe-exam" className="pe-standalone-brand" aria-label="RePERFORMANCE 체대입시 홈">
@@ -46,14 +47,14 @@ export default function PeExamPage() {
             <span>체대입시</span>
           </Link>
           <div className="pe-standalone-actions">
-            <Link href="/services/pe-exam#admission-info">입시정보</Link>
-            <Link href="/services/pe-exam#care-system">케어 시스템</Link>
+            <Link href="/services/pe-exam/admission-info">입시정보</Link>
+            <Link href="/services/pe-exam/care-system">케어 시스템</Link>
             <Link href={item.applyHref}>상담 신청</Link>
           </div>
         </div>
       </header>
 
-      <section className="pe-motivation-hero">
+      <section className={cx("pe-motivation-hero", slideStyles.slidePanel, slideStyles.slideHero)}>
         <Image
           src="/images/coach-card.jpg"
           alt="체대입시 실기 준비를 위한 RePERFORMANCE 트레이닝 현장"
@@ -71,10 +72,10 @@ export default function PeExamPage() {
             항목은 페이지별로 나눠 확인하고, 상담 후에는 개인별 관리 시스템으로 이어질 수 있도록 구조를 정비했습니다.
           </p>
           <div className="button-row">
-            <Link className="button pe-hero-primary" href="#care-system">
+            <Link className="button pe-hero-primary" href="/services/pe-exam/care-system">
               케어 시스템 보기
             </Link>
-            <Link className="button pe-hero-secondary" href="#admission-info">
+            <Link className="button pe-hero-secondary" href="/services/pe-exam/admission-info">
               입시정보 보기
             </Link>
           </div>
@@ -95,7 +96,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={cx("section", styles.introSection)}>
+      <section className={cx("section", slideStyles.slidePanel, slideStyles.slideSection, styles.introSection)}>
         <div className={cx("container", styles.introLayout)}>
           <article className={styles.systemIntroPanel}>
             <p className="eyebrow">HOW TO USE</p>
@@ -123,7 +124,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="care-system" className={cx("section", styles.systemOverview)}>
+      <section id="care-system" className={cx("section", slideStyles.slidePanel, slideStyles.slideSection, styles.systemOverview)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">CARE SYSTEM</p>
@@ -146,7 +147,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="admission-info" className={cx("section", styles.infoSection)}>
+      <section id="admission-info" className={cx("section", slideStyles.slidePanel, slideStyles.slideSection, styles.infoSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">ADMISSION INFO</p>
@@ -169,7 +170,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={cx("section", styles.roadmapSection)}>
+      <section className={cx("section", slideStyles.slidePanel, slideStyles.slideSection, styles.roadmapSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow light-text">SYSTEM ROADMAP</p>
@@ -191,7 +192,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className="section pe-final-section">
+      <section className={cx("section pe-final-section", slideStyles.slidePanel, slideStyles.slideSection)}>
         <div className="container grid-2">
           <div className="contact-box pe-final-card">
             <p className="eyebrow light-text">FOR STUDENTS</p>
