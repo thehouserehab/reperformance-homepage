@@ -157,8 +157,8 @@ export default async function PeExamDetailPage({ params }: PageProps) {
             <span>체대입시</span>
           </Link>
           <div className="pe-standalone-actions">
-            <Link href="/services/pe-exam#admission-info">입시정보</Link>
-            <Link href="/services/pe-exam#care-system">케어 시스템</Link>
+            <Link href="/services/pe-exam/admission-info">입시정보</Link>
+            <Link href="/services/pe-exam/care-system">케어 시스템</Link>
             <Link href={item.applyHref}>상담 신청</Link>
           </div>
         </div>

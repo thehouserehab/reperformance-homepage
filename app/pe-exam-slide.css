@@ -1,0 +1,8 @@
+html:has(.pe-slide-snap) {
+  scroll-padding-top: 0;
+  scroll-snap-type: y proximity;
+}
+
+body:has(.pe-slide-snap) {
+  background: #10141d;
+}
