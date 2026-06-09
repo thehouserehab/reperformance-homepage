@@ -34,6 +34,108 @@
   font-weight: 800;
 }
 
+.introSection {
+  background: linear-gradient(180deg, #fff 0%, #f4f6f8 100%);
+}
+
+.introLayout {
+  display: grid;
+  grid-template-columns: 1.14fr 0.86fr;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.systemIntroPanel,
+.nextSystemPanel {
+  border-radius: 8px;
+  box-shadow: 0 20px 44px rgba(23, 32, 51, 0.08);
+}
+
+.systemIntroPanel {
+  padding: 32px;
+  border: 1px solid #d8dee9;
+  background: #fff;
+}
+
+.systemIntroPanel h2,
+.nextSystemPanel h2 {
+  margin-bottom: 22px;
+  color: #172033;
+  font-size: clamp(28px, 3.6vw, 44px);
+  line-height: 1.16;
+}
+
+.usageGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.usageCard {
+  min-height: 188px;
+  padding: 22px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.usageCard strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: #172033;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.usageCard h3 {
+  color: #172033 !important;
+  font-size: 21px;
+}
+
+.usageCard p {
+  margin-bottom: 0;
+  color: #526071;
+  line-height: 1.7;
+}
+
+.nextSystemPanel {
+  padding: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background:
+    radial-gradient(circle at 86% 12%, rgba(255, 138, 31, 0.28), transparent 32%),
+    linear-gradient(145deg, #10141d 0%, #152438 58%, #0b6059 100%);
+  color: #fff;
+}
+
+.nextSystemPanel h2 {
+  color: #fff;
+}
+
+.nextSystemPanel ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nextSystemPanel li {
+  min-height: 48px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 850;
+}
+
 .hubSection {
   background: #fff;
 }
@@ -96,6 +198,120 @@
 
 .systemOverview {
   background: linear-gradient(180deg, #f7f4ed 0%, #fff 100%);
+}
+
+.infoSection {
+  background: #fff;
+}
+
+.infoFocusGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.infoFocusCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+  overflow: hidden;
+  padding: 30px;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(63, 110, 168, 0.1), transparent 42%),
+    #fff;
+  box-shadow: 0 20px 42px rgba(38, 52, 73, 0.08);
+}
+
+.infoFocusCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 6px;
+  background: linear-gradient(90deg, #3f6ea8, #087b72, #c47a18);
+}
+
+.infoFocusCard p {
+  margin-bottom: 12px;
+  color: #0b6059;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.infoFocusCard h3 {
+  color: #172033 !important;
+  font-size: clamp(26px, 3vw, 38px);
+}
+
+.infoFocusCard span {
+  display: block;
+  color: #526071;
+  line-height: 1.75;
+}
+
+.infoFocusCard strong {
+  margin-top: auto;
+  padding-top: 24px;
+  color: #172033;
+}
+
+.roadmapSection {
+  background:
+    radial-gradient(circle at 10% 0%, rgba(63, 140, 255, 0.22), transparent 32%),
+    radial-gradient(circle at 90% 18%, rgba(255, 138, 31, 0.2), transparent 34%),
+    #10141d;
+  color: #fff;
+}
+
+.roadmapSection :global(.section-head h2) {
+  color: #fff;
+}
+
+.roadmapSection :global(.section-head p:not(.eyebrow)) {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.roadmapGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.roadmapCard {
+  min-height: 230px;
+  padding: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 6px solid #3f8cff;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.roadmapCard:nth-child(2) {
+  border-top-color: #19c37d;
+}
+
+.roadmapCard:nth-child(3) {
+  border-top-color: #ff8a1f;
+}
+
+.roadmapCard p {
+  color: #ffb15f;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.roadmapCard h3 {
+  color: #fff !important;
+}
+
+.roadmapCard span {
+  display: block;
+  color: rgba(255, 255, 255, 0.74);
+  line-height: 1.75;
 }
 
 .systemLayout {
@@ -717,12 +933,16 @@
 
 @media (max-width: 900px) {
   .heroMetrics,
+  .introLayout,
+  .usageGrid,
   .hubGrid,
   .systemLayout,
   .moduleGrid,
   .dashboardGrid,
   .dashboardStats,
   .stageList,
+  .infoFocusGrid,
+  .roadmapGrid,
   .guideGrid,
   .eventList,
   .detailGrid,
