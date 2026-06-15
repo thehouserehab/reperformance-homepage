@@ -10,7 +10,7 @@
 }
 
 .snapPanel {
-  min-height: 100vh;
+  min-height: 100svh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
@@ -31,6 +31,8 @@
 .anchorSection {
   display: flex;
   align-items: center;
+  padding-top: 78px;
+  padding-bottom: 44px;
 }
 
 .publicHeroInner {
@@ -59,6 +61,39 @@
   color: rgba(255, 255, 255, 0.78);
   font-size: 19px;
   line-height: 1.8;
+}
+
+.compactInfoCard {
+  min-height: 220px;
+  padding: 26px;
+}
+
+.compactHubCard {
+  min-height: 156px;
+  overflow: hidden;
+  padding: 16px;
+}
+
+.compactHubCard h3 {
+  margin-bottom: 6px;
+  font-size: 17px;
+}
+
+.compactHubCard p {
+  margin-bottom: 5px;
+}
+
+.compactHubCard span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.42;
+}
+
+.compactHubCard strong {
+  padding-top: 8px;
+  font-size: 14px;
 }
 
 .heroMedia {
@@ -103,6 +138,32 @@
   scroll-margin-top: 0;
 }
 
+.publicCareSection :global(.section-head) {
+  margin-bottom: 20px;
+}
+
+.publicCareSection :global(.section-head h2),
+.consultFlowGrid h2 {
+  margin-bottom: 12px;
+}
+
+.publicCareSection :global(.section-head h2) {
+  font-size: clamp(28px, 3.2vw, 42px);
+}
+
+.publicCareSection :global(.section-head p:not(.eyebrow)) {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.publicCareSection :global(.section-head .eyebrow) {
+  margin-bottom: 10px;
+}
+
+.publicCareSection :global([class*="hubGrid"]) {
+  gap: 10px;
+}
+
 .consultFlowGrid {
   display: grid;
   grid-template-columns: 0.92fr 1.08fr;
@@ -128,9 +189,9 @@
 
 .consultStepList article {
   display: grid;
-  grid-template-columns: 58px 1fr;
+  grid-template-columns: 58px minmax(0, 1fr);
   gap: 14px;
-  padding: 22px;
+  padding: 18px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
@@ -154,7 +215,10 @@
 }
 
 .consultStepList p {
+  grid-column: 2;
   margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.55;
 }
 
 .supportLink {
@@ -180,6 +244,15 @@
     padding-top: 116px;
   }
 
+  .publicInfoSection,
+  .publicCareSection,
+  .consultFlowSection,
+  .anchorSection {
+    align-items: flex-start;
+    padding-top: 86px;
+    padding-bottom: 44px;
+  }
+
   .publicHeroInner,
   .consultFlowGrid {
     grid-template-columns: 1fr;
@@ -196,5 +269,14 @@
 
   .consultStepList article {
     grid-template-columns: 1fr;
+  }
+
+  .consultStepList p {
+    grid-column: auto;
+  }
+
+  .compactInfoCard,
+  .compactHubCard {
+    min-height: auto;
   }
 }

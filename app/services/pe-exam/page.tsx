@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import PeExamScrollController from "./PeExamScrollController";
 import styles from "./PeExamCare.module.css";
 import publicStyles from "./PeExamPublic.module.css";
 import { peExamDetailPages } from "./peExamData";
@@ -36,7 +37,8 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 export default function PeExamPage() {
   return (
-    <main className={publicStyles.publicPage}>
+    <main className={publicStyles.publicPage} data-pe-scroll>
+      <PeExamScrollController />
       <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
         <div className="container pe-standalone-nav-inner">
           <Link href="/services/pe-exam" className="pe-standalone-brand" aria-label="RePERFORMANCE 체대입시 공개 페이지">
@@ -52,7 +54,7 @@ export default function PeExamPage() {
         </div>
       </header>
 
-      <section className={cx(publicStyles.publicHero, publicStyles.snapPanel)}>
+      <section className={cx(publicStyles.publicHero, publicStyles.snapPanel)} data-pe-panel>
         <div className={publicStyles.heroMedia} aria-hidden="true">
           <Image
             src="/images/coach-card.jpg"
@@ -99,7 +101,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection, publicStyles.snapPanel)}>
+      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection, publicStyles.snapPanel)} data-pe-panel>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">ADMISSION INFO</p>
@@ -111,7 +113,7 @@ export default function PeExamPage() {
           </div>
           <div className={styles.infoFocusGrid}>
             {infoPages.map((page) => (
-              <Link className={styles.infoFocusCard} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
+              <Link className={cx(styles.infoFocusCard, publicStyles.compactInfoCard)} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
                 <p>{page.label}</p>
                 <h3>{page.title}</h3>
                 <span>{page.description}</span>
@@ -122,7 +124,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="care-system" className={cx("section", publicStyles.publicCareSection, publicStyles.snapPanel)}>
+      <section id="care-system" className={cx("section", publicStyles.publicCareSection, publicStyles.snapPanel)} data-pe-panel>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">CARE SYSTEM</p>
@@ -134,7 +136,7 @@ export default function PeExamPage() {
           </div>
           <div className={styles.hubGrid}>
             {carePages.map((page) => (
-              <Link className={styles.hubCard} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
+              <Link className={cx(styles.hubCard, publicStyles.compactHubCard)} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
                 <p>{page.label}</p>
                 <h3>{page.title}</h3>
                 <span>{page.description}</span>
@@ -145,7 +147,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection, publicStyles.snapPanel)}>
+      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection, publicStyles.snapPanel)} data-pe-panel>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow light-text">SYSTEM ROADMAP</p>
@@ -167,7 +169,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection, publicStyles.snapPanel)}>
+      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection, publicStyles.snapPanel)} data-pe-panel>
         <div className={cx("container", publicStyles.consultFlowGrid)}>
           <div>
             <p className="eyebrow">CONSULT FLOW</p>
