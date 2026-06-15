@@ -6,7 +6,7 @@
 .publicHero {
   position: relative;
   overflow: hidden;
-  padding: 118px 0 82px;
+  padding: 132px 0 88px;
   background:
     radial-gradient(circle at 80% 14%, rgba(255, 138, 31, 0.24), transparent 30%),
     linear-gradient(135deg, #0f1723 0%, #172033 52%, #10141d 100%);
@@ -27,7 +27,7 @@
 }
 
 .publicHeroText h1 {
-  max-width: 760px;
+  max-width: 840px;
   margin-bottom: 22px;
   color: #fff;
   font-size: clamp(42px, 6vw, 76px);
@@ -74,6 +74,13 @@
     radial-gradient(circle at 14% 0%, rgba(255, 138, 31, 0.18), transparent 30%),
     #111827;
   color: #fff;
+}
+
+.publicInfoSection,
+.publicCareSection,
+.consultFlowSection,
+.anchorSection {
+  scroll-margin-top: 92px;
 }
 
 .consultFlowGrid {
@@ -130,9 +137,19 @@
   margin-bottom: 0;
 }
 
+.supportLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 @media (max-width: 900px) {
   .publicHero {
-    padding-top: 106px;
+    padding-top: 116px;
   }
 
   .publicHeroInner,

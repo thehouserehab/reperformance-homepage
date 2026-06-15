@@ -4,9 +4,7 @@ import Link from "next/link";
 import styles from "./PeExamCare.module.css";
 import publicStyles from "./PeExamPublic.module.css";
 import { peExamDetailPages } from "./peExamData";
-import { serviceItems, site } from "../../_components/siteData";
-
-const item = serviceItems[3];
+import { site } from "../../_components/siteData";
 
 export const metadata: Metadata = {
   title: "체대입시 공개 안내 | RePERFORMANCE",
@@ -46,10 +44,10 @@ export default function PeExamPage() {
             <span>체대입시</span>
           </Link>
           <div className="pe-standalone-actions">
-            <Link href="/services/pe-exam/admission-info">입시정보</Link>
-            <Link href="/services/pe-exam/care-system">케어 시스템</Link>
-            <Link href="/pe-exam">학생용 화면</Link>
-            <Link href={item.applyHref}>상담 신청</Link>
+            <Link href="#admission-info">입시정보</Link>
+            <Link href="#care-system">케어 시스템</Link>
+            <Link href="#system-roadmap">관리 로드맵</Link>
+            <Link href="#consult-flow">상담 신청</Link>
           </div>
         </div>
       </header>
@@ -67,16 +65,19 @@ export default function PeExamPage() {
         <div className={cx("container", publicStyles.publicHeroInner)}>
           <div className={publicStyles.publicHeroText}>
             <p className="eyebrow light-text">PE EXAM PUBLIC GUIDE</p>
-            <h1>체대입시는 입시정보와 실기 관리를 같은 화면에서 봐야 합니다.</h1>
+            <h1>
+              체대입시 준비를 한눈에 이해하고,
+              <br />
+              필요한 관리를 연결합니다.
+            </h1>
             <p>
-              이 페이지는 로그인 전 누구나 볼 수 있는 체대입시 공개 안내입니다. 목표 대학, 실기 기록, 훈련 계획,
-              컨디션, 입시 일정을 상담 전에 이해할 수 있도록 핵심 흐름만 정리했습니다.
+              목표 대학, 실기 기록, 훈련 상태, 입시 일정을 따로 보지 않고 하나의 흐름으로 관리할 수 있도록 정리합니다.
             </p>
             <div className="button-row">
-              <Link className="button pe-hero-primary" href={item.applyHref}>
+              <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
                 체대입시 상담 신청
               </Link>
-              <Link className="button pe-hero-secondary" href="/services/pe-exam/admission-info">
+              <Link className="button pe-hero-secondary" href="#admission-info">
                 입시정보 보기
               </Link>
             </div>
@@ -144,7 +145,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={cx("section", styles.roadmapSection)}>
+      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow light-text">SYSTEM ROADMAP</p>
@@ -166,7 +167,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={cx("section", publicStyles.consultFlowSection)}>
+      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection)}>
         <div className={cx("container", publicStyles.consultFlowGrid)}>
           <div>
             <p className="eyebrow">CONSULT FLOW</p>
@@ -176,10 +177,13 @@ export default function PeExamPage() {
               정리합니다. 실제 개인정보 저장이나 로그인 연동은 이 공개 페이지에서 구현하지 않습니다.
             </p>
             <div className="button-row">
-              <Link className="button pe-hero-primary" href={item.applyHref}>
-                상담 신청하기
+              <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
+                체대입시 상담 신청
               </Link>
-              <a className="button pe-hero-secondary" href={site.instagramHref} target="_blank" rel="noopener noreferrer">
+              <Link className="button pe-hero-secondary" href="/apply?service=pe-exam">
+                PAR-Q 설문까지 진행
+              </Link>
+              <a className={publicStyles.supportLink} href={site.instagramHref} target="_blank" rel="noopener noreferrer">
                 Instagram DM
               </a>
             </div>
@@ -200,7 +204,7 @@ export default function PeExamPage() {
         <div className="container pe-standalone-footer-inner">
           <strong>RePERFORMANCE 체대입시</strong>
           <span>{site.address}</span>
-          <Link href={item.applyHref}>상담 신청</Link>
+          <Link href="/apply?service=pe-exam">상담 신청</Link>
         </div>
       </footer>
     </main>

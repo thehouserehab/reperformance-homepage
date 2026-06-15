@@ -4,9 +4,9 @@ import { ConsultationCTA, PageShell } from "./_components/SiteChrome";
 import { serviceItems, site, systemItems } from "./_components/siteData";
 
 const proofItems = [
-  { value: "1:1", label: "개인 상태 기반 상담" },
-  { value: "3 STEP", label: "설문, 평가, 프로그램" },
-  { value: "OPT", label: "목적 맞춤 운동 설계" },
+  { value: "1:1 상태 확인", label: "현재 불편한 움직임부터 확인합니다." },
+  { value: "3단계 진행", label: "설문 → 평가 → 프로그램으로 이어집니다." },
+  { value: "맞춤 운동 설계", label: "목표와 몸 상태에 따라 운동을 조정합니다." },
 ];
 
 export default function Home() {
@@ -24,13 +24,13 @@ export default function Home() {
         <div className="container hero-content">
           <p className="eyebrow light-text">Rehab to Performance</p>
           <h1>
-            재활에서 움직임,
+            재활에서 움직임으로,
             <br />
-            다시 퍼포먼스까지.
+            움직임에서 퍼포먼스로.
           </h1>
           <p className="lead">
-            RePERFORMANCE는 통증과 불편감을 단순히 참게 하지 않습니다. 현재 몸 상태를 확인하고, 다시 움직일 수
-            있는 방향으로 회복과 훈련을 연결합니다.
+            통증과 불편감을 단순히 참게 하지 않습니다. 현재 몸 상태를 확인하고, 다시 움직일 수 있는 방향으로 회복과
+            훈련을 연결합니다.
           </p>
           <div className="hero-actions">
             <Link href={site.serviceApplyHref} className="button primary">
@@ -100,7 +100,7 @@ export default function Home() {
           </div>
           <div className="button-row">
             <Link href="/system" className="button dark">
-              시스템 전체 보기
+              진행 방식 보기
             </Link>
           </div>
         </div>
@@ -140,15 +140,15 @@ export default function Home() {
             <p className="eyebrow">ACCOUNT</p>
             <h2>상담 후 회원 계정을 발급합니다.</h2>
             <p>
-              공개 홈페이지에서는 상담 신청만 받습니다. 상담 후 필요한 회원에게 계정을 발급하고, 로그인 후 개인 화면에서
-              목표와 수업 기록을 확인하는 구조로 운영합니다.
+              상담 후 필요한 경우 회원 계정을 발급해드립니다. 로그인하면 개인 목표, 수업 일정, 운동 기록을 확인할 수
+              있는 전용 화면으로 이동합니다.
             </p>
             <div className="button-row">
-              <Link href="/apply" className="button primary">
-                상담 신청
+              <Link href="/member" className="button primary">
+                회원 안내 보기
               </Link>
-              <Link href="/member" className="button secondary">
-                회원 화면 미리보기
+              <Link href="/login" className="button secondary">
+                로그인
               </Link>
             </div>
           </div>
