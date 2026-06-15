@@ -52,7 +52,7 @@ export default function PeExamPage() {
         </div>
       </header>
 
-      <section className={publicStyles.publicHero}>
+      <section className={cx(publicStyles.publicHero, publicStyles.snapPanel)}>
         <div className={publicStyles.heroMedia} aria-hidden="true">
           <Image
             src="/images/coach-card.jpg"
@@ -99,7 +99,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection)}>
+      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection, publicStyles.snapPanel)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">ADMISSION INFO</p>
@@ -122,7 +122,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="care-system" className={cx("section", publicStyles.publicCareSection)}>
+      <section id="care-system" className={cx("section", publicStyles.publicCareSection, publicStyles.snapPanel)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">CARE SYSTEM</p>
@@ -145,7 +145,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection)}>
+      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection, publicStyles.snapPanel)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow light-text">SYSTEM ROADMAP</p>
@@ -167,7 +167,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection)}>
+      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection, publicStyles.snapPanel)}>
         <div className={cx("container", publicStyles.consultFlowGrid)}>
           <div>
             <p className="eyebrow">CONSULT FLOW</p>
