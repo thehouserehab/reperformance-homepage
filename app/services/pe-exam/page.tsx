@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./PeExamCare.module.css";
+import publicStyles from "./PeExamPublic.module.css";
 import { peExamDetailPages } from "./peExamData";
 import { serviceItems, site } from "../../_components/siteData";
 
@@ -37,7 +38,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 export default function PeExamPage() {
   return (
-    <main className={styles.publicPage}>
+    <main className={publicStyles.publicPage}>
       <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
         <div className="container pe-standalone-nav-inner">
           <Link href="/services/pe-exam" className="pe-standalone-brand" aria-label="RePERFORMANCE 체대입시 공개 페이지">
@@ -53,8 +54,8 @@ export default function PeExamPage() {
         </div>
       </header>
 
-      <section className={styles.publicHero}>
-        <div className={styles.heroMedia} aria-hidden="true">
+      <section className={publicStyles.publicHero}>
+        <div className={publicStyles.heroMedia} aria-hidden="true">
           <Image
             src="/images/coach-card.jpg"
             alt=""
@@ -63,8 +64,8 @@ export default function PeExamPage() {
             priority
           />
         </div>
-        <div className={cx("container", styles.publicHeroInner)}>
-          <div className={styles.publicHeroText}>
+        <div className={cx("container", publicStyles.publicHeroInner)}>
+          <div className={publicStyles.publicHeroText}>
             <p className="eyebrow light-text">PE EXAM PUBLIC GUIDE</p>
             <h1>체대입시는 입시정보와 실기 관리를 같은 화면에서 봐야 합니다.</h1>
             <p>
@@ -97,7 +98,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="admission-info" className={cx("section", styles.publicInfoSection)}>
+      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">ADMISSION INFO</p>
@@ -120,7 +121,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="care-system" className={cx("section", styles.publicCareSection)}>
+      <section id="care-system" className={cx("section", publicStyles.publicCareSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">CARE SYSTEM</p>
@@ -165,8 +166,8 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={cx("section", styles.consultFlowSection)}>
-        <div className={cx("container", styles.consultFlowGrid)}>
+      <section className={cx("section", publicStyles.consultFlowSection)}>
+        <div className={cx("container", publicStyles.consultFlowGrid)}>
           <div>
             <p className="eyebrow">CONSULT FLOW</p>
             <h2>상담 신청은 현재 위치를 정확히 보는 것부터 시작합니다.</h2>
@@ -183,7 +184,7 @@ export default function PeExamPage() {
               </a>
             </div>
           </div>
-          <div className={styles.consultStepList}>
+          <div className={publicStyles.consultStepList}>
             {consultSteps.map(([number, title, text]) => (
               <article key={number}>
                 <strong>{number}</strong>
