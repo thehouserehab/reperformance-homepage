@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 
-const TRIGGER_RATIO = 0.09;
-const MIN_TRIGGER = 42;
-const MAX_TRIGGER = 82;
-const LOCK_MS = 580;
+const TRIGGER_RATIO = 0.07;
+const MIN_TRIGGER = 30;
+const MAX_TRIGGER = 64;
+const LOCK_MS = 520;
 const RESET_MS = 180;
+const NAV_OFFSET = 76;
 
 function normalizeWheelDelta(event: WheelEvent) {
   if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 18;
@@ -16,10 +17,10 @@ function normalizeWheelDelta(event: WheelEvent) {
 
 export default function PeExamScrollController() {
   useEffect(() => {
-    const scroller = document.querySelector<HTMLElement>("[data-pe-scroll]");
-    if (!scroller) return;
+    const container = document.querySelector<HTMLElement>("[data-pe-scroll]");
+    if (!container) return;
 
-    const panels = Array.from(scroller.querySelectorAll<HTMLElement>("[data-pe-panel]"));
+    const panels = Array.from(container.querySelectorAll<HTMLElement>("[data-pe-panel]"));
     if (panels.length === 0) return;
 
     let locked = false;
@@ -28,16 +29,36 @@ export default function PeExamScrollController() {
     let touchStartY = 0;
     let touchDelta = 0;
 
+    const getScroller = () => {
+      const canScrollContainer = container.scrollHeight > container.clientHeight + 4;
+      return canScrollContainer ? container : document.scrollingElement ?? document.documentElement;
+    };
+
+    const getScrollTop = () => {
+      const scroller = getScroller();
+      return scroller === container ? container.scrollTop : window.scrollY;
+    };
+
+    const getPanelTop = (panel: HTMLElement) => {
+      const scroller = getScroller();
+      if (scroller === container) return panel.offsetTop;
+      return panel.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+    };
+
     const getCurrentIndex = () => {
-      const scrollTop = scroller.scrollTop;
+      const scrollTop = getScrollTop();
       return panels.reduce((nearestIndex, panel, index) => {
-        const currentDistance = Math.abs(panel.offsetTop - scrollTop);
-        const nearestDistance = Math.abs(panels[nearestIndex].offsetTop - scrollTop);
+        const currentDistance = Math.abs(getPanelTop(panel) - scrollTop);
+        const nearestDistance = Math.abs(getPanelTop(panels[nearestIndex]) - scrollTop);
         return currentDistance < nearestDistance ? index : nearestIndex;
       }, 0);
     };
 
-    const getTriggerDistance = () => Math.min(Math.max(scroller.clientHeight * TRIGGER_RATIO, MIN_TRIGGER), MAX_TRIGGER);
+    const getTriggerDistance = () => {
+      const scroller = getScroller();
+      const viewportHeight = scroller === container ? container.clientHeight : window.innerHeight;
+      return Math.min(Math.max(viewportHeight * TRIGGER_RATIO, MIN_TRIGGER), MAX_TRIGGER);
+    };
 
     const move = (direction: 1 | -1) => {
       if (locked) return;
@@ -48,7 +69,13 @@ export default function PeExamScrollController() {
       locked = true;
       wheelDelta = 0;
       touchDelta = 0;
-      panels[nextIndex].scrollIntoView({ behavior: "smooth", block: "start" });
+      const scroller = getScroller();
+      const top = getPanelTop(panels[nextIndex]);
+      if (scroller === container) {
+        container.scrollTo({ top, behavior: "smooth" });
+      } else {
+        window.scrollTo({ top, behavior: "smooth" });
+      }
       window.setTimeout(() => {
         locked = false;
       }, LOCK_MS);
@@ -56,7 +83,7 @@ export default function PeExamScrollController() {
 
     const onWheel = (event: WheelEvent) => {
       const target = event.target as Node | null;
-      if (target && !scroller.contains(target)) return;
+      if (target && !container.contains(target)) return;
 
       event.preventDefault();
       if (locked) return;
@@ -74,14 +101,14 @@ export default function PeExamScrollController() {
 
     const onTouchStart = (event: TouchEvent) => {
       const target = event.target as Node | null;
-      if (target && !scroller.contains(target)) return;
+      if (target && !container.contains(target)) return;
       touchStartY = event.touches[0]?.clientY ?? 0;
       touchDelta = 0;
     };
 
     const onTouchMove = (event: TouchEvent) => {
       const target = event.target as Node | null;
-      if (target && !scroller.contains(target)) return;
+      if (target && !container.contains(target)) return;
 
       const currentY = event.touches[0]?.clientY ?? touchStartY;
       const delta = touchStartY - currentY;
@@ -110,15 +137,15 @@ export default function PeExamScrollController() {
     };
 
     window.addEventListener("wheel", onWheel, { passive: false, capture: true });
-    scroller.addEventListener("touchstart", onTouchStart, { passive: true });
-    scroller.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true, capture: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false, capture: true });
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
       window.clearTimeout(wheelResetTimer);
       window.removeEventListener("wheel", onWheel, { capture: true });
-      scroller.removeEventListener("touchstart", onTouchStart);
-      scroller.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchstart", onTouchStart, { capture: true });
+      window.removeEventListener("touchmove", onTouchMove, { capture: true });
       window.removeEventListener("keydown", onKeyDown);
     };
   }, []);

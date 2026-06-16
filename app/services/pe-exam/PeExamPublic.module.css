@@ -18,7 +18,7 @@
 .publicHero {
   position: relative;
   overflow: hidden;
-  padding: 132px 0 88px;
+  padding: 104px 0 42px;
   background:
     radial-gradient(circle at 80% 14%, rgba(255, 138, 31, 0.24), transparent 30%),
     linear-gradient(135deg, #0f1723 0%, #172033 52%, #10141d 100%);
@@ -31,8 +31,8 @@
 .anchorSection {
   display: flex;
   align-items: center;
-  padding-top: 78px;
-  padding-bottom: 44px;
+  padding-top: 86px;
+  padding-bottom: 28px;
 }
 
 .publicHeroInner {
@@ -40,7 +40,7 @@
   z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 330px;
-  gap: 30px;
+  gap: 24px;
   align-items: end;
 }
 
@@ -50,22 +50,30 @@
 
 .publicHeroText h1 {
   max-width: 840px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   color: #fff;
-  font-size: clamp(42px, 6vw, 76px);
+  font-size: clamp(38px, 5.1vw, 64px);
   line-height: 1.06;
 }
 
 .publicHeroText p:not(:global(.eyebrow)) {
   max-width: 710px;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 19px;
-  line-height: 1.8;
+  font-size: 17px;
+  line-height: 1.65;
 }
 
 .compactInfoCard {
-  min-height: 220px;
-  padding: 26px;
+  min-height: 190px;
+  padding: 22px;
+}
+
+.compactInfoCard h3 {
+  font-size: clamp(23px, 2.4vw, 31px);
+}
+
+.compactInfoCard span {
+  line-height: 1.58;
 }
 
 .compactHubCard {
@@ -139,7 +147,7 @@
 }
 
 .publicCareSection :global(.section-head) {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .publicCareSection :global(.section-head h2),
@@ -148,7 +156,7 @@
 }
 
 .publicCareSection :global(.section-head h2) {
-  font-size: clamp(28px, 3.2vw, 42px);
+  font-size: clamp(26px, 3vw, 38px);
 }
 
 .publicCareSection :global(.section-head p:not(.eyebrow)) {
@@ -168,18 +176,18 @@
   display: grid;
   grid-template-columns: 0.92fr 1.08fr;
   gap: 24px;
-  align-items: start;
+  align-items: center;
 }
 
 .consultFlowGrid h2 {
   color: #fff;
-  font-size: clamp(34px, 4.5vw, 56px);
+  font-size: clamp(30px, 3.8vw, 48px);
   line-height: 1.12;
 }
 
 .consultFlowGrid p:not(:global(.eyebrow)) {
   color: rgba(255, 255, 255, 0.72);
-  line-height: 1.8;
+  line-height: 1.62;
 }
 
 .consultStepList {
@@ -191,7 +199,7 @@
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
   gap: 14px;
-  padding: 18px;
+  padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
@@ -241,7 +249,7 @@
   }
 
   .publicHero {
-    padding-top: 116px;
+    padding-top: 108px;
   }
 
   .publicInfoSection,
@@ -250,7 +258,7 @@
   .anchorSection {
     align-items: flex-start;
     padding-top: 86px;
-    padding-bottom: 44px;
+    padding-bottom: 36px;
   }
 
   .publicHeroInner,
