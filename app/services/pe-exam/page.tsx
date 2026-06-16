@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import PeExamScrollController from "./PeExamScrollController";
 import styles from "./PeExamCare.module.css";
 import publicStyles from "./PeExamPublic.module.css";
 import { peExamDetailPages } from "./peExamData";
@@ -37,8 +36,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 export default function PeExamPage() {
   return (
-    <main className={publicStyles.publicPage} data-pe-scroll>
-      <PeExamScrollController />
+    <main className={publicStyles.publicPage}>
       <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
         <div className="container pe-standalone-nav-inner">
           <Link href="/services/pe-exam" className="pe-standalone-brand" aria-label="RePERFORMANCE 체대입시 공개 페이지">
@@ -54,7 +52,7 @@ export default function PeExamPage() {
         </div>
       </header>
 
-      <section className={cx(publicStyles.publicHero, publicStyles.snapPanel)} data-pe-panel>
+      <section className={publicStyles.publicHero}>
         <div className={publicStyles.heroMedia} aria-hidden="true">
           <Image
             src="/images/coach-card.jpg"
@@ -101,7 +99,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection, publicStyles.snapPanel)} data-pe-panel>
+      <section id="admission-info" className={cx("section", publicStyles.publicInfoSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">ADMISSION INFO</p>
@@ -124,7 +122,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="care-system" className={cx("section", publicStyles.publicCareSection, publicStyles.snapPanel)} data-pe-panel>
+      <section id="care-system" className={cx("section", publicStyles.publicCareSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">CARE SYSTEM</p>
@@ -147,7 +145,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection, publicStyles.snapPanel)} data-pe-panel>
+      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection)}>
         <div className="container">
           <div className="section-head">
             <p className="eyebrow light-text">SYSTEM ROADMAP</p>
@@ -169,7 +167,7 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection, publicStyles.snapPanel)} data-pe-panel>
+      <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection)}>
         <div className={cx("container", publicStyles.consultFlowGrid)}>
           <div>
             <p className="eyebrow">CONSULT FLOW</p>

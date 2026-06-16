@@ -1,18 +1,7 @@
 .publicPage {
-  height: 100vh;
   min-height: 100vh;
-  overflow-y: auto;
   scroll-behavior: smooth;
-  scroll-padding-top: 76px;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior-y: contain;
   background: #f6f2ea;
-}
-
-.snapPanel {
-  min-height: 100svh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 .publicHero {
@@ -33,6 +22,7 @@
   align-items: center;
   padding-top: 86px;
   padding-bottom: 28px;
+  scroll-margin-top: 86px;
 }
 
 .publicHeroInner {
@@ -139,13 +129,6 @@
   color: #fff;
 }
 
-.publicInfoSection,
-.publicCareSection,
-.consultFlowSection,
-.anchorSection {
-  scroll-margin-top: 0;
-}
-
 .publicCareSection :global(.section-head) {
   margin-bottom: 16px;
 }
@@ -240,14 +223,6 @@
 }
 
 @media (max-width: 900px) {
-  .publicPage {
-    scroll-snap-type: y proximity;
-  }
-
-  .snapPanel {
-    scroll-snap-stop: normal;
-  }
-
   .publicHero {
     padding-top: 108px;
   }
