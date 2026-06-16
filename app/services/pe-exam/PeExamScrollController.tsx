@@ -2,9 +2,17 @@
 
 import { useEffect } from "react";
 
-const WHEEL_THRESHOLD = 28;
-const TOUCH_THRESHOLD = 36;
-const LOCK_MS = 620;
+const TRIGGER_RATIO = 0.09;
+const MIN_TRIGGER = 42;
+const MAX_TRIGGER = 82;
+const LOCK_MS = 580;
+const RESET_MS = 180;
+
+function normalizeWheelDelta(event: WheelEvent) {
+  if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 18;
+  if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * window.innerHeight;
+  return event.deltaY;
+}
 
 export default function PeExamScrollController() {
   useEffect(() => {
@@ -15,7 +23,10 @@ export default function PeExamScrollController() {
     if (panels.length === 0) return;
 
     let locked = false;
+    let wheelDelta = 0;
+    let wheelResetTimer: number | undefined;
     let touchStartY = 0;
+    let touchDelta = 0;
 
     const getCurrentIndex = () => {
       const scrollTop = scroller.scrollTop;
@@ -26,6 +37,8 @@ export default function PeExamScrollController() {
       }, 0);
     };
 
+    const getTriggerDistance = () => Math.min(Math.max(scroller.clientHeight * TRIGGER_RATIO, MIN_TRIGGER), MAX_TRIGGER);
+
     const move = (direction: 1 | -1) => {
       if (locked) return;
       const currentIndex = getCurrentIndex();
@@ -33,6 +46,8 @@ export default function PeExamScrollController() {
       if (nextIndex === currentIndex) return;
 
       locked = true;
+      wheelDelta = 0;
+      touchDelta = 0;
       panels[nextIndex].scrollIntoView({ behavior: "smooth", block: "start" });
       window.setTimeout(() => {
         locked = false;
@@ -40,32 +55,71 @@ export default function PeExamScrollController() {
     };
 
     const onWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) < WHEEL_THRESHOLD) return;
+      const target = event.target as Node | null;
+      if (target && !scroller.contains(target)) return;
+
       event.preventDefault();
-      move(event.deltaY > 0 ? 1 : -1);
+      if (locked) return;
+
+      wheelDelta += normalizeWheelDelta(event);
+      window.clearTimeout(wheelResetTimer);
+      wheelResetTimer = window.setTimeout(() => {
+        wheelDelta = 0;
+      }, RESET_MS);
+
+      if (Math.abs(wheelDelta) >= getTriggerDistance()) {
+        move(wheelDelta > 0 ? 1 : -1);
+      }
     };
 
     const onTouchStart = (event: TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && !scroller.contains(target)) return;
       touchStartY = event.touches[0]?.clientY ?? 0;
+      touchDelta = 0;
     };
 
     const onTouchMove = (event: TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && !scroller.contains(target)) return;
+
       const currentY = event.touches[0]?.clientY ?? touchStartY;
       const delta = touchStartY - currentY;
-      if (Math.abs(delta) < TOUCH_THRESHOLD) return;
       event.preventDefault();
-      move(delta > 0 ? 1 : -1);
+      if (locked) return;
+
+      touchDelta += delta;
       touchStartY = currentY;
+      if (Math.abs(touchDelta) >= getTriggerDistance()) {
+        move(touchDelta > 0 ? 1 : -1);
+      }
     };
 
-    scroller.addEventListener("wheel", onWheel, { passive: false });
+    const onKeyDown = (event: KeyboardEvent) => {
+      const keys: Record<string, 1 | -1 | undefined> = {
+        ArrowDown: 1,
+        PageDown: 1,
+        Space: 1,
+        ArrowUp: -1,
+        PageUp: -1,
+      };
+      const direction = keys[event.code] ?? keys[event.key];
+      if (!direction) return;
+      event.preventDefault();
+      move(direction);
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false, capture: true });
     scroller.addEventListener("touchstart", onTouchStart, { passive: true });
     scroller.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      scroller.removeEventListener("wheel", onWheel);
+      window.clearTimeout(wheelResetTimer);
+      window.removeEventListener("wheel", onWheel, { capture: true });
       scroller.removeEventListener("touchstart", onTouchStart);
       scroller.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, []);
 
