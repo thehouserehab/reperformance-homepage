@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./homepage-upgrade.css";
 import "./detail-pages.css";
 import "./pe-exam-slide.css";
 

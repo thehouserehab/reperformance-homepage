@@ -50,7 +50,7 @@ export function ConsultationCTA({ compact = false }: { compact?: boolean }) {
         </p>
         <div className="button-row">
           <Link className="button cta-primary" href={site.serviceApplyHref}>
-            서비스 신청하기
+            상담 신청하기
           </Link>
           <a className="button cta-secondary" href={site.phoneHref}>
             전화 상담

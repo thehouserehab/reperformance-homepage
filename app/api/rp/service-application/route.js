@@ -3,6 +3,7 @@ import {
   isDatabaseConfigured,
   saveDatabaseClient,
 } from '../../../../lib/rpDatabase';
+import { createNoreMemberCardSafely } from '../../../../lib/noreClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -306,9 +307,10 @@ export async function POST(request) {
     const payload = await readPayload(request);
     const application = buildApplication(payload);
     const result = await saveServiceApplication(application);
+    const noreSync = await createNoreMemberCardSafely(application);
 
     if (jsonMode) {
-      return NextResponse.json({ ok: true, ...result });
+      return NextResponse.json({ ok: true, ...result, noreSync });
     }
 
     return redirectTo(request, 'success', { clientId: result.client?.id });

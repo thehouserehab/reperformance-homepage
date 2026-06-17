@@ -9,7 +9,6 @@ const links = [
   { href: "/system", label: "시스템" },
   { href: "/coach", label: "코치" },
   { href: "/location", label: "위치" },
-  { href: "/signup", label: "회원가입" },
   { href: "/login", label: "로그인" },
 ];
 
