@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { NoreChatButton } from "../_components/NoreChatButton";
+import { NoreNutritionAnalyzer } from "../_components/NoreNutritionAnalyzer";
+import { NoreReservationAssistant } from "../_components/NoreReservationAssistant";
 import { WorkspaceShell } from "../_components/WorkspaceShell";
 
 export const metadata: Metadata = {
@@ -62,11 +65,15 @@ export default function MemberShellPage() {
       title="일반 회원용 개인 화면을 준비 중입니다."
       description="목표, 수업 일정, 운동 기록, 컨디션 체크, 상담 메모를 상담 후 한곳에서 확인할 수 있도록 구조를 준비하고 있습니다."
       statusTitle="상담 후 연결 예정"
-      statusText="로그인, DB, 외부 문서, 실제 회원 정보 저장 기능은 이번 단계에서 구현하지 않았습니다."
+      statusText="NORE 환경변수가 설정되면 AI 상담, 식단 분석, 예약 추천을 외부 플랫폼과 연결합니다."
       menuSections={menuSections}
       backLink={{ href: "/apply", label: "상담 신청으로 이동" }}
       cards={cards}
       modules={modules}
-    />
+      topbarAction={<NoreChatButton workspace="member" />}
+    >
+      <NoreNutritionAnalyzer workspace="member" />
+      <NoreReservationAssistant />
+    </WorkspaceShell>
   );
 }

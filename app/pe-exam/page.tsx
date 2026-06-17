@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { NoreChatButton } from "../_components/NoreChatButton";
+import { NorePeExamPlanner } from "../_components/NorePeExamPlanner";
 import { WorkspaceShell } from "../_components/WorkspaceShell";
 
 export const metadata: Metadata = {
@@ -64,11 +66,14 @@ export default function PeExamShellPage() {
       title="체대입시 학생용 시스템을 준비 중입니다."
       description="목표 대학, 실기 기록, 훈련 계획, 컨디션 체크, 입시 일정을 상담 후 한곳에서 확인할 수 있도록 구조를 준비하고 있습니다."
       statusTitle="상담 후 연결 예정"
-      statusText="로그인, DB, 외부 문서, 실제 학생 기록 저장 기능은 이번 단계에서 구현하지 않았습니다."
+      statusText="NORE 환경변수가 설정되면 학생 관리 정보 저장과 AI 훈련 제안 요청을 연결합니다."
       menuSections={menuSections}
       backLink={{ href: "/services/pe-exam", label: "공개 페이지로 돌아가기" }}
       cards={cards}
       modules={modules}
-    />
+      topbarAction={<NoreChatButton workspace="pe-exam" />}
+    >
+      <NorePeExamPlanner />
+    </WorkspaceShell>
   );
 }

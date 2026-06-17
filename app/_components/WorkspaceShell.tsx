@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { DashboardCard, type DashboardCardItem } from "./DashboardCard";
 import { WorkspaceSidebar, type WorkspaceMenuSection } from "./WorkspaceSidebar";
 
@@ -22,6 +23,8 @@ type WorkspaceShellProps = {
   };
   cards: ReadonlyArray<DashboardCardItem>;
   modules: ReadonlyArray<WorkspaceModule>;
+  topbarAction?: ReactNode;
+  children?: ReactNode;
 };
 
 export function WorkspaceShell({
@@ -35,7 +38,9 @@ export function WorkspaceShell({
   statusText,
   statusTitle,
   title,
+  topbarAction,
   variant,
+  children,
 }: WorkspaceShellProps) {
   return (
     <main className={`workspace-shell workspace-shell-${variant}`}>
@@ -48,6 +53,7 @@ export function WorkspaceShell({
             <h1>{title}</h1>
             <p>{description}</p>
           </div>
+          {topbarAction ? <div className="workspace-topbar-actions">{topbarAction}</div> : null}
         </header>
 
         <div className="workspace-status-band">
@@ -70,6 +76,8 @@ export function WorkspaceShell({
             </article>
           ))}
         </div>
+
+        {children ? <div className="workspace-extra-grid">{children}</div> : null}
       </section>
     </main>
   );
