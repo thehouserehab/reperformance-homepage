@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME, createAdminSession, getAdminCookieOptions } from '../../../../lib/rpAdminAuth';
 import { getSheetRoleLabel, normalizeSheetRole, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
 import { isDatabaseConfigured, isDatabaseOnlyMode, saveDatabaseAuthSignup } from '../../../../lib/rpDatabase';
-import { createNoreMemberCardSafely } from '../../../../lib/noreClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,7 +75,7 @@ function getFailureStatus(error) {
   const message = String(error?.message || '');
   if (
     message.includes('Apps Script')
-    || message.includes('웹 앱 URL')
+    || message.includes('웹앱 URL')
     || message.includes('자동 회원가입')
     || message.includes('DATABASE_URL')
     || message.includes('RP_DATABASE_URL')
@@ -138,21 +137,12 @@ export async function POST(request) {
   try {
     const result = await saveAuthSignup(record);
     const safeRecord = buildSafeRecord(record);
-    const noreSync = isMember
-      ? await createNoreMemberCardSafely({
-          ...safeRecord,
-          clientId: record.id,
-          memberType: roleLabel,
-          status: record.status,
-          source: 'reperformance-homepage-signup',
-        })
-      : { ok: false, skipped: true, reason: '회원 역할이 아니므로 NORE 회원 카드 생성을 건너뛰었습니다.' };
 
     if (isMember) {
       const account = result.account || { username: record.username, name: record.name, role: 'member' };
 
       if (wantsJson) {
-        const response = jsonResponse({ ok: true, autoApproved: true, record: safeRecord, result, noreSync });
+        const response = jsonResponse({ ok: true, autoApproved: true, record: safeRecord, result });
         const session = await createAdminSession(account);
         response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions());
         return response;
@@ -161,7 +151,7 @@ export async function POST(request) {
       return buildSessionResponse(request, account);
     }
 
-    if (wantsJson) return jsonResponse({ ok: true, autoApproved: false, pendingApproval: true, record: safeRecord, result, noreSync });
+    if (wantsJson) return jsonResponse({ ok: true, autoApproved: false, pendingApproval: true, record: safeRecord, result });
     return buildRedirect(request, 'pending', role);
   } catch (error) {
     const status = getFailureStatus(error);

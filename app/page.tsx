@@ -1,25 +1,75 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ConsultationCTA, PageShell } from "./_components/SiteChrome";
-import { serviceItems, site, systemItems } from "./_components/siteData";
+import { site } from "./_components/siteData";
 
 const proofItems = [
   { value: "1:1 상태 확인", label: "현재 불편한 움직임부터 확인합니다." },
-  { value: "3단계 진행", label: "설문 → 평가 → 프로그램으로 이어집니다." },
+  { value: "3단계 진행", label: "설문, 평가, 프로그램으로 이어집니다." },
   { value: "맞춤 운동 설계", label: "목표와 몸 상태에 따라 운동을 조정합니다." },
 ];
 
-export default function Home() {
-  const forWhoItems = serviceItems.map((item) => ({
-    ...item,
-    href: item.applicationValue === "pe-exam" ? "/services/pe-exam" : item.href,
-    action: item.applicationValue === "pe-exam" ? "체대입시 공개 페이지" : "프로그램 보기",
-  }));
+const audienceItems = [
+  {
+    number: "01",
+    label: "Senior Rehab",
+    title: "시니어 재활 트레이닝",
+    href: "/services/senior-rehab",
+    target: "보행, 계단, 균형, 하체 근력 저하로 일상이 불편한 분",
+  },
+  {
+    number: "02",
+    label: "Athlete Reconditioning",
+    title: "선수·학생 리컨디셔닝",
+    href: "/services/athlete-reconditioning",
+    target: "복귀 준비, 움직임 제한, 경기력 회복이 필요한 선수와 학생",
+  },
+  {
+    number: "03",
+    label: "Pain Care",
+    title: "일반 통증 케어",
+    href: "/services/pain-care",
+    target: "목, 어깨, 허리, 무릎 불편감과 체력 저하를 함께 관리하고 싶은 분",
+  },
+  {
+    number: "04",
+    label: "PE Exam",
+    title: "체대입시 운동 + 입시상담",
+    href: "/services/pe-exam",
+    target: "목표 대학, 실기 기록, 훈련 계획을 한 흐름으로 정리하고 싶은 체대입시 준비생",
+  },
+];
 
+const systemItems = [
+  {
+    number: "01",
+    title: "설문",
+    summary: "운동 목표, 불편감, PAR-Q 확인 내용을 먼저 남깁니다.",
+  },
+  {
+    number: "02",
+    title: "평가",
+    summary: "현재 움직임, 근력, 균형, 주의사항을 확인합니다.",
+  },
+  {
+    number: "03",
+    title: "프로그램",
+    summary: "목표와 몸 상태에 맞춰 수업 방향과 운동 구성을 정리합니다.",
+  },
+];
+
+export default function Home() {
   return (
     <PageShell>
       <section className="hero">
-        <Image src="/images/coach-card.jpg" alt="RePERFORMANCE 트레이닝 현장" fill sizes="100vw" className="hero-bg" priority />
+        <Image
+          src="/images/coach-card.jpg"
+          alt="RePERFORMANCE 트레이닝 현장"
+          fill
+          sizes="100vw"
+          className="hero-bg"
+          priority
+        />
         <div className="hero-scrim" />
         <div className="container hero-content">
           <p className="eyebrow light-text">Rehab to Performance</p>
@@ -29,8 +79,8 @@ export default function Home() {
             움직임에서 퍼포먼스로.
           </h1>
           <p className="lead">
-            통증과 불편감을 단순히 참게 하지 않습니다. 현재 몸 상태를 확인하고, 다시 움직일 수 있는 방향으로 회복과
-            훈련을 연결합니다.
+            통증과 불편감을 단순히 참게 하지 않습니다. 현재 몸 상태를 확인하고,
+            다시 움직일 수 있는 방향으로 회복과 훈련을 연결합니다.
           </p>
           <div className="hero-actions">
             <Link href={site.serviceApplyHref} className="button primary">
@@ -40,7 +90,7 @@ export default function Home() {
               프로그램 보기
             </Link>
           </div>
-          <div className="proof-strip" aria-label="RePERFORMANCE 운영 기준">
+          <div className="proof-strip" aria-label="RePERFORMANCE 진행 기준">
             {proofItems.map((item) => (
               <div key={item.value}>
                 <strong>{item.value}</strong>
@@ -50,7 +100,7 @@ export default function Home() {
           </div>
           <div className="hero-coach-note">
             <strong>정우현 Head Coach</strong>
-            <span>책임지고 개선해드립니다. 고객님의 건강한 회복을 돕겠습니다.</span>
+            <span>상담부터 평가, 수업 방향까지 한 사람이 책임 있게 확인합니다.</span>
           </div>
         </div>
       </section>
@@ -61,18 +111,18 @@ export default function Home() {
             <p className="eyebrow">FOR WHO</p>
             <h2>대상과 목표가 분명한 재활 트레이닝</h2>
             <p>
-              부모님의 일상 회복, 선수의 복귀, 일반인의 통증 관리와 근력 회복까지. 몸 상태와 목표에 맞춰 프로그램을
-              조정합니다.
+              시니어의 일상 회복, 선수와 학생의 복귀, 일반 통증 케어, 체대입시 준비까지
+              몸 상태와 목표에 맞춰 프로그램을 조정합니다.
             </p>
           </div>
           <div className="grid-2 home-service-grid">
-            {forWhoItems.map((item) => (
+            {audienceItems.map((item) => (
               <Link href={item.href} className="card interactive-card home-audience-card" key={item.href}>
-                  <span className="card-number">{item.number}</span>
-                  <p className="card-label">{item.label}</p>
-                  <h3>{item.title}</h3>
-                  <p>{item.target}</p>
-                  <span className="more-link">{item.action}</span>
+                <span className="card-number">{item.number}</span>
+                <p className="card-label">{item.label}</p>
+                <h3>{item.title}</h3>
+                <p>{item.target}</p>
+                <span className="more-link">자세히 보기</span>
               </Link>
             ))}
           </div>
@@ -83,15 +133,15 @@ export default function Home() {
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">SYSTEM</p>
-            <h2>설문, 평가, 프로그램이 하나로 이어집니다.</h2>
+            <h2>설문, 평가, 프로그램으로 이어집니다.</h2>
             <p>
-              감으로만 운동을 진행하지 않습니다. 현재 상태를 확인하고, 움직임을 평가한 뒤 목적에 맞는 운동 프로그램을
-              설계합니다.
+              감으로만 운동을 진행하지 않습니다. 현재 상태를 확인하고, 움직임을 평가한 뒤
+              목적에 맞는 운동 프로그램을 설계합니다.
             </p>
           </div>
           <div className="grid-3">
             {systemItems.map((item) => (
-              <article className="card system-step-card" key={item.href}>
+              <article className="card system-step-card" key={item.number}>
                 <span className="card-number">{item.number}</span>
                 <h3>{item.title}</h3>
                 <p>{item.summary}</p>
@@ -137,18 +187,19 @@ export default function Home() {
             </div>
           </div>
           <div className="contact-box accent-box">
-            <p className="eyebrow">ACCOUNT</p>
-            <h2>상담 후 회원 계정을 발급합니다.</h2>
+            <p className="eyebrow">AFTER APPLY</p>
+            <h2>신청 후 관리는 NORE에서 이어갑니다.</h2>
             <p>
-              상담 후 필요한 경우 회원 계정을 발급해드립니다. 로그인하면 개인 목표, 수업 일정, 운동 기록을 확인할 수
-              있는 전용 화면으로 이동합니다.
+              홈페이지는 서비스 소개와 상담 신청에 집중합니다. 신청 후 상담이 진행되면
+              코치가 필요한 회원 정보를 NORE에 등록하고 수업 일정, 운동 기록, 상담 메모를
+              전문 관리 플랫폼 안에서 관리합니다.
             </p>
             <div className="button-row">
-              <Link href="/member" className="button primary">
-                회원 안내 보기
+              <Link href={site.serviceApplyHref} className="button primary">
+                상담 신청하기
               </Link>
-              <Link href="/login" className="button secondary">
-                로그인
+              <Link href="/member" className="button secondary">
+                관리 방식 보기
               </Link>
             </div>
           </div>

@@ -1,79 +1,105 @@
 import type { Metadata } from "next";
-import { NoreChatButton } from "../_components/NoreChatButton";
-import { NorePeExamPlanner } from "../_components/NorePeExamPlanner";
-import { WorkspaceShell } from "../_components/WorkspaceShell";
+import Link from "next/link";
+import { PageShell } from "../_components/SiteChrome";
 
 export const metadata: Metadata = {
-  title: "체대입시 학생 시스템 | RePERFORMANCE",
-  description: "체대입시 학생이 상담 후 이용할 관리 화면 구조를 안내하는 준비 중 shell입니다.",
+  title: "체대입시 관리 안내 | RePERFORMANCE",
+  description:
+    "체대입시 상담 신청 후 학생별 기록과 훈련 관리는 NORE에서 운영한다는 흐름을 안내합니다.",
 };
 
-const menuSections = [
+const flowItems = [
   {
-    title: "학생 관리",
-    items: [
-      { label: "홈", href: "#홈" },
-      { label: "목표 대학", href: "#목표 대학 설정" },
-      { label: "실기 기록", href: "#최근 실기 기록" },
-      { label: "훈련 계획", href: "#이번 주 훈련 블록" },
-      { label: "컨디션 체크", href: "#컨디션 체크" },
-      { label: "입시 일정", href: "#확인할 입시 일정" },
-      { label: "상담 메모", href: "#상담 메모" },
-    ],
+    number: "01",
+    title: "공개 페이지에서 준비 흐름 확인",
+    text: "입시정보, 케어 시스템, 관리 로드맵을 먼저 보고 필요한 상담을 신청합니다.",
   },
   {
-    title: "입시 자료",
-    items: [
-      { label: "모집요강", href: "#모집요강" },
-      { label: "대학별 기준", href: "#대학별 기준" },
-      { label: "종목별 기록표", href: "#종목별 기록표" },
-    ],
+    number: "02",
+    title: "상담에서 목표와 기록 정리",
+    text: "목표 대학, 실기 종목, 현재 기록, 운동 가능 시간, 주의사항을 확인합니다.",
   },
   {
-    title: "시스템",
-    items: [
-      { label: "설정", href: "#설정" },
-      { label: "로그인 안내", href: "#로그인 안내" },
-    ],
+    number: "03",
+    title: "NORE에서 학생별 관리",
+    text: "상담 후 코치가 학생 정보를 NORE에 등록하고 기록, 일정, 피드백을 관리합니다.",
   },
 ] as const;
 
-const cards = [
-  { label: "오늘의 준비 상태", title: "로그인 후 제공 예정", description: "오늘 확인할 운동 방향과 주의사항을 안내할 공간입니다." },
-  { label: "목표 대학 설정", title: "상담 후 설정", description: "목표 대학과 전형 기준은 상담 후 학생별 화면에 연결됩니다." },
-  { label: "최근 실기 기록", title: "기록 입력 전", description: "실제 기록처럼 보이는 샘플은 넣지 않고 구조만 표시합니다." },
-  { label: "이번 주 훈련 블록", title: "준비 중", description: "운동 가능 시간과 우선순위에 따라 안내될 예정입니다." },
-  { label: "확인할 입시 일정", title: "공개 정보 확인", description: "일정 확인은 공개 입시정보와 상담 내용을 바탕으로 연결합니다." },
-];
+const managedItems = [
+  "목표 대학",
+  "실기 기록",
+  "훈련 계획",
+  "컨디션 체크",
+  "입시 일정",
+  "상담 메모",
+] as const;
 
-const modules = [
-  { label: "홈", title: "학생 홈", description: "목표, 기록, 훈련, 일정이 상담 후 연결될 시작 화면입니다." },
-  { label: "컨디션 체크", title: "컨디션 체크", description: "통증이나 피로처럼 운동 전 확인할 상태를 쉬운 문장으로 정리할 예정입니다." },
-  { label: "상담 메모", title: "상담 메모", description: "상담 후 안내받은 운동 방향과 주의사항을 확인하는 공간입니다." },
-  { label: "모집요강", title: "모집요강", description: "대학별 공개 자료를 확인하고 상담 후 필요한 내용만 연결합니다." },
-  { label: "대학별 기준", title: "대학별 기준", description: "지원 판단처럼 보이는 더미 정보 없이 기준 확인 구조만 둡니다." },
-  { label: "종목별 기록표", title: "종목별 기록표", description: "기록표는 실제 학생 기록 없이 준비 중 상태로 표시합니다." },
-  { label: "설정", title: "설정", description: "알림과 화면 설정은 추후 연결될 예정입니다." },
-  { label: "로그인 안내", title: "로그인 안내", description: "로그인 기능은 새로 구현하지 않고, 계정 발급 후 이용하는 구조만 안내합니다." },
-];
-
-export default function PeExamShellPage() {
+export default function PeExamGuidePage() {
   return (
-    <WorkspaceShell
-      variant="pe"
-      brandLabel="PE EXAM SYSTEM"
-      eyebrow="STUDENT SHELL"
-      title="체대입시 학생용 시스템을 준비 중입니다."
-      description="목표 대학, 실기 기록, 훈련 계획, 컨디션 체크, 입시 일정을 상담 후 한곳에서 확인할 수 있도록 구조를 준비하고 있습니다."
-      statusTitle="상담 후 연결 예정"
-      statusText="NORE 환경변수가 설정되면 학생 관리 정보 저장과 AI 훈련 제안 요청을 연결합니다."
-      menuSections={menuSections}
-      backLink={{ href: "/services/pe-exam", label: "공개 페이지로 돌아가기" }}
-      cards={cards}
-      modules={modules}
-      topbarAction={<NoreChatButton workspace="pe-exam" />}
-    >
-      <NorePeExamPlanner />
-    </WorkspaceShell>
+    <PageShell>
+      <section className="page-hero pe-exam-hero">
+        <div className="container page-title">
+          <p className="eyebrow">PE EXAM GUIDE</p>
+          <h1>체대입시 관리는 상담 후 NORE에서 이어갑니다.</h1>
+          <p>
+            홈페이지는 체대입시 프로그램을 소개하고 상담 신청까지 이끄는 역할에
+            집중합니다. 학생별 목표 대학, 실기 기록, 훈련 계획은 상담 후 코치가
+            NORE에 등록해 관리합니다.
+          </p>
+          <div className="button-row">
+            <Link href="/services/pe-exam" className="button primary">
+              체대입시 공개 페이지
+            </Link>
+            <Link href="/apply?service=pe-exam" className="button secondary">
+              체대입시 상담 신청
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section light">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">FLOW</p>
+            <h2>공개 안내와 실제 학생 관리를 분리합니다.</h2>
+            <p>
+              방문자는 홈페이지에서 프로그램을 이해하고 신청합니다. 실제 학생별 데이터
+              입력과 관리는 상담 이후 운영자가 NORE에서 진행합니다.
+            </p>
+          </div>
+          <div className="grid-3">
+            {flowItems.map((item) => (
+              <article className="card" key={item.number}>
+                <span className="card-number">{item.number}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container grid-2">
+          <div className="contact-box">
+            <p className="eyebrow">STUDENT MANAGEMENT</p>
+            <h2>학생별 기록은 홈페이지에 저장하지 않습니다.</h2>
+            <p>
+              목표 대학, 실기 기록, 훈련 계획, 컨디션 체크처럼 지속적으로 관리해야
+              하는 항목은 전문 관리 플랫폼인 NORE에서 운영합니다.
+            </p>
+          </div>
+          <div className="contact-box accent-box">
+            <p className="eyebrow">MANAGED ITEMS</p>
+            <ul>
+              {managedItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+    </PageShell>
   );
 }

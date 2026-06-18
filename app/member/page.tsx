@@ -1,79 +1,105 @@
 import type { Metadata } from "next";
-import { NoreChatButton } from "../_components/NoreChatButton";
-import { NoreNutritionAnalyzer } from "../_components/NoreNutritionAnalyzer";
-import { NoreReservationAssistant } from "../_components/NoreReservationAssistant";
-import { WorkspaceShell } from "../_components/WorkspaceShell";
+import Link from "next/link";
+import { PageShell } from "../_components/SiteChrome";
 
 export const metadata: Metadata = {
-  title: "회원 시스템 | RePERFORMANCE",
-  description: "일반 회원이 상담 후 이용할 개인 화면 구조를 안내하는 준비 중 shell입니다.",
+  title: "회원 관리 안내 | RePERFORMANCE",
+  description:
+    "RePERFORMANCE 상담 신청 후 회원 관리는 운영자가 NORE에 등록해 진행한다는 흐름을 안내합니다.",
 };
 
-const menuSections = [
+const flowItems = [
   {
-    title: "내 관리",
-    items: [
-      { label: "홈", href: "#홈" },
-      { label: "내 목표", href: "#현재 목표" },
-      { label: "수업 일정", href: "#다음 수업" },
-      { label: "운동 기록", href: "#운동 기록" },
-      { label: "컨디션 체크", href: "#컨디션 체크" },
-      { label: "상담 메모", href: "#최근 피드백" },
-    ],
+    number: "01",
+    title: "홈페이지에서 상담 신청",
+    text: "원하는 서비스와 기본 정보, PAR-Q 확인 내용을 홈페이지 신청서에 남깁니다.",
   },
   {
-    title: "프로그램",
-    items: [
-      { label: "현재 프로그램", href: "#현재 프로그램" },
-      { label: "숙제 운동", href: "#이번 주 숙제 운동" },
-      { label: "진행 리포트", href: "#진행 리포트" },
-    ],
+    number: "02",
+    title: "상담 후 관리 방향 정리",
+    text: "현재 몸 상태, 목표, 운동 가능 시간, 주의사항을 확인해 수업 방향을 정합니다.",
   },
   {
-    title: "계정",
-    items: [
-      { label: "로그인 안내", href: "#로그인 안내" },
-      { label: "설정", href: "#설정" },
-    ],
+    number: "03",
+    title: "운영자가 NORE에 등록",
+    text: "회원 카드, 수업 일정, 운동 기록, 상담 메모는 코치가 NORE에 입력해 관리합니다.",
   },
 ] as const;
 
-const cards = [
-  { label: "현재 목표", title: "상담 후 설정", description: "상담에서 정한 운동 방향과 우선순위를 표시할 예정입니다." },
-  { label: "다음 수업", title: "로그인 후 제공 예정", description: "계정 발급 후 예약된 수업과 다음 방문 일정을 확인합니다." },
-  { label: "이번 주 숙제 운동", title: "상담 후 연결 예정", description: "집에서 확인할 운동 안내는 개인 화면에서 제공합니다." },
-  { label: "최근 피드백", title: "준비 중", description: "수업 후 공유할 주의사항과 운동 방향을 모아둘 예정입니다." },
-  { label: "상담 후 제공 예정 기능 안내", title: "개인 화면 준비 중", description: "실제 회원 정보나 기록은 저장하지 않은 안내용 화면입니다." },
-];
+const managedItems = [
+  "회원 기본 카드",
+  "수업 일정",
+  "운동 기록",
+  "컨디션 체크",
+  "상담 메모",
+  "진행 리포트",
+] as const;
 
-const modules = [
-  { label: "홈", title: "회원 홈", description: "상담 후 연결될 개인 화면의 시작 지점입니다." },
-  { label: "운동 기록", title: "운동 기록", description: "수업별 운동 내용은 계정 발급 후 개인 화면에서 확인할 예정입니다." },
-  { label: "컨디션 체크", title: "컨디션 체크", description: "통증, 피로, 수면 같은 상태는 상담 후 안내된 방식으로 확인합니다." },
-  { label: "현재 프로그램", title: "현재 프로그램", description: "목표와 몸 상태에 맞춘 운동 방향을 정리할 공간입니다." },
-  { label: "진행 리포트", title: "진행 리포트", description: "진행 상황은 상담 후 제공되는 화면에서 이해하기 쉽게 정리합니다." },
-  { label: "로그인 안내", title: "로그인 안내", description: "로그인 기능은 새로 구현하지 않고, 계정 발급 후 이용하는 구조만 안내합니다." },
-  { label: "설정", title: "설정", description: "알림과 화면 설정은 추후 연결될 예정입니다." },
-];
-
-export default function MemberShellPage() {
+export default function MemberGuidePage() {
   return (
-    <WorkspaceShell
-      variant="member"
-      brandLabel="MEMBER SYSTEM"
-      eyebrow="MEMBER SHELL"
-      title="일반 회원용 개인 화면을 준비 중입니다."
-      description="목표, 수업 일정, 운동 기록, 컨디션 체크, 상담 메모를 상담 후 한곳에서 확인할 수 있도록 구조를 준비하고 있습니다."
-      statusTitle="상담 후 연결 예정"
-      statusText="NORE 환경변수가 설정되면 AI 상담, 식단 분석, 예약 추천을 외부 플랫폼과 연결합니다."
-      menuSections={menuSections}
-      backLink={{ href: "/apply", label: "상담 신청으로 이동" }}
-      cards={cards}
-      modules={modules}
-      topbarAction={<NoreChatButton workspace="member" />}
-    >
-      <NoreNutritionAnalyzer workspace="member" />
-      <NoreReservationAssistant />
-    </WorkspaceShell>
+    <PageShell>
+      <section className="page-hero">
+        <div className="container page-title">
+          <p className="eyebrow">MEMBER GUIDE</p>
+          <h1>홈페이지는 신청까지, 회원 관리는 NORE에서 진행합니다.</h1>
+          <p>
+            RePERFORMANCE 홈페이지는 서비스를 소개하고 상담 신청을 받는 공간입니다.
+            상담 후 실제 회원 정보, 수업 일정, 운동 기록은 전문 관리 플랫폼인 NORE에
+            등록해 운영합니다.
+          </p>
+          <div className="button-row">
+            <Link href="/apply" className="button primary">
+              상담 신청하기
+            </Link>
+            <Link href="/services" className="button secondary">
+              서비스 보기
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section light">
+        <div className="container">
+          <div className="section-head">
+            <p className="eyebrow">FLOW</p>
+            <h2>상담 신청 이후의 관리 흐름</h2>
+            <p>
+              홈페이지 안에서 회원 데이터를 직접 관리하지 않습니다. 신청 내용을 바탕으로
+              상담을 진행하고, 관리가 필요한 회원은 코치가 NORE에 등록합니다.
+            </p>
+          </div>
+          <div className="grid-3">
+            {flowItems.map((item) => (
+              <article className="card" key={item.number}>
+                <span className="card-number">{item.number}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container grid-2">
+          <div className="contact-box">
+            <p className="eyebrow">NORE MANAGEMENT</p>
+            <h2>회원 관리 항목은 NORE에서 정리합니다.</h2>
+            <p>
+              수업을 시작한 뒤에는 예약, 운동 기록, 피드백, 상담 메모처럼 반복적으로
+              확인해야 하는 정보를 홈페이지가 아니라 NORE에서 관리합니다.
+            </p>
+          </div>
+          <div className="contact-box accent-box">
+            <p className="eyebrow">MANAGED ITEMS</p>
+            <ul>
+              {managedItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+    </PageShell>
   );
 }
