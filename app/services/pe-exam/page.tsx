@@ -1,33 +1,81 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import styles from "./PeExamCare.module.css";
 import publicStyles from "./PeExamPublic.module.css";
-import { peExamDetailPages } from "./peExamData";
 import { site } from "../../_components/siteData";
 
 export const metadata: Metadata = {
   title: "체대입시 공개 안내 | RePERFORMANCE",
   description:
-    "입시정보, 실기 기록, 훈련 계획, 컨디션 관리 흐름을 상담 전 확인하는 RePERFORMANCE 체대입시 공개 페이지입니다.",
+    "입시정보, 실기 기록, 훈련 계획, 컨디션 체크를 상담 전부터 한 흐름으로 확인하는 RePERFORMANCE 체대입시 공개 페이지입니다.",
 };
 
-const careSlugs = ["admission-map", "record-board", "training-block", "condition-guard", "parent-report", "final-simulation"];
-const infoSlugs = ["admission-calendar", "university-guides"];
+const admissionCards = [
+  {
+    label: "입시 일정",
+    title: "수시·정시 흐름 확인",
+    text: "원서 접수, 수능, 실기 전형처럼 놓치기 쉬운 일정을 먼저 정리합니다.",
+    href: "/services/pe-exam/admission-calendar",
+    action: "일정 보기",
+  },
+  {
+    label: "모집요강",
+    title: "대학별 기준 정리",
+    text: "목표 대학의 실기 종목, 반영 비율, 확인해야 할 자료를 상담 전에 구분합니다.",
+    href: "/services/pe-exam/university-guides",
+    action: "자료 보기",
+  },
+] as const;
 
-const carePages = peExamDetailPages.filter((page) => careSlugs.includes(page.slug));
-const infoPages = peExamDetailPages.filter((page) => infoSlugs.includes(page.slug));
+const careCards = [
+  {
+    label: "목표 대학",
+    title: "지원 방향 정리",
+    text: "희망 대학과 준비 기준을 나누어 상담 후 관리 화면으로 연결합니다.",
+    href: "/services/pe-exam/admission-map",
+  },
+  {
+    label: "실기 기록",
+    title: "종목별 기록 확인",
+    text: "현재 기록과 목표 기록을 분리해 변화 흐름을 보기 쉽게 정리합니다.",
+    href: "/services/pe-exam/record-board",
+  },
+  {
+    label: "훈련 계획",
+    title: "주간 블록 구성",
+    text: "기초 체력, 종목 기술, 회복을 무리 없이 이어지는 계획으로 나눕니다.",
+    href: "/services/pe-exam/training-block",
+  },
+  {
+    label: "컨디션 체크",
+    title: "주의사항 확인",
+    text: "운동 전후 몸 상태와 부담되는 움직임을 확인해 훈련 방향에 반영합니다.",
+    href: "/services/pe-exam/condition-guard",
+  },
+  {
+    label: "공유 리포트",
+    title: "보호자와 같은 화면",
+    text: "이번 주 준비 내용과 다음 목표를 상담 후 같은 기준으로 공유합니다.",
+    href: "/services/pe-exam/parent-report",
+  },
+  {
+    label: "최종 점검",
+    title: "실전 루틴 정리",
+    text: "실기 순서, 대기 시간, 긴장 관리처럼 시험 당일 흐름을 미리 확인합니다.",
+    href: "/services/pe-exam/final-simulation",
+  },
+] as const;
 
 const roadmap = [
-  ["PUBLIC", "공개 정보 확인", "입시 일정, 모집요강, 관리 항목을 상담 전에 먼저 확인합니다."],
-  ["CONSULT", "상담 기준 정리", "목표 대학, 현재 성적, 실기 기록, 운동 가능 시간을 기준으로 상담합니다."],
-  ["SHELL", "학생용 화면 준비", "상담 후 사용할 목표 대학, 기록, 훈련, 컨디션 메뉴 구조를 분리해 둡니다."],
+  ["01", "공개 정보 확인", "입시 일정과 관리 항목을 로그인 없이 먼저 확인합니다."],
+  ["02", "상담 기준 정리", "목표 대학, 현재 기록, 운동 가능 시간, 주의사항을 함께 확인합니다."],
+  ["03", "학생 화면 연결", "상담 후 목표 대학, 실기 기록, 훈련 계획 메뉴를 학생별로 연결합니다."],
 ] as const;
 
 const consultSteps = [
-  ["01", "상담 신청", "학생 정보와 목표 대학, 실기 종목, 현재 기록을 남깁니다."],
-  ["02", "현재 위치 확인", "성적, 기록, 몸 상태, 운동 가능 시간을 함께 확인합니다."],
-  ["03", "관리 방향 제안", "입시정보와 훈련 계획을 분리하지 않고 한 흐름으로 정리합니다."],
+  ["01", "상담 신청", "목표 대학, 실기 종목, 현재 준비 상황을 신청서에 남깁니다."],
+  ["02", "PAR-Q 확인", "운동 전 확인이 필요한 주의사항을 홈페이지 설문에서 함께 체크합니다."],
+  ["03", "방향 안내", "상담 후 필요한 관리 화면과 훈련 방향을 차례대로 안내합니다."],
 ] as const;
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -39,16 +87,20 @@ export default function PeExamPage() {
     <main className={publicStyles.publicPage}>
       <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
         <div className="container pe-standalone-nav-inner">
-          <Link href="/services/pe-exam" className="pe-standalone-brand" aria-label="RePERFORMANCE 체대입시 공개 페이지">
+          <Link
+            href="/services/pe-exam"
+            className="pe-standalone-brand"
+            aria-label="RePERFORMANCE 체대입시 공개 페이지"
+          >
             <strong>RePERFORMANCE</strong>
             <span>체대입시</span>
           </Link>
-          <div className="pe-standalone-actions">
+          <nav className="pe-standalone-actions" aria-label="체대입시 페이지 섹션">
             <Link href="#admission-info">입시정보</Link>
             <Link href="#care-system">케어 시스템</Link>
-            <Link href="#system-roadmap">관리 로드맵</Link>
+            <Link href="#system-roadmap">로드맵</Link>
             <Link href="#consult-flow">상담 신청</Link>
-          </div>
+          </nav>
         </div>
       </header>
 
@@ -71,9 +123,10 @@ export default function PeExamPage() {
               필요한 관리를 연결합니다.
             </h1>
             <p>
-              목표 대학, 실기 기록, 훈련 상태, 입시 일정을 따로 보지 않고 하나의 흐름으로 관리할 수 있도록 정리합니다.
+              목표 대학, 실기 기록, 훈련 상태, 입시 일정을 따로 보지 않고 하나의
+              흐름으로 관리할 수 있도록 정리합니다.
             </p>
-            <div className="button-row">
+            <div className={publicStyles.heroActions}>
               <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
                 체대입시 상담 신청
               </Link>
@@ -82,7 +135,8 @@ export default function PeExamPage() {
               </Link>
             </div>
           </div>
-          <div className={styles.heroMetrics} aria-label="체대입시 관리 핵심">
+
+          <div className={publicStyles.heroStats} aria-label="체대입시 관리 흐름">
             <div>
               <strong>INFO</strong>
               <span>일정과 모집요강 확인</span>
@@ -101,21 +155,21 @@ export default function PeExamPage() {
 
       <section id="admission-info" className={cx("section", publicStyles.publicInfoSection)}>
         <div className="container">
-          <div className="section-head">
+          <div className={publicStyles.sectionHead}>
             <p className="eyebrow">ADMISSION INFO</p>
             <h2>입시정보는 상담 전에 먼저 정리합니다.</h2>
             <p>
-              수시, 정시, 실기 일정과 대학별 모집요강은 공용 정보로 제공합니다. 실제 학생별 판단이나 원서 전략은 상담
-              후 별도로 정리합니다.
+              수시, 정시, 실기 일정과 대학별 모집요강은 공개 정보로 먼저 확인할 수
+              있습니다. 실제 지원 판단과 개인별 전략은 상담 후 별도로 정리합니다.
             </p>
           </div>
-          <div className={styles.infoFocusGrid}>
-            {infoPages.map((page) => (
-              <Link className={cx(styles.infoFocusCard, publicStyles.compactInfoCard)} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
-                <p>{page.label}</p>
-                <h3>{page.title}</h3>
-                <span>{page.description}</span>
-                <strong>입시정보 보기</strong>
+          <div className={publicStyles.infoGrid}>
+            {admissionCards.map((card) => (
+              <Link className={publicStyles.infoCard} href={card.href} key={card.href}>
+                <p>{card.label}</p>
+                <h3>{card.title}</h3>
+                <span>{card.text}</span>
+                <strong>{card.action}</strong>
               </Link>
             ))}
           </div>
@@ -124,41 +178,41 @@ export default function PeExamPage() {
 
       <section id="care-system" className={cx("section", publicStyles.publicCareSection)}>
         <div className="container">
-          <div className="section-head">
+          <div className={publicStyles.sectionHead}>
             <p className="eyebrow">CARE SYSTEM</p>
-            <h2>실기 기록만 보지 않고 관리 항목을 나눕니다.</h2>
+            <h2>실기 기록만 보지 않고 준비 흐름을 함께 봅니다.</h2>
             <p>
-              목표 대학, 실기 기록, 훈련 블록, 컨디션, 보호자 공유, 실전 시뮬레이션까지 상담에서 다룰 항목을 공개
-              페이지에서 먼저 확인할 수 있습니다.
+              목표 대학, 실기 기록, 훈련 계획, 컨디션 체크를 따로 흩어두지 않고
+              상담과 관리가 이어지도록 항목을 나누어 보여줍니다.
             </p>
           </div>
-          <div className={styles.hubGrid}>
-            {carePages.map((page) => (
-              <Link className={cx(styles.hubCard, publicStyles.compactHubCard)} href={`/services/pe-exam/${page.slug}`} key={page.slug}>
-                <p>{page.label}</p>
-                <h3>{page.title}</h3>
-                <span>{page.description}</span>
-                <strong>관리 페이지 보기</strong>
+          <div className={publicStyles.careGrid}>
+            {careCards.map((card) => (
+              <Link className={publicStyles.careCard} href={card.href} key={card.href}>
+                <p>{card.label}</p>
+                <h3>{card.title}</h3>
+                <span>{card.text}</span>
+                <strong>자세히 보기</strong>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="system-roadmap" className={cx("section", styles.roadmapSection, publicStyles.anchorSection)}>
+      <section id="system-roadmap" className={cx("section", publicStyles.roadmapSection)}>
         <div className="container">
-          <div className="section-head">
+          <div className={publicStyles.sectionHead}>
             <p className="eyebrow light-text">SYSTEM ROADMAP</p>
-            <h2>공개 정보와 내부 화면을 분리해 운영합니다.</h2>
+            <h2>공개 안내와 학생 전용 화면을 분리해 운영합니다.</h2>
             <p>
-              이 페이지에는 로그인 전 공용 정보만 둡니다. 학생별 기록, 목표 대학, 훈련 계획은 상담 후 내부 시스템
-              화면으로 확장하는 구조입니다.
+              이 페이지에는 로그인 전 공용 정보만 담습니다. 학생별 목표 대학, 기록,
+              훈련 계획은 상담 후 내부 시스템 화면에서 이어집니다.
             </p>
           </div>
-          <div className={styles.roadmapGrid}>
-            {roadmap.map(([label, title, text]) => (
-              <article className={styles.roadmapCard} key={label}>
-                <p>{label}</p>
+          <div className={publicStyles.roadmapGrid}>
+            {roadmap.map(([number, title, text]) => (
+              <article className={publicStyles.roadmapCard} key={number}>
+                <p>{number}</p>
                 <h3>{title}</h3>
                 <span>{text}</span>
               </article>
@@ -169,31 +223,44 @@ export default function PeExamPage() {
 
       <section id="consult-flow" className={cx("section", publicStyles.consultFlowSection)}>
         <div className={cx("container", publicStyles.consultFlowGrid)}>
-          <div>
-            <p className="eyebrow">CONSULT FLOW</p>
-            <h2>상담 신청은 현재 위치를 정확히 보는 것부터 시작합니다.</h2>
+          <div className={publicStyles.consultCopy}>
+            <p className="eyebrow light-text">CONSULT FLOW</p>
+            <h2>상담은 신청서와 PAR-Q 확인부터 시작합니다.</h2>
             <p>
-              신청서를 남기면 목표 대학, 현재 성적, 실기 기록, 부상 이력, 운동 가능 시간을 기준으로 상담 방향을
-              정리합니다. 실제 개인정보 저장이나 로그인 연동은 이 공개 페이지에서 구현하지 않습니다.
+              신청서를 남기면 목표 대학, 현재 기록, 운동 가능 시간, 주의사항을
+              기준으로 상담 방향을 정리합니다. 실제 개인정보 저장과 학생별 기록
+              관리는 상담 후 안내되는 전용 화면에서 진행합니다.
             </p>
-            <div className="button-row">
-              <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
-                체대입시 상담 신청
-              </Link>
-              <Link className="button pe-hero-secondary" href="/apply?service=pe-exam">
-                PAR-Q 설문까지 진행
-              </Link>
-              <a className={publicStyles.supportLink} href={site.instagramHref} target="_blank" rel="noopener noreferrer">
-                Instagram DM
+            <div className={publicStyles.consultActions}>
+              <div className={publicStyles.primaryActions}>
+                <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
+                  체대입시 상담 신청
+                </Link>
+                <Link className="button pe-hero-secondary" href="/apply?service=pe-exam">
+                  PAR-Q까지 진행
+                </Link>
+              </div>
+              <a
+                className={publicStyles.instagramCard}
+                href={site.instagramHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span>보조 문의</span>
+                <strong>Instagram DM</strong>
+                <small>간단한 확인이 필요할 때 사용합니다.</small>
               </a>
             </div>
           </div>
+
           <div className={publicStyles.consultStepList}>
             {consultSteps.map(([number, title, text]) => (
               <article key={number}>
                 <strong>{number}</strong>
-                <h3>{title}</h3>
-                <p>{text}</p>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
               </article>
             ))}
           </div>
