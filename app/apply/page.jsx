@@ -54,7 +54,7 @@ export default async function ApplyPage({ searchParams }) {
           <p className="eyebrow">SERVICE APPLICATION</p>
           <h1>서비스를 고르고 PAR-Q까지 한 번에 작성합니다.</h1>
           <p>
-            노션 설문에서 사용하던 핵심 항목을 홈페이지 안으로 옮겼습니다. 신청 후 내용은 고객관리 데이터로 저장되어
+            신청에 필요한 기본 정보와 PAR-Q 확인 항목을 홈페이지 안에서 함께 작성합니다. 신청 후 내용은 고객관리 데이터로 저장되어
             상담 전 확인 자료로 바로 활용됩니다.
           </p>
         </div>
@@ -126,7 +126,7 @@ export default async function ApplyPage({ searchParams }) {
             <div className={styles.formSection}>
               <div className={styles.sectionTitle}>
                 <span>03</span>
-                <strong>노션 설문 기반 상담 항목</strong>
+                <strong>상담 기본 항목</strong>
               </div>
               <label>
                 <span>운동 목표 / 신청 이유</span>
@@ -224,7 +224,7 @@ export default async function ApplyPage({ searchParams }) {
                 <strong>PAR-Q 확인</strong>
               </div>
               <p className={styles.helperText}>
-                아래 항목은 노션 설문에서 수집하던 PAR-Q 예항목을 홈페이지 입력용으로 정리한 것입니다. 해당되는 항목만 체크해주세요.
+                아래 항목은 운동 전 확인이 필요한 PAR-Q 예항목입니다. 해당되는 항목만 체크해주세요.
               </p>
               <div className={styles.parqList}>
                 {parqQuestions.map((question) => (
@@ -276,8 +276,8 @@ export default async function ApplyPage({ searchParams }) {
               </div>
             </div>
             <div className={styles.notice}>
-              <strong>기존 노션 설문</strong>
-              <span>노션에 있던 이름, 연락처, 목표, 방문 목적, 통증 부위, 통증 강도, 주의사항, PAR-Q 예항목 구조를 홈페이지 폼으로 옮겼습니다.</span>
+              <strong>홈페이지 신청서</strong>
+              <span>이름, 연락처, 목표, 방문 목적, 통증 부위, 통증 강도, 주의사항, PAR-Q 예항목을 홈페이지 폼에서 바로 확인합니다.</span>
             </div>
             <div className={styles.sideActions}>
               <Link href="/services">서비스 다시 보기</Link>

@@ -53,7 +53,7 @@ pages/admin/consultation.jsx
 
 ```jsx
 function saveRecord() {
-  // TODO: Google Sheets / Notion / Supabase 저장 함수로 교체
+  // TODO: 운영 데이터 저장 함수로 교체
 }
 ```
 
@@ -125,7 +125,7 @@ components/rp-consultation/RPConsultationMode.jsx
 ## 7. 다음 개발 단계
 
 1. Google Sheets 저장 API 연결
-2. Notion 회원 페이지 생성 연동
+2. 회원 기록 생성 연동
 3. 기존 관리자페이지의 회원 목록과 연결
 4. 상담 완료 시 초기 평가 페이지 자동 생성
 5. 상담 완료 시 프로그램 초안 페이지 자동 생성

@@ -91,5 +91,5 @@ When NORE provides the final API document, check these items first:
 
 - API keys and chat tokens are server-side only.
 - Browser components call local `/api/nore/*` routes, not NORE directly.
-- No new login, DB schema, payment, Google Sheets, Drive, or Notion implementation was added for this integration.
+- No new login, DB schema, payment, Google Sheets, or Drive implementation was added for this integration.
 - NORE sync failure is reported in JSON responses but does not block existing RePERFORMANCE application/signup completion.

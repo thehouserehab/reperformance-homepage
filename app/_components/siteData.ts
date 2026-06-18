@@ -6,8 +6,6 @@ export const site = {
   phoneHref: "tel:01024188400",
   instagram: "@reperformance_trainer",
   instagramHref: "https://www.instagram.com/reperformance_trainer",
-  notionSurveyHref:
-    "https://fearless-okapi-9c9.notion.site/2cdfab3c9eaa80e8a936e85baa1f3b59?pvs=105",
   serviceApplyHref: "/apply",
   naverMapHref: "https://naver.me/5BwnMHha",
   ownerWorkspaceHref: "https://drive.google.com/drive/folders/1X_bDnaAW89nuKdj5dZ48sMwkfvamqogy",

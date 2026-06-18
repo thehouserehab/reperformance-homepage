@@ -53,9 +53,12 @@ export default function LocationPage() {
           <div className="contact-box stretch-card quick-card">
             <p className="eyebrow">QUICK CONTACT</p>
             <h2>빠른 문의</h2>
-            <p>설문 작성 후 전화 또는 DM으로 남겨주시면 확인 뒤 상담 방향을 안내해드립니다.</p>
+            <p>신청서 작성 후 전화 또는 DM으로 남겨주시면 확인 뒤 상담 방향을 안내해드립니다.</p>
             <div className="button-row">
-              <a href={site.phoneHref} className="button primary">
+              <a href={site.serviceApplyHref} className="button primary">
+                상담 신청하기
+              </a>
+              <a href={site.phoneHref} className="button secondary">
                 전화하기
               </a>
               <a href={site.instagramHref} target="_blank" rel="noopener noreferrer" className="button secondary">
