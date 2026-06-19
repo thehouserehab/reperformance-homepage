@@ -85,7 +85,12 @@ export default function OnlineSurveyPage() {
             </div>
           </div>
           <div className="system-visual-card">
-            <Image src="/images/coach-card.jpg" alt="RePERFORMANCE 상담과 트레이닝 현장" width={720} height={900} />
+            <Image
+              src="/images/coach-profile.jpg"
+              alt="RePERFORMANCE 상담을 안내하는 정우현 코치"
+              width={720}
+              height={900}
+            />
           </div>
         </div>
       </section>
@@ -162,8 +167,8 @@ export default function OnlineSurveyPage() {
             <p className="eyebrow">OUTPUT</p>
             <h2>설문 후 남기는 자료</h2>
             <p>
-              설문 결과는 고객관리 화면의 기본 상태, 상담 메모, PAR-Q 위험 확인, 첫 평가 우선순위로 남겨집니다.
-              이후 수업 기록과 함께 업데이트되면서 회원별 히스토리가 됩니다.
+              설문 결과는 상담 전 확인 자료로 정리됩니다. 목표, 불편감, 운동 전 주의사항을 바탕으로
+              첫 평가에서 확인할 움직임을 정합니다.
             </p>
             <div className="quote-card">좋은 프로그램은 질문을 잘 남기는 것에서 시작됩니다.</div>
           </div>

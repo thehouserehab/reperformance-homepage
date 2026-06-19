@@ -18,42 +18,17 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-height: min(760px, 100svh);
+  min-height: min(720px, 100svh);
   overflow: hidden;
-  padding: 128px 0 88px;
-  background:
-    radial-gradient(circle at 78% 12%, rgba(255, 138, 31, 0.22), transparent 28%),
-    linear-gradient(135deg, #0f1723 0%, #172033 56%, #10141d 100%);
+  padding: 116px 0 78px;
+  background: #10141d;
   color: #fff;
-}
-
-.publicHero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(15, 23, 35, 0.96) 0%, rgba(15, 23, 35, 0.84) 52%, rgba(15, 23, 35, 0.5) 100%),
-    linear-gradient(180deg, rgba(15, 23, 35, 0.16) 0%, rgba(15, 23, 35, 0.36) 100%);
-}
-
-.heroMedia {
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: min(46vw, 680px);
-  opacity: 0.34;
-}
-
-.heroMedia img {
-  object-fit: cover;
-  object-position: center;
-  filter: saturate(0.92) contrast(1.06);
 }
 
 .publicHeroInner {
   position: relative;
-  z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
   gap: 28px;
   align-items: center;
 }
@@ -67,7 +42,7 @@
   max-width: 860px;
   margin-bottom: 18px;
   color: #fff;
-  font-size: clamp(38px, 4.9vw, 62px);
+  font-size: clamp(38px, 4.7vw, 58px);
   line-height: 1.12;
   overflow-wrap: break-word;
   text-wrap: balance;
@@ -96,10 +71,10 @@
 
 .heroStats div {
   min-width: 0;
-  padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
@@ -111,7 +86,7 @@
 .heroStats strong {
   margin-bottom: 8px;
   color: #fff;
-  font-size: 30px;
+  font-size: 25px;
   line-height: 1;
 }
 
@@ -173,7 +148,7 @@
 }
 
 .careGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .roadmapGrid {
@@ -198,7 +173,10 @@
   border: 1px solid #d9e1ea;
   background: #fff;
   box-shadow: 0 18px 38px rgba(38, 52, 73, 0.07);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .infoCard:hover,
@@ -265,8 +243,16 @@
 
 .roadmapSection {
   background:
-    radial-gradient(circle at 10% 0%, rgba(63, 140, 255, 0.18), transparent 32%),
-    radial-gradient(circle at 90% 18%, rgba(255, 138, 31, 0.18), transparent 34%),
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(63, 140, 255, 0.18),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 90% 18%,
+      rgba(255, 138, 31, 0.18),
+      transparent 34%
+    ),
     #10141d;
   color: #fff;
 }
@@ -325,7 +311,7 @@
 }
 
 .consultCopy {
-  padding: 34px;
+  padding: 32px;
   background:
     radial-gradient(circle at 10% 0%, rgba(255, 138, 31, 0.2), transparent 32%),
     linear-gradient(145deg, #111827 0%, #152238 58%, #0b6059 100%);
@@ -359,10 +345,10 @@
   display: grid;
   gap: 4px;
   width: 100%;
-  padding: 16px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.08);
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 177, 95, 0.24);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
   color: #fff;
 }
 
@@ -373,7 +359,7 @@
 
 .instagramCard strong {
   color: #fff;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .instagramCard small {
@@ -451,29 +437,29 @@
 
   .publicPage :global(.pe-standalone-actions) {
     width: 100%;
-    overflow-x: auto;
-    padding-bottom: 4px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .publicPage :global(.pe-standalone-actions a) {
     min-height: 36px;
     padding: 0 12px;
     font-size: 13px;
+    justify-content: center;
+    width: 100%;
   }
 
   .publicHero {
     min-height: auto;
-    padding-top: 158px;
-    padding-bottom: 68px;
+    padding-top: 148px;
+    padding-bottom: 60px;
   }
 
   .publicHeroText h1 {
-    font-size: clamp(34px, 10vw, 52px);
-  }
-
-  .heroMedia {
-    width: 100%;
-    opacity: 0.22;
+    font-size: clamp(34px, 9.4vw, 48px);
   }
 
   .infoGrid,
@@ -490,7 +476,7 @@
   }
 
   .consultCopy {
-    padding: 26px 22px;
+    padding: 24px 20px;
   }
 
   .primaryActions :global(.button),
@@ -505,7 +491,7 @@
 
 @media (max-width: 520px) {
   .publicHero {
-    padding-top: 176px;
+    padding-top: 164px;
   }
 
   .publicHeroText p:not(:global(.eyebrow)),

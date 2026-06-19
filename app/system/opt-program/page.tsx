@@ -91,7 +91,12 @@ export default function OptProgramPage() {
             </div>
           </div>
           <div className="system-visual-card">
-            <Image src="/images/coach-card.jpg" alt="RePERFORMANCE 프로그램 진행 현장" width={720} height={900} />
+            <Image
+              src="/images/coach-profile.jpg"
+              alt="RePERFORMANCE 프로그램을 안내하는 정우현 코치"
+              width={720}
+              height={900}
+            />
           </div>
         </div>
       </section>

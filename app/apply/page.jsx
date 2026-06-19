@@ -6,12 +6,12 @@ import styles from './Apply.module.css';
 
 const statusMessages = {
   success: {
-    title: '서비스 신청과 PAR-Q 확인이 완료되었습니다.',
-    body: '작성한 내용은 고객관리 데이터로 저장되었습니다. 담당 코치가 확인 후 상담 방향을 안내합니다.',
+    title: '상담 신청이 완료되었습니다.',
+    body: '담당 코치가 신청 내용을 확인한 뒤 상담 방향을 안내합니다.',
   },
   setup: {
-    title: '데이터베이스 연결이 필요합니다.',
-    body: '신청 데이터를 저장하려면 Vercel 환경변수의 DATABASE_URL 또는 RP_DATABASE_URL 설정이 필요합니다.',
+    title: '신청서 저장 준비가 필요합니다.',
+    body: '잠시 후 다시 시도하거나 전화/DM으로 신청 내용을 남겨주세요.',
   },
   invalid: {
     title: '필수 항목을 확인해주세요.',
@@ -51,11 +51,10 @@ export default async function ApplyPage({ searchParams }) {
     <PageShell>
       <section className="page-hero">
         <div className="container page-title">
-          <p className="eyebrow">SERVICE APPLICATION</p>
-          <h1>서비스를 고르고 PAR-Q까지 한 번에 작성합니다.</h1>
+          <p className="eyebrow">APPLICATION</p>
+          <h1>상담 신청서를 작성합니다.</h1>
           <p>
-            신청에 필요한 기본 정보와 PAR-Q 확인 항목을 홈페이지 안에서 함께 작성합니다. 신청 후 내용은 고객관리 데이터로 저장되어
-            상담 전 확인 자료로 바로 활용됩니다.
+            원하는 서비스, 기본 정보, 운동 전 확인 항목을 남겨주세요. 담당 코치가 확인 후 연락드립니다.
           </p>
         </div>
       </section>
@@ -221,10 +220,10 @@ export default async function ApplyPage({ searchParams }) {
             <div className={styles.formSection}>
               <div className={styles.sectionTitle}>
                 <span>05</span>
-                <strong>PAR-Q 확인</strong>
+                <strong>운동 전 확인</strong>
               </div>
               <p className={styles.helperText}>
-                아래 항목은 운동 전 확인이 필요한 PAR-Q 예항목입니다. 해당되는 항목만 체크해주세요.
+                아래 항목 중 해당되는 내용만 체크해주세요. 상담 전 주의사항을 확인하기 위한 질문입니다.
               </p>
               <div className={styles.parqList}>
                 {parqQuestions.map((question) => (
@@ -247,11 +246,11 @@ export default async function ApplyPage({ searchParams }) {
               </div>
               <label className={styles.agreeLabel}>
                 <input name="parqConsent" type="checkbox" value="yes" required />
-                <span>운동 전 안전 확인을 위해 위 PAR-Q 항목을 확인했고, 해당되는 항목을 사실대로 체크했습니다.</span>
+                <span>운동 전 확인 항목을 읽었고, 해당되는 내용을 사실대로 체크했습니다.</span>
               </label>
               <label className={styles.agreeLabel}>
                 <input name="privacyConsent" type="checkbox" value="yes" required />
-                <span>서비스 신청과 상담 준비를 위해 이름, 연락처, 신청 내용, PAR-Q 확인 결과를 저장하는 것에 동의합니다.</span>
+                <span>상담 준비를 위해 이름, 연락처, 신청 내용, 운동 전 확인 결과를 저장하는 것에 동의합니다.</span>
               </label>
             </div>
 
@@ -260,24 +259,24 @@ export default async function ApplyPage({ searchParams }) {
 
           <aside className={styles.sidePanel}>
             <p className="eyebrow">AFTER SUBMIT</p>
-            <h2>신청 완료 후 데이터는 고객관리로 연결됩니다.</h2>
+            <h2>신청 후 상담 준비가 시작됩니다.</h2>
             <div className={styles.flowList}>
               <div>
                 <strong>01 서비스 선택</strong>
-                <span>신청 서비스에 따라 회원구분이 자동으로 정리됩니다.</span>
+                <span>원하는 수업 방향을 먼저 확인합니다.</span>
               </div>
               <div>
-                <strong>02 PAR-Q 확인</strong>
-                <span>예 항목이 있으면 고객관리에서 주의 확인 대상으로 표시됩니다.</span>
+                <strong>02 운동 전 확인</strong>
+                <span>주의가 필요한 항목은 상담 때 함께 확인합니다.</span>
               </div>
               <div>
-                <strong>03 고객관리 저장</strong>
-                <span>담당 코치가 상담 화면에서 바로 이어서 기록할 수 있습니다.</span>
+                <strong>03 상담 안내</strong>
+                <span>담당 코치가 확인 후 연락드립니다.</span>
               </div>
             </div>
             <div className={styles.notice}>
               <strong>홈페이지 신청서</strong>
-              <span>이름, 연락처, 목표, 방문 목적, 통증 부위, 통증 강도, 주의사항, PAR-Q 예항목을 홈페이지 폼에서 바로 확인합니다.</span>
+              <span>이름, 연락처, 목표, 방문 목적, 불편 부위, 주의사항을 한 번에 남길 수 있습니다.</span>
             </div>
             <div className={styles.sideActions}>
               <Link href="/services">서비스 다시 보기</Link>

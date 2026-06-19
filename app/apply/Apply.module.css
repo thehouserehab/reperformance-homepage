@@ -1,6 +1,6 @@
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
   gap: 22px;
   align-items: start;
 }
@@ -10,7 +10,7 @@
   border: 1px solid #e2e4df;
   border-radius: 8px;
   background: #fff;
-  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+  box-shadow: 0 20px 54px rgba(23, 25, 29, 0.06);
 }
 
 .form {
@@ -75,9 +75,9 @@
 }
 
 .serviceOption:has(input:checked) {
-  border-color: rgba(8, 123, 114, .44);
+  border-color: rgba(8, 123, 114, 0.44);
   background: #eff8f6;
-  box-shadow: 0 0 0 4px rgba(8, 123, 114, .08);
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, 0.08);
 }
 
 .serviceOption input,
@@ -100,7 +100,7 @@
   font-size: 12px;
   font-style: normal;
   font-weight: 950;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -128,8 +128,8 @@
   font-weight: 900;
 }
 
-.form input[type='text'],
-.form input[type='tel'],
+.form input[type="text"],
+.form input[type="tel"],
 .form select,
 .form textarea {
   width: 100%;
@@ -141,8 +141,8 @@
   outline: none;
 }
 
-.form input[type='text'],
-.form input[type='tel'],
+.form input[type="text"],
+.form input[type="tel"],
 .form select {
   min-height: 50px;
   padding: 0 14px;
@@ -159,7 +159,7 @@
 .form select:focus,
 .form textarea:focus {
   border-color: #087b72;
-  box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, 0.1);
 }
 
 .checkGrid {
@@ -186,7 +186,7 @@
 }
 
 .checkCard:has(input:checked) {
-  border-color: rgba(8, 123, 114, .32);
+  border-color: rgba(8, 123, 114, 0.32);
   background: #eff8f6;
 }
 
@@ -220,7 +220,7 @@
 }
 
 .parqCard:has(input:checked) {
-  border-color: rgba(150, 55, 36, .24);
+  border-color: rgba(150, 55, 36, 0.24);
   background: #fff7f4;
 }
 
@@ -254,13 +254,13 @@
 }
 
 .success {
-  border: 1px solid rgba(8, 123, 114, .18);
+  border: 1px solid rgba(8, 123, 114, 0.18);
   background: #eff8f6;
   color: #355a56;
 }
 
 .error {
-  border: 1px solid rgba(150, 55, 36, .18);
+  border: 1px solid rgba(150, 55, 36, 0.18);
   background: #fff0eb;
   color: #963724;
 }

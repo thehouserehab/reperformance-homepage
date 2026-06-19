@@ -20,9 +20,9 @@ export default function CoachPage() {
           <div className="coach-card">
             <p className="eyebrow">REHAB TO PERFORMANCE</p>
             <div className="quote-card large">
-              책임지고 개선해드립니다.
+              현재 몸 상태에 맞는 운동을
               <br />
-              고객님의 건강한 회복을 돕겠습니다.
+              함께 찾습니다.
             </div>
             <div className="info-list">
               <div className="info-item">
@@ -46,7 +46,7 @@ export default function CoachPage() {
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">MESSAGE</p>
-            <h2>고객님의 건강을 책임지는 기준으로 봅니다.</h2>
+            <h2>편하게 움직일 수 있는 기준부터 살핍니다.</h2>
             <p>
               운동을 시작해야 하는데 어디서부터 해야 할지 모르겠다면, 먼저 현재 몸 상태를 확인하는 것부터 시작해도
               충분합니다. RePERFORMANCE는 안전한 범위 안에서 회복과 훈련을 연결합니다.

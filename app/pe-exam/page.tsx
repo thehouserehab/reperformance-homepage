@@ -3,9 +3,9 @@ import Link from "next/link";
 import { PageShell } from "../_components/SiteChrome";
 
 export const metadata: Metadata = {
-  title: "체대입시 관리 안내 | RePERFORMANCE",
+  title: "체대입시 상담 안내 | RePERFORMANCE",
   description:
-    "체대입시 상담 신청 후 학생별 기록과 훈련 관리는 NORE에서 운영한다는 흐름을 안내합니다.",
+    "체대입시 상담 신청 후 목표 대학, 실기 기록, 훈련 방향을 정리하는 흐름을 안내합니다.",
 };
 
 const flowItems = [
@@ -21,8 +21,8 @@ const flowItems = [
   },
   {
     number: "03",
-    title: "NORE에서 학생별 관리",
-    text: "상담 후 코치가 학생 정보를 NORE에 등록하고 기록, 일정, 피드백을 관리합니다.",
+    title: "상담 후 관리 안내",
+    text: "상담 후 담당 코치가 기록, 일정, 피드백 관리 방법을 안내합니다.",
   },
 ] as const;
 
@@ -41,11 +41,11 @@ export default function PeExamGuidePage() {
       <section className="page-hero pe-exam-hero">
         <div className="container page-title">
           <p className="eyebrow">PE EXAM GUIDE</p>
-          <h1>체대입시 관리는 상담 후 NORE에서 이어갑니다.</h1>
+          <h1>체대입시 준비는 상담 후 방향을 정리합니다.</h1>
           <p>
             홈페이지는 체대입시 프로그램을 소개하고 상담 신청까지 이끄는 역할에
-            집중합니다. 학생별 목표 대학, 실기 기록, 훈련 계획은 상담 후 코치가
-            NORE에 등록해 관리합니다.
+            집중합니다. 학생별 목표 대학, 실기 기록, 훈련 계획은 상담 후 담당 코치가
+            확인하고 관리 방향을 안내합니다.
           </p>
           <div className="button-row">
             <Link href="/services/pe-exam" className="button primary">
@@ -62,10 +62,10 @@ export default function PeExamGuidePage() {
         <div className="container">
           <div className="section-head">
             <p className="eyebrow">FLOW</p>
-            <h2>공개 안내와 실제 학생 관리를 분리합니다.</h2>
+            <h2>공개 안내와 상담 이후 관리를 분리합니다.</h2>
             <p>
-              방문자는 홈페이지에서 프로그램을 이해하고 신청합니다. 실제 학생별 데이터
-              입력과 관리는 상담 이후 운영자가 NORE에서 진행합니다.
+              방문자는 홈페이지에서 프로그램을 이해하고 신청합니다. 실제 학생별 기록과
+              훈련 방향은 상담 이후 담당 코치가 정리합니다.
             </p>
           </div>
           <div className="grid-3">
@@ -87,7 +87,7 @@ export default function PeExamGuidePage() {
             <h2>학생별 기록은 홈페이지에 저장하지 않습니다.</h2>
             <p>
               목표 대학, 실기 기록, 훈련 계획, 컨디션 체크처럼 지속적으로 관리해야
-              하는 항목은 전문 관리 플랫폼인 NORE에서 운영합니다.
+              하는 항목은 상담 후 별도로 안내합니다.
             </p>
           </div>
           <div className="contact-box accent-box">
