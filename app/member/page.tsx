@@ -1,70 +1,117 @@
 import type { Metadata } from "next";
-import { MemberWorkspaceDashboard } from "../_components/MemberWorkspaceDashboard";
-import { WorkspaceShell } from "../_components/WorkspaceShell";
-import type { WorkspaceConfig } from "../_components/workspaceTypes";
+import Link from "next/link";
+import { PageShell } from "../_components/SiteChrome";
+import { site } from "../_components/siteData";
+import styles from "./MemberHub.module.css";
 
 export const metadata: Metadata = {
-  title: "회원 관리 | RePERFORMANCE",
-  description: "RePERFORMANCE 일반 회원 관리 화면의 준비 중 shell입니다.",
+  title: "회원 안내 | RePERFORMANCE",
+  description: "RePERFORMANCE 상담 안내와 NORE 회원관리 이용 방법을 안내합니다.",
   robots: { index: false, follow: false },
 };
 
-const memberConfig: WorkspaceConfig = {
-  audienceLabel: "MEMBER PROFILE",
-  memberName: "회원-0001",
-  memberId: "M-0001",
-  status: "로그인 후 제공 예정",
-  summary: "상담 후 회원의 목표, 수업 일정, 운동 기록을 한 흐름으로 확인합니다.",
-  highlights: [
-    { label: "회원 유형", value: "상담 후 입력 예정" },
-    { label: "담당 코치", value: "상담 후 연결 예정" },
-    { label: "잔여 횟수", value: "상담 후 입력 예정" },
-    { label: "계약 상태", value: "상담 후 안내 예정" },
-  ],
-  infoGroups: [
-    {
-      title: "기본 회원 정보",
-      values: [
-        { label: "생년월일", value: "상담 후 입력 예정" },
-        { label: "전화번호", value: "010-****-1234" },
-        { label: "키", value: "상담 후 입력 예정" },
-        { label: "체중", value: "상담 후 입력 예정" },
-        { label: "이메일", value: "로그인 후 제공 예정" },
-        { label: "회원 상태", value: "상담 후 연결 예정" },
-      ],
-    },
-    {
-      title: "수업 및 계약 안내",
-      values: [
-        { label: "시작일", value: "상담 후 입력 예정" },
-        { label: "만료일", value: "상담 후 입력 예정" },
-        { label: "다음 수업일", value: "상담 후 안내 예정" },
-        { label: "최근 평가일", value: "상담 후 입력 예정" },
-        { label: "회원권 관리", value: "로그인 후 제공 예정" },
-        { label: "계약 보기", value: "로그인 후 제공 예정" },
-      ],
-    },
-  ],
-  nutritionGoals: [
-    { label: "총 칼로리", value: "상담 후 입력 예정", unit: "kcal" },
-    { label: "탄수화물", value: "상담 후 입력 예정", unit: "g" },
-    { label: "단백질", value: "상담 후 입력 예정", unit: "g" },
-    { label: "지방", value: "상담 후 입력 예정", unit: "g" },
-  ],
-  nutritionNote: "영양 목표와 탄단지 비율은 상담 후 생활 패턴에 맞춰 안내합니다.",
-  focusCards: [
-    { title: "현재 목표", text: "상담 후 현재 목표를 함께 정리합니다." },
-    { title: "운동 주의사항", text: "운동 전 확인 항목을 바탕으로 상담 후 안내합니다." },
-    { title: "움직임 제한", text: "불편한 움직임과 제한사항은 상담 후 확인 예정입니다." },
-  ],
-  tabs: ["수업", "평가", "운동기록", "개인운동", "식단", "인바디", "추적", "메모", "계약"],
-  emptyRecordDescription: "항목은 로그인과 상담 후 제공 예정입니다.",
-};
+const roleCards = [
+  {
+    label: "RePERFORMANCE 홈페이지",
+    title: "상담과 서비스 안내",
+    text: "처음 방문한 분이 서비스와 준비 방향을 이해하고, 필요한 상담을 신청하는 곳입니다.",
+  },
+  {
+    label: "NORE 회원관리",
+    title: "수업 이후의 회원 관리",
+    text: "수업 기록, 개인운동, 식단, 메모, 계약과 일정은 NORE에서 확인합니다.",
+  },
+] as const;
+
+const flowSteps = [
+  ["01", "상담 신청", "필요한 서비스와 현재 준비 상황을 남깁니다."],
+  ["02", "상담 후 계정 안내", "필요한 경우 회원 계정과 이용 방법을 안내합니다."],
+  ["03", "NORE에서 관리", "수업과 개인 관리 항목은 NORE에서 이어집니다."],
+] as const;
 
 export default function MemberPage() {
   return (
-    <WorkspaceShell sectionLabel="일반 회원 관리">
-      <MemberWorkspaceDashboard config={memberConfig} />
-    </WorkspaceShell>
+    <PageShell>
+      <section className={styles.hero}>
+        <div className={`container ${styles.heroInner}`}>
+          <div>
+            <p className="eyebrow">MEMBER GUIDE</p>
+            <h1>상담은 RePERFORMANCE에서, 회원관리는 NORE에서 이어집니다.</h1>
+            <p className={styles.lead}>
+              상담 후 필요한 경우 회원 계정이 발급됩니다. RePERFORMANCE 홈페이지는 상담 신청과
+              서비스 안내를 담당하며, 수업 이후의 회원 관리는 NORE에서 확인합니다.
+            </p>
+            <div className="button-row">
+              <a
+                className="button primary"
+                href={site.norePortalHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                NORE 회원관리로 이동
+              </a>
+              <Link className="button secondary" href="/apply">
+                상담 신청하기
+              </Link>
+            </div>
+          </div>
+          <aside className={styles.notice} aria-label="회원관리 안내">
+            <strong>회원관리 안내</strong>
+            <p>수업 기록, 개인운동, 식단, 메모, 계약 관리는 NORE에서 확인합니다.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section className={`section ${styles.rolesSection}`}>
+        <div className="container">
+          <div className={styles.sectionHead}>
+            <p className="eyebrow">CLEAR ROLES</p>
+            <h2>방문부터 상담, 이후 관리까지 역할을 나눴습니다.</h2>
+          </div>
+          <div className={styles.roleGrid}>
+            {roleCards.map((card) => (
+              <article className={styles.roleCard} key={card.label}>
+                <p>{card.label}</p>
+                <h3>{card.title}</h3>
+                <span>{card.text}</span>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`section ${styles.flowSection}`}>
+        <div className="container">
+          <div className={styles.sectionHead}>
+            <p className="eyebrow light-text">MEMBER FLOW</p>
+            <h2>회원 이용 흐름</h2>
+          </div>
+          <ol className={styles.flowList}>
+            {flowSteps.map(([number, title, text]) => (
+              <li key={number}>
+                <strong>{number}</strong>
+                <div>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className={`section ${styles.bottomSection}`}>
+        <div className={`container ${styles.bottomInner}`}>
+          <div>
+            <p className="eyebrow">CONSULTATION</p>
+            <h2>아직 상담 전이라면, 서비스부터 확인해 주세요.</h2>
+            <p>상담 내용을 바탕으로 필요한 안내와 이후 NORE 이용 방법을 연결합니다.</p>
+          </div>
+          <Link className="button dark" href="/apply">
+            상담 신청하기
+          </Link>
+        </div>
+      </section>
+    </PageShell>
   );
 }

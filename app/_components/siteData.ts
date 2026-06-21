@@ -7,6 +7,7 @@ export const site = {
   instagram: "@reperformance_trainer",
   instagramHref: "https://www.instagram.com/reperformance_trainer",
   serviceApplyHref: "/apply",
+  norePortalHref: "https://noreapp.com",
   naverMapHref: "https://naver.me/5BwnMHha",
   ownerWorkspaceHref: "https://drive.google.com/drive/folders/1X_bDnaAW89nuKdj5dZ48sMwkfvamqogy",
   chatGptHref: "https://chatgpt.com/",
@@ -68,10 +69,10 @@ export const serviceItems = [
     applicationValue: "pe-exam",
     memberType: "체대입시생",
     target: "체대입시 준비생, 실기 기록 향상, 목표 대학·학과 상담이 필요한 학생",
-    message: "실기 운동 준비와 입시 전략을 한 흐름으로 관리합니다.",
+    message: "실기 준비와 입시 정보를 상담 전부터 한 흐름으로 안내합니다.",
     description:
-      "희망 대학, 목표 학과, 실기 종목, 현재 기록, 내신·수능 상황을 함께 확인하고 운동 계획과 입시 상담 방향을 연결합니다.",
-    bullets: ["희망 대학 및 목표 학과 확인", "실기 종목별 기록 체크", "부족 체력 요소 분석", "부상 방지 운동 루틴", "지원 전략 상담 메모"],
+      "대학별 정보와 실기 종목, 준비 기준을 먼저 안내하고 상담 방향을 연결합니다. 학생별 기록과 일정은 상담 후 NORE에서 관리합니다.",
+    bullets: ["대학별 정보와 전형 일정 확인", "실기 종목별 준비 기준 안내", "공식 모집요강 확인 방법", "준비 로드맵 안내", "체대입시 상담 신청"],
   },
 ];
 

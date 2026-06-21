@@ -1,1 +1,1 @@
-export { default, generateMetadata, generateStaticParams } from "../../services/pe-exam/[slug]/page";
+export { default } from "../../services/pe-exam/[slug]/page";
