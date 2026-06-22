@@ -8,8 +8,6 @@ export const site = {
   instagramHref: "https://www.instagram.com/reperformance_trainer",
   serviceApplyHref: "/apply",
   noreTrainerHomeHref: "https://noreapp.com/trainer/home",
-  noreMemberHref: "https://noreapp.com/trainer/home",
-  norePeExamHref: "https://noreapp.com/trainer/home",
   norePortalHref: "https://noreapp.com/trainer/home",
   naverMapHref: "https://naver.me/5BwnMHha",
   ownerWorkspaceHref: "https://drive.google.com/drive/folders/1X_bDnaAW89nuKdj5dZ48sMwkfvamqogy",

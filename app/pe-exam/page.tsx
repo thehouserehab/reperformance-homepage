@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "../_components/SiteChrome";
-import { site } from "../_components/siteData";
 import styles from "./PeExamHub.module.css";
 
 export const metadata: Metadata = {
@@ -24,7 +23,7 @@ const hubLinks = [
 const heroFlow = [
   ["01", "공개 정보 확인", "대학별 정보와 전형 일정을 먼저 봅니다."],
   ["02", "상담 방향 정리", "준비 상황에 맞는 상담을 연결합니다."],
-  ["03", "NORE에서 학생 관리", "학생별 기록과 일정은 NORE에서 관리합니다."],
+  ["03", "상담 완료 후 관리 안내", "상담을 마친 학생에게 필요한 NORE 이용 방법을 담당 코치가 안내합니다."],
 ] as const;
 
 const portalCards = [
@@ -163,14 +162,6 @@ export default function PeExamPage() {
               <Link className="button primary" href="/apply?service=pe-exam">
                 체대입시 상담 신청
               </Link>
-              <a
-                className="button hero-secondary"
-                href={site.norePeExamHref}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                NORE 학생관리로 이동
-              </a>
             </div>
           </div>
           <aside className={styles.heroFlow} aria-label="체대입시 이용 흐름">
@@ -357,22 +348,14 @@ export default function PeExamPage() {
         <div className={`container ${styles.noreInner}`}>
           <div>
             <p className="eyebrow light-text">STUDENT MANAGEMENT</p>
-            <h2>학생별 관리는 NORE에서 이어집니다.</h2>
+            <h2>학생별 관리는 상담 완료 후 NORE에서 이어집니다.</h2>
             <p>
-              목표 대학, 실기 기록, 수업 기록, 상담 메모, 입시 일정은 NORE에서 관리합니다. 이
-              홈페이지에서는 공개 정보 확인과 상담 신청을 지원합니다.
+              목표 대학, 실기 기록, 수업 기록, 상담 메모, 입시 일정은 NORE에서 관리합니다. 상담 신청만으로
+              NORE 가입이 진행되지는 않으며, 상담을 마친 학생에게 담당 코치가 가입 링크와 이용 방법을 안내합니다.
             </p>
           </div>
           <div className={styles.noreActions}>
-            <a
-              className="button primary"
-              href={site.norePeExamHref}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              NORE 학생관리로 이동
-            </a>
-            <Link className="button hero-secondary" href="/apply?service=pe-exam">
+            <Link className="button primary" href="/apply?service=pe-exam">
               체대입시 상담 신청
             </Link>
           </div>
