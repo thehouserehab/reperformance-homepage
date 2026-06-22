@@ -14,15 +14,15 @@ const admissionCards = [
     label: "입시 일정",
     title: "수시·정시 흐름 확인",
     text: "원서 접수, 전형, 실기처럼 놓치기 쉬운 일정을 공식 안내와 함께 확인하는 기준을 제공합니다.",
-    href: "/pe-exam#admission-schedule",
-    action: "일정 기준 보기",
+    href: "/pe-exam#schedule",
+    action: "자세히 보기",
   },
   {
     label: "대학별 정보",
     title: "모집요강 확인 항목",
     text: "대학과 전형별로 실기 종목, 반영 항목, 확인해야 할 내용을 상담 전에 구분합니다.",
-    href: "/pe-exam#university-info",
-    action: "대학별 정보 보기",
+    href: "/pe-exam#universities",
+    action: "자세히 보기",
   },
 ] as const;
 
@@ -37,19 +37,37 @@ const careCards = [
     label: "실기 종목",
     title: "종목별 준비 요소 확인",
     text: "실기 종목별로 준비 전 확인할 요소와 기본적인 훈련 방향을 안내합니다.",
-    href: "/pe-exam#practical-events",
+    href: "/pe-exam#practicals",
   },
   {
     label: "기록 기준표",
     title: "공식 모집요강 기준 확인",
     text: "기록 기준은 대학과 연도에 따라 달라집니다. 최신 정보를 확인하는 방법을 안내합니다.",
-    href: "/pe-exam#record-standards",
+    href: "/pe-exam#standards",
   },
   {
     label: "부상 방지",
     title: "무리한 준비 전 주의사항",
     text: "현재 운동량과 불편한 움직임을 상담에서 확인하고, 필요한 주의사항을 안내합니다.",
     href: "/pe-exam#injury-prevention",
+  },
+] as const;
+
+const roleItems = [
+  {
+    label: "INFO CHECK",
+    title: "정보 확인",
+    text: "대학별 정보, 전형 일정, 실기 종목을 공개 정보에서 먼저 확인합니다.",
+  },
+  {
+    label: "CONSULT GUIDE",
+    title: "상담 정리",
+    text: "목표 대학과 현재 준비 상황을 바탕으로 필요한 운동 방향을 상담에서 확인합니다.",
+  },
+  {
+    label: "NORE MANAGEMENT",
+    title: "NORE 관리",
+    text: "학생별 기록, 수업, 메모, 일정은 상담 후 NORE에서 관리합니다.",
   },
 ] as const;
 
@@ -117,16 +135,38 @@ export default function PeExamServicePage() {
           <div className={publicStyles.heroStats} aria-label="체대입시 역할 안내">
             <div>
               <strong>INFO</strong>
-              <span>대학·전형 정보 확인</span>
+              <span>대학·전형·실기 정보 확인</span>
             </div>
             <div>
-              <strong>GUIDE</strong>
-              <span>실기·준비 로드맵 안내</span>
+              <strong>CONSULT</strong>
+              <span>준비 방향과 운동 상담</span>
             </div>
             <div>
               <strong>NORE</strong>
               <span>학생별 기록과 일정 관리</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={cx("section", publicStyles.roleSplitSection)}>
+        <div className="container">
+          <div className={publicStyles.sectionHead}>
+            <p className="eyebrow">HOW IT CONNECTS</p>
+            <h2>공개 정보, 상담, 학생별 관리를 구분합니다.</h2>
+            <p>
+              RePERFORMANCE 홈페이지는 체대입시 공통 정보와 상담 신청을 제공합니다. 학생별 목표,
+              기록, 수업, 메모와 일정은 상담 후 NORE에서 관리합니다.
+            </p>
+          </div>
+          <div className={publicStyles.roleSplitGrid}>
+            {roleItems.map((item) => (
+              <article className={publicStyles.roleSplitCard} key={item.label}>
+                <p>{item.label}</p>
+                <h3>{item.title}</h3>
+                <span>{item.text}</span>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -212,6 +252,9 @@ export default function PeExamServicePage() {
               <div className={publicStyles.primaryActions}>
                 <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
                   체대입시 상담 신청
+                </Link>
+                <Link className="button pe-hero-secondary" href="/pe-exam">
+                  체대입시 정보 허브 보기
                 </Link>
                 <Link className="button pe-hero-secondary" href="/apply?service=pe-exam">
                   PAR-Q 설문까지 진행

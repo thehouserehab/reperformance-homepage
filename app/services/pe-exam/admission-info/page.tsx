@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function PeExamAdmissionInfoPage() {
-  redirect("/pe-exam#university-info");
+  redirect("/pe-exam#universities");
 }

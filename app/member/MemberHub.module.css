@@ -54,7 +54,7 @@
   line-height: 1.7;
 }
 
-.rolesSection {
+.managedSection {
   border-top: 1px solid var(--line);
   background: #fff;
 }
@@ -65,8 +65,50 @@
 }
 
 .sectionHead h2 {
-  margin-bottom: 0;
+  margin-bottom: 12px;
   font-size: clamp(30px, 4vw, 48px);
+}
+
+.sectionHead > p:not(:global(.eyebrow)) {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.72;
+}
+
+.managedGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.managedCard {
+  min-width: 0;
+  min-height: 132px;
+  padding: 20px;
+  border: 1px solid #cfe2de;
+  border-radius: 16px;
+  background: #f7fbfa;
+}
+
+.managedCard span {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--teal-dark);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.managedCard h3 {
+  margin: 0;
+  color: #1c2d31;
+  font-size: 19px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rolesSection {
+  background: #f3f7f6;
 }
 
 .roleGrid {
@@ -77,16 +119,11 @@
 
 .roleCard {
   min-width: 0;
-  min-height: 220px;
+  min-height: 320px;
   padding: 30px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: #fff;
-}
-
-.roleCard:nth-child(2) {
-  border-color: #1f3641;
-  background: #16242a;
 }
 
 .roleCard p {
@@ -99,28 +136,57 @@
 }
 
 .roleCard h3 {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
   color: var(--navy);
-  font-size: 27px;
+  font-size: 28px;
   line-height: 1.28;
 }
 
-.roleCard span {
-  display: block;
-  color: var(--muted);
-  line-height: 1.72;
+.roleCard ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.roleCard:nth-child(2) p {
+.roleCard li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.roleCard li::before {
+  content: "";
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.noreCard {
+  border-color: #1f3641;
+  background: #16242a;
+}
+
+.noreCard p {
   color: #8fe3d9;
 }
 
-.roleCard:nth-child(2) h3 {
+.noreCard h3 {
   color: #fff;
 }
 
-.roleCard:nth-child(2) span {
-  color: rgba(255, 255, 255, 0.74);
+.noreCard li {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.noreCard li::before {
+  background: #8fe3d9;
 }
 
 .flowSection {
@@ -192,6 +258,19 @@
   line-height: 1.72;
 }
 
+.bottomActions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .managedGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 800px) {
   .heroInner,
   .roleGrid,
@@ -218,13 +297,19 @@
     font-size: 16px;
   }
 
+  .managedGrid {
+    grid-template-columns: 1fr;
+  }
+
   .notice,
+  .managedCard,
   .roleCard,
   .flowList li {
     padding: 22px;
   }
 
-  .bottomInner :global(.button) {
+  .bottomActions,
+  .bottomActions :global(.button) {
     width: 100%;
   }
 }

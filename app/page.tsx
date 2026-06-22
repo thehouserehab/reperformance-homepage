@@ -4,9 +4,9 @@ import { ConsultationCTA, PageShell } from "./_components/SiteChrome";
 import { site } from "./_components/siteData";
 
 const proofItems = [
-  { value: "상태 확인", label: "불편한 움직임부터 봅니다." },
-  { value: "단계 진행", label: "설문, 평가, 운동으로 이어집니다." },
-  { value: "맞춤 조정", label: "목표와 몸 상태에 맞춥니다." },
+  { value: "1:1 상태 확인", label: "현재 불편한 움직임부터 확인합니다." },
+  { value: "3단계 진행", label: "설문 → 평가 → 프로그램으로 이어집니다." },
+  { value: "맞춤 운동 설계", label: "목표와 몸 상태에 따라 운동을 조정합니다." },
 ];
 
 const audienceItems = [
@@ -15,28 +15,28 @@ const audienceItems = [
     label: "Senior Rehab",
     title: "시니어 재활 트레이닝",
     href: "/services/senior-rehab",
-    target: "걷기, 계단, 균형, 하체 근력이 걱정되는 분",
+    target: "걷기, 계단, 균형, 하체 근력의 불편함이 걱정되는 분",
   },
   {
     number: "02",
     label: "Athlete Reconditioning",
     title: "선수·학생 리컨디셔닝",
     href: "/services/athlete-reconditioning",
-    target: "부상 이후 복귀와 경기력 회복이 필요한 선수와 학생",
+    target: "복귀와 경기력 회복을 준비하는 선수와 학생",
   },
   {
     number: "03",
     label: "Pain Care",
     title: "일반 통증 케어",
     href: "/services/pain-care",
-    target: "목, 어깨, 허리, 무릎 불편감과 체력 저하가 있는 분",
+    target: "목, 어깨, 허리, 무릎의 불편함과 체력 저하가 있는 분",
   },
   {
     number: "04",
     label: "PE Exam",
-    title: "체대입시 운동 + 입시상담",
+    title: "체대입시 운동·상담",
     href: "/services/pe-exam",
-    target: "실기 기록과 입시 준비 흐름을 함께 정리하고 싶은 학생",
+    target: "실기 준비와 입시 정보를 함께 정리하고 싶은 학생",
   },
 ];
 
@@ -44,17 +44,17 @@ const systemItems = [
   {
     number: "01",
     title: "설문",
-    summary: "목표, 불편감, 운동 전 확인 사항을 남깁니다.",
+    summary: "목표와 현재 불편함, 운동 전 확인할 사항을 먼저 정리합니다.",
   },
   {
     number: "02",
     title: "평가",
-    summary: "움직임, 근력, 균형, 주의사항을 확인합니다.",
+    summary: "움직임과 균형, 주의사항을 확인해 준비 방향을 잡습니다.",
   },
   {
     number: "03",
     title: "프로그램",
-    summary: "목표에 맞춰 수업 방향과 운동 구성을 정합니다.",
+    summary: "목표에 맞는 수업 방향과 운동 구성을 연결합니다.",
   },
 ];
 
@@ -82,7 +82,8 @@ export default function Home() {
             <br className="mobile-break" /> 퍼포먼스로.
           </h1>
           <p className="lead">
-            현재 몸 상태를 확인하고, 다시 움직일 수 있는 방향으로 회복과 훈련을 연결합니다.
+            통증과 불편감을 단순히 참게 하지 않습니다. 현재 몸 상태를 확인하고, 다시 움직일 수
+            있는 방향으로 회복과 훈련을 연결합니다.
           </p>
           <div className="hero-actions">
             <Link href={site.serviceApplyHref} className="button primary">
@@ -113,8 +114,8 @@ export default function Home() {
             <p className="eyebrow">FOR WHO</p>
             <h2>필요한 사람에게 필요한 운동을 연결합니다.</h2>
             <p>
-              일상 회복, 운동 복귀, 통증 관리, 체대입시 준비까지 몸 상태와 목표에 맞춰
-              수업 방향을 정합니다.
+              일상 회복, 운동 복귀, 불편감 관리, 체대입시 준비까지 몸 상태와 목표에 맞춰 운동
+              방향을 정리합니다.
             </p>
           </div>
           <div className="grid-2 home-service-grid">
@@ -124,7 +125,7 @@ export default function Home() {
                 <p className="card-label">{item.label}</p>
                 <h3>{item.title}</h3>
                 <p>{item.target}</p>
-                <span className="more-link">자세히 보기</span>
+                <span className="more-link">프로그램 보기</span>
               </Link>
             ))}
           </div>
@@ -136,9 +137,7 @@ export default function Home() {
           <div className="section-head">
             <p className="eyebrow">SYSTEM</p>
             <h2>상담 신청 후 이렇게 진행합니다.</h2>
-            <p>
-              먼저 확인하고, 움직임을 보고, 목적에 맞는 운동으로 이어갑니다.
-            </p>
+            <p>설문으로 확인하고, 움직임을 살피고, 목표에 맞는 프로그램으로 이어갑니다.</p>
           </div>
           <div className="grid-3">
             {systemItems.map((item) => (
@@ -159,6 +158,22 @@ export default function Home() {
 
       <section className="section light">
         <div className="container grid-2">
+          <div className="contact-box accent-box">
+            <p className="eyebrow">MEMBER GUIDE</p>
+            <h2>회원관리는 NORE에서 이어집니다.</h2>
+            <p>
+              상담 후 필요한 경우 회원 계정을 안내해드립니다. 수업 기록, 개인운동, 식단, 메모,
+              계약 관리는 NORE에서 확인할 수 있습니다.
+            </p>
+            <div className="button-row">
+              <Link href="/member" className="button dark">
+                회원관리 안내 보기
+              </Link>
+              <Link href={site.serviceApplyHref} className="button secondary">
+                상담 신청하기
+              </Link>
+            </div>
+          </div>
           <div className="contact-box">
             <p className="eyebrow">LOCATION</p>
             <h2>전주 서신동 773-2, 2층</h2>
@@ -187,20 +202,30 @@ export default function Home() {
               </a>
             </div>
           </div>
-          <div className="contact-box accent-box">
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="contact-box">
             <p className="eyebrow">APPLY</p>
             <h2>처음 방문 전 상담 신청서를 남겨주세요.</h2>
             <p>
-              신청 내용을 확인한 뒤 담당 코치가 연락드립니다. 현재 불편감, 목표, 운동 가능 시간을
-              바탕으로 첫 상담 방향을 정리합니다.
+              신청 내용을 확인한 뒤 담당 코치가 상담 방향을 안내합니다. 현재 불편함, 목표,
+              운동 가능 시간을 바탕으로 첫 상담을 정리합니다.
             </p>
             <div className="button-row">
               <Link href={site.serviceApplyHref} className="button primary">
                 상담 신청하기
               </Link>
-              <Link href="/contact" className="button secondary">
-                문의하기
-              </Link>
+              <a
+                href={site.instagramHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button secondary"
+              >
+                Instagram DM
+              </a>
             </div>
           </div>
         </div>

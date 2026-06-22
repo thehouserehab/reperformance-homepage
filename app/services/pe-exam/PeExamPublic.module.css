@@ -110,6 +110,63 @@
   background: #fffaf1;
 }
 
+.roleSplitSection {
+  background: #fff;
+}
+
+.roleSplitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.roleSplitCard {
+  min-width: 0;
+  min-height: 198px;
+  padding: 26px;
+  border: 1px solid #d9e1ea;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.roleSplitCard:last-child {
+  border-color: #203847;
+  background: #172a34;
+}
+
+.roleSplitCard p {
+  margin-bottom: 16px;
+  color: #0b6059;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.roleSplitCard h3 {
+  margin-bottom: 10px;
+  color: #172033;
+  font-size: 25px;
+  line-height: 1.28;
+}
+
+.roleSplitCard span {
+  display: block;
+  color: #596575;
+  line-height: 1.7;
+}
+
+.roleSplitCard:last-child p {
+  color: #8fe3d9;
+}
+
+.roleSplitCard:last-child h3 {
+  color: #fff;
+}
+
+.roleSplitCard:last-child span {
+  color: rgba(255, 255, 255, 0.74);
+}
+
 .publicCareSection {
   background: #fff;
 }
@@ -422,6 +479,10 @@
   .careGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .roleSplitGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 900px) {
@@ -465,7 +526,8 @@
   .infoGrid,
   .careGrid,
   .roadmapGrid,
-  .heroStats {
+  .heroStats,
+  .roleSplitGrid {
     grid-template-columns: 1fr;
   }
 
