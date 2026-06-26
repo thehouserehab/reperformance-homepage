@@ -16,10 +16,12 @@
   scrollbar-width: thin;
 }
 
-.hubNav a {
+.hubNav a,
+.filterPills a {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
+  justify-content: center;
   min-height: 38px;
   padding: 0 14px;
   border: 1px solid var(--line);
@@ -29,32 +31,41 @@
   font-weight: 850;
 }
 
-.hubNav a:hover {
+.hubNav a:hover,
+.filterPills a:hover {
   border-color: var(--teal-dark);
   color: var(--teal-dark);
 }
 
 .hero {
   padding: clamp(82px, 9vw, 128px) 0;
-  background: linear-gradient(135deg, #10141d 0%, #17243a 58%, #0c4a43 100%);
+  background:
+    linear-gradient(135deg, rgba(16, 20, 29, 0.94) 0%, rgba(27, 42, 62, 0.9) 58%, rgba(10, 84, 76, 0.94) 100%),
+    url("https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1800&q=80") center / cover;
   color: #fff;
 }
 
-.heroInner {
+.heroInner,
+.timelineLayout,
+.aiLayout,
+.consultInner,
+.faqPreviewLayout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
   gap: clamp(28px, 6vw, 70px);
   align-items: center;
 }
 
 .heroCopy,
 .timelineIntro,
-.consultInner > div {
+.aiLayout > div,
+.consultInner > div,
+.faqPreviewLayout > div {
   min-width: 0;
 }
 
 .hero h1 {
-  max-width: 860px;
+  max-width: 880px;
   margin-bottom: 18px;
   color: #fff;
   font-size: clamp(38px, 5vw, 64px);
@@ -66,7 +77,7 @@
 .hero p:not(:global(.eyebrow)) {
   max-width: 760px;
   margin-bottom: 0;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 18px;
   line-height: 1.78;
 }
@@ -83,16 +94,18 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-.heroPanel strong {
+.heroPanel strong,
+.resourceCard span,
+.featuredHeader span,
+.catalogStats span,
+.aiPanel strong,
+.sourcePanel h3 {
   display: block;
-  margin-bottom: 10px;
-  color: #ffb15f;
+  color: #f5a24a;
   font-size: 12px;
   font-weight: 950;
-  letter-spacing: 0.1em;
 }
 
 .heroPanel h2 {
@@ -109,16 +122,17 @@
 }
 
 .resourcesSection,
-.universitySection,
 .timelineSection,
+.universitySection,
 .roadmapSection,
-.faqSection,
+.faqPreviewSection,
+.aiSection,
 .consultSection {
   scroll-margin-top: 156px;
 }
 
 .resourcesSection,
-.faqSection {
+.faqPreviewSection {
   background: #f7f9fc;
 }
 
@@ -127,14 +141,23 @@
   background: #fff;
 }
 
+.timelineSection,
+.aiSection,
+.consultSection {
+  background: #10141d;
+  color: #fff;
+}
+
 .sectionHead {
-  max-width: 840px;
+  max-width: 880px;
   margin-bottom: 30px;
 }
 
 .sectionHead h2,
 .timelineIntro h2,
-.consultInner h2 {
+.aiLayout h2,
+.consultInner h2,
+.faqPreviewLayout h2 {
   margin-bottom: 14px;
   color: var(--navy);
   font-size: clamp(30px, 4vw, 48px);
@@ -145,11 +168,25 @@
 
 .sectionHead p:not(:global(.eyebrow)),
 .timelineIntro p,
-.consultInner p {
+.aiLayout p,
+.consultInner p,
+.faqPreviewLayout p {
   margin-bottom: 0;
   color: var(--muted);
   font-size: 17px;
   line-height: 1.76;
+}
+
+.timelineIntro h2,
+.aiLayout h2,
+.consultInner h2 {
+  color: #fff;
+}
+
+.timelineIntro p,
+.aiLayout p,
+.consultInner p {
+  color: rgba(255, 255, 255, 0.74);
 }
 
 .resourceGrid {
@@ -159,9 +196,10 @@
 }
 
 .resourceCard,
-.universityCard,
-.roadmapList li,
-.careCheckGrid article {
+.featuredCard,
+.catalogStats article,
+.regionBlock,
+.roadmapList li {
   min-width: 0;
   border: 1px solid #d9e1ea;
   border-radius: 8px;
@@ -169,58 +207,215 @@
 }
 
 .resourceCard {
-  min-height: 270px;
+  min-height: 220px;
   padding: 24px;
 }
 
-.resourceCard > p,
-.universityCard > div p {
-  margin-bottom: 14px;
-  color: var(--teal-dark);
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.1em;
-}
-
 .resourceCard h3,
-.universityCard h3,
+.featuredCard h3,
 .roadmapList h3,
-.careCheckGrid h3 {
+.regionHeader h3 {
   margin-bottom: 10px;
   color: var(--navy);
   font-size: 24px;
   line-height: 1.3;
 }
 
-.resourceCard > span,
-.universityCard > p,
+.resourceCard p,
+.featuredCard p,
 .roadmapList p,
-.careCheckGrid p {
-  display: block;
+.catalogNotice p,
+.schoolList p {
+  margin: 0;
   color: var(--muted);
   line-height: 1.68;
 }
 
-.resourceCard ul,
-.universityCard ul {
+.timelineLayout {
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  align-items: start;
+}
+
+.timelineIntro {
+  position: sticky;
+  top: 158px;
+}
+
+.timelineCards {
   display: grid;
-  gap: 8px;
-  margin: 18px 0 0;
+  gap: 12px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.resourceCard li,
-.universityCard li {
+.timelineCards li {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.timelineCards strong {
+  color: #f5a24a;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.timelineCards span {
+  display: block;
+  margin-bottom: 6px;
+  color: #9fe0d4;
+  font-weight: 850;
+}
+
+.timelineCards h3 {
+  margin-bottom: 6px;
+  color: #fff;
+  font-size: 21px;
+  line-height: 1.32;
+}
+
+.timelineCards p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.64;
+}
+
+.sourcePanel {
+  grid-column: 2;
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sourcePanel h3 {
+  margin-bottom: 14px;
+}
+
+.sourceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sourceGrid a {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.sourceGrid strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #fff;
+}
+
+.sourceGrid span {
+  display: block;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.catalogStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.catalogStats article {
+  padding: 20px;
+  border-top: 4px solid var(--teal-dark);
+}
+
+.catalogStats strong {
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--navy);
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.catalogStats p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.filterPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 24px;
+}
+
+.featuredGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.featuredCard {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-top: 4px solid var(--teal-dark);
+}
+
+.featuredHeader {
+  margin-bottom: 18px;
+}
+
+.featuredHeader p {
+  font-weight: 850;
+}
+
+.trackGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.trackBox {
+  min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid #d9e1ea;
+}
+
+.trackBox h4 {
+  margin: 0 0 12px;
+  color: #18343c;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.trackBox ul {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.trackBox li {
   position: relative;
-  padding-left: 15px;
+  padding-left: 14px;
   color: #526167;
   font-size: 14px;
   line-height: 1.5;
 }
 
-.resourceCard li::before,
-.universityCard li::before {
+.trackBox li::before {
   content: "";
   position: absolute;
   top: 0.62em;
@@ -231,209 +426,115 @@
   background: var(--teal);
 }
 
-.sourceNotice {
+.trackBox dl {
   display: grid;
-  grid-template-columns: minmax(120px, 0.22fr) minmax(0, 0.78fr);
+  gap: 10px;
+  margin: 0;
+}
+
+.trackBox dt {
+  margin-bottom: 3px;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.trackBox dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.featuredCard > a {
+  width: fit-content;
+  margin-top: auto;
+  color: var(--teal-dark);
+  font-weight: 950;
+}
+
+.catalogNotice {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
   gap: 18px;
-  margin-top: 18px;
-  padding: 22px 24px;
+  margin: 22px 0;
+  padding: 20px 22px;
   border: 1px solid #c9dfda;
   border-radius: 8px;
   background: #e8f2f1;
 }
 
-.sourceNotice strong {
+.catalogNotice strong {
   color: var(--teal-dark);
   font-size: 18px;
 }
 
-.sourceNotice p {
-  margin: 0;
-  color: #42565b;
-  line-height: 1.72;
-}
-
-.universityGrid {
+.regionDirectory {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
 
-.universityCard {
+.regionBlock {
+  padding: 22px;
+  scroll-margin-top: 168px;
+}
+
+.regionHeader {
   display: flex;
-  flex-direction: column;
-  min-height: 380px;
-  padding: 24px;
-  border-top: 4px solid var(--teal-dark);
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #d9e1ea;
+  padding-bottom: 14px;
 }
 
-.universityCard:nth-child(2) {
-  border-top-color: #9a6d29;
+.regionHeader h3 {
+  margin: 0;
 }
 
-.universityCard:nth-child(3) {
-  border-top-color: #315e7c;
-}
-
-.universityCard:nth-child(4) {
-  border-top-color: #c28032;
-}
-
-.universityCard > div {
-  margin-bottom: 16px;
-}
-
-.universityCard > div span {
-  display: block;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 850;
-  line-height: 1.55;
-}
-
-.universityCard > p {
-  margin-bottom: 0;
-}
-
-.universityCard a {
-  width: fit-content;
-  margin-top: auto;
-  padding-top: 18px;
+.regionHeader span {
+  align-self: center;
   color: var(--teal-dark);
   font-weight: 950;
+  white-space: nowrap;
 }
 
-.timelineSection,
-.consultSection {
-  background: #10141d;
-  color: #fff;
-}
-
-.timelineLayout {
+.schoolList {
   display: grid;
-  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-  gap: clamp(24px, 5vw, 58px);
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.timelineIntro {
-  position: sticky;
-  top: 158px;
-}
-
-.timelineIntro h2,
-.consultInner h2 {
-  color: #fff;
-}
-
-.timelineIntro p,
-.consultInner p {
-  color: rgba(255, 255, 255, 0.74);
-}
-
-.scheduleList {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.scheduleList li {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  gap: 14px;
+.schoolList article {
   min-width: 0;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
+  padding: 14px;
+  border-left: 3px solid #c28032;
+  background: #f7f9fc;
 }
 
-.scheduleList strong {
-  color: #ffb15f;
+.schoolList strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--navy);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.schoolList span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--teal-dark);
   font-size: 13px;
-  font-weight: 950;
-  letter-spacing: 0.12em;
-}
-
-.scheduleList h3 {
-  margin-bottom: 6px;
-  color: #fff;
-  font-size: 21px;
-  line-height: 1.32;
-}
-
-.scheduleList p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.64;
-}
-
-.practicePanel {
-  display: grid;
-  grid-column: 2;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 12px;
-}
-
-.practicePanel article {
-  min-width: 0;
-  padding: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.practicePanel h3 {
-  margin-bottom: 16px;
-  color: #fff;
-  font-size: 22px;
-  line-height: 1.3;
-}
-
-.practiceChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.practiceChips span {
-  min-height: 36px;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 14px;
   font-weight: 850;
 }
 
-.recordGrid {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-}
-
-.recordGrid div {
-  display: grid;
-  grid-template-columns: 86px minmax(0, 1fr);
-  gap: 10px;
-}
-
-.recordGrid dt {
-  color: #ffb15f;
-  font-weight: 900;
-}
-
-.recordGrid dd {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.72);
-  line-height: 1.58;
+.schoolList p {
+  font-size: 13px;
 }
 
 .roadmapList {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
@@ -441,7 +542,7 @@
 }
 
 .roadmapList li {
-  min-height: 214px;
+  min-height: 210px;
   padding: 22px;
 }
 
@@ -451,25 +552,14 @@
   color: var(--teal-dark);
   font-size: 13px;
   font-weight: 950;
-  letter-spacing: 0.12em;
 }
 
-.roadmapList p,
-.careCheckGrid p {
-  margin: 0;
+.faqPreviewLayout {
+  align-items: start;
 }
 
-.careCheckGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.careCheckGrid article {
-  padding: 22px;
-  border-top: 4px solid #c28032;
-  background: #f7f9fc;
+.faqPreviewLayout :global(.button) {
+  margin-top: 22px;
 }
 
 .faqList {
@@ -483,7 +573,7 @@
 
 .faqList summary {
   position: relative;
-  padding: 22px 42px 22px 0;
+  padding: 20px 42px 20px 0;
   color: var(--navy);
   cursor: pointer;
   font-size: 18px;
@@ -499,7 +589,7 @@
 .faqList summary::after {
   content: "+";
   position: absolute;
-  top: 17px;
+  top: 16px;
   right: 0;
   color: var(--teal-dark);
   font-size: 28px;
@@ -512,16 +602,46 @@
 
 .faqList details p {
   max-width: 820px;
-  margin: -2px 0 22px;
+  margin: -2px 0 20px;
   color: var(--muted);
   line-height: 1.75;
 }
 
-.consultInner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 24px;
+.aiLayout {
   align-items: center;
+}
+
+.aiPanel {
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.aiPanel > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 22px;
+}
+
+.aiPanel span {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.aiPanel :global(.button) {
+  width: 100%;
+}
+
+.consultInner {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .consultInner > div {
@@ -532,25 +652,28 @@
   white-space: nowrap;
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1120px) {
   .resourceGrid,
-  .universityGrid {
+  .catalogStats,
+  .schoolList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roadmapList {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 960px) {
   .hubNav {
     top: 76px;
   }
 
   .heroInner,
   .timelineLayout,
-  .consultInner {
+  .aiLayout,
+  .consultInner,
+  .faqPreviewLayout {
     grid-template-columns: 1fr;
   }
 
@@ -558,8 +681,12 @@
     position: static;
   }
 
-  .practicePanel {
+  .sourcePanel {
     grid-column: auto;
+  }
+
+  .featuredGrid,
+  .trackGrid {
     grid-template-columns: 1fr;
   }
 
@@ -568,7 +695,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 640px) {
   .hubNavInner {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -580,7 +707,6 @@
   }
 
   .hubNav a {
-    justify-content: center;
     width: 100%;
   }
 
@@ -591,28 +717,36 @@
   .hero p:not(:global(.eyebrow)),
   .sectionHead p:not(:global(.eyebrow)),
   .timelineIntro p,
-  .consultInner p {
+  .aiLayout p,
+  .consultInner p,
+  .faqPreviewLayout p {
     font-size: 16px;
   }
 
   .resourceGrid,
-  .universityGrid,
+  .catalogStats,
+  .sourceGrid,
+  .schoolList,
   .roadmapList,
-  .careCheckGrid {
+  .aiPanel > div {
     grid-template-columns: 1fr;
   }
 
-  .sourceNotice,
-  .scheduleList li,
-  .recordGrid div {
+  .catalogNotice,
+  .timelineCards li {
     grid-template-columns: 1fr;
+  }
+
+  .regionHeader {
+    display: grid;
   }
 
   .resourceCard,
-  .universityCard,
+  .featuredCard,
+  .catalogStats article,
+  .regionBlock,
   .roadmapList li,
-  .careCheckGrid article,
-  .practicePanel article {
+  .aiPanel {
     padding: 22px;
   }
 

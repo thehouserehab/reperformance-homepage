@@ -1,0 +1,231 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+  gap: clamp(28px, 5vw, 56px);
+  align-items: start;
+}
+
+.faqColumn,
+.questionPanel {
+  min-width: 0;
+}
+
+.sectionHead {
+  margin-bottom: 22px;
+}
+
+.sectionHead h2,
+.questionPanel h2,
+.consultInner h2 {
+  margin-bottom: 12px;
+  color: var(--navy);
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.22;
+  text-wrap: balance;
+}
+
+.faqList {
+  display: grid;
+  border-top: 1px solid var(--line);
+}
+
+.faqList details {
+  border-bottom: 1px solid var(--line);
+}
+
+.faqList summary {
+  position: relative;
+  padding: 22px 42px 22px 0;
+  color: var(--navy);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.faqList summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqList summary::after {
+  content: "+";
+  position: absolute;
+  top: 17px;
+  right: 0;
+  color: var(--teal-dark);
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.faqList details[open] summary::after {
+  content: "-";
+}
+
+.faqList details p {
+  max-width: 820px;
+  margin: -2px 0 22px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.questionPanel {
+  position: sticky;
+  top: 120px;
+  padding: 24px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.questionPanel > p:not(:global(.eyebrow)) {
+  margin-bottom: 18px;
+  color: var(--muted);
+  line-height: 1.68;
+}
+
+.statusBox,
+.loginNotice {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid #e5c38a;
+  border-radius: 8px;
+  background: #fff6e7;
+}
+
+.success {
+  border-color: #b8d8d1;
+  background: #e8f2f1;
+}
+
+.statusBox strong,
+.loginNotice strong {
+  color: var(--navy);
+  line-height: 1.35;
+}
+
+.statusBox span,
+.loginNotice span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.loginNotice :global(.button) {
+  width: fit-content;
+  margin-top: 8px;
+}
+
+.questionForm {
+  display: grid;
+  gap: 14px;
+}
+
+.questionForm label {
+  display: grid;
+  gap: 7px;
+  color: #2f3e43;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.questionForm input,
+.questionForm select,
+.questionForm textarea {
+  width: 100%;
+  border: 1px solid #cbd6de;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+}
+
+.questionForm input,
+.questionForm select {
+  min-height: 46px;
+  padding: 0 13px;
+}
+
+.questionForm textarea {
+  min-height: 150px;
+  padding: 13px;
+  resize: vertical;
+}
+
+.questionForm button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--teal-dark);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.questionForm button:hover {
+  background: var(--navy);
+}
+
+.consultBand {
+  background: #10141d;
+  color: #fff;
+}
+
+.consultInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+}
+
+.consultInner > div {
+  max-width: 760px;
+  min-width: 0;
+}
+
+.consultInner h2 {
+  color: #fff;
+}
+
+.consultInner p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 17px;
+  line-height: 1.74;
+}
+
+.consultInner :global(.button) {
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .layout,
+  .consultInner {
+    grid-template-columns: 1fr;
+  }
+
+  .questionPanel {
+    position: static;
+  }
+
+  .consultInner :global(.button) {
+    width: fit-content;
+  }
+}
+
+@media (max-width: 640px) {
+  .questionPanel {
+    padding: 22px;
+  }
+
+  .faqList summary {
+    font-size: 17px;
+  }
+
+  .loginNotice :global(.button),
+  .consultInner :global(.button) {
+    width: 100%;
+  }
+}
