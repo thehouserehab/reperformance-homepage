@@ -306,12 +306,42 @@ export const catalogMeta = {
 
 export const regionFilters = ["전체", "수도권", "강원·제주권", "충청권", "전라권", "경상권"] as const;
 
-export const universityRegionGroups = regionFilters
-  .filter((region) => region !== "전체")
-  .map((region) => ({
-    region,
-    universities: universityCatalog.filter((item) => item.region === region),
-  }));
+export type PeExamRegionName = Exclude<(typeof regionFilters)[number], "전체">;
+
+export const peExamRegionSlugs = {
+  수도권: "capital",
+  "강원·제주권": "gangwon-jeju",
+  충청권: "chungcheong",
+  전라권: "jeolla",
+  경상권: "gyeongsang",
+} as const satisfies Record<PeExamRegionName, string>;
+
+export const peExamRegionNames = Object.keys(peExamRegionSlugs) as PeExamRegionName[];
+
+export function getPeExamRegionHref(region: PeExamRegionName) {
+  return `/pe-exam/universities/${peExamRegionSlugs[region]}`;
+}
+
+export function getPeExamRegionNameBySlug(slug: string) {
+  return peExamRegionNames.find((region) => peExamRegionSlugs[region] === slug);
+}
+
+const regionOverviewCopy: Record<PeExamRegionName, string> = {
+  수도권: "서울, 경기, 인천권 대학을 묶어 이동 거리와 지원 조합을 함께 보기 좋은 권역입니다.",
+  "강원·제주권": "강원과 제주 지역 대학을 한 화면에서 확인해 지역 이동, 실기 일정, 모집군을 비교합니다.",
+  충청권: "충북, 충남, 대전, 세종 대학을 묶어 수도권 인접 지원과 지역 거점 대학을 함께 봅니다.",
+  전라권: "전북, 전남, 광주권 대학의 체육계열 모집 흐름과 수시·정시 확인 지점을 정리합니다.",
+  경상권: "경북, 경남, 대구, 부산, 울산권 대학을 넓게 묶어 지역별 선택지를 빠르게 훑습니다.",
+};
+
+function uniqueItems(items: readonly string[]) {
+  return [...new Set(items)].filter(Boolean);
+}
+
+export const universityRegionGroups = peExamRegionNames.map((region) => ({
+  region,
+  universities: universityCatalog.filter((item) => item.region === region),
+}));
 
 function getPracticalSummary(elementSummary: string) {
   const practicalMatch = elementSummary.match(/실기\s*:\s*\d+/);
@@ -459,9 +489,7 @@ const kusfAdmissionDetailsByKey: ReadonlyMap<
   (typeof kusfAdmissionDetailSnapshot.admissions)[number]
 > = new Map(kusfAdmissionDetailSnapshot.admissions.map((detail) => [detail.key, detail]));
 
-export const kusfRegionAdmissionGroups = regionFilters
-  .filter((region) => region !== "전체")
-  .map((region) => ({
+export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
     region,
     universities: kusfAdmissionSnapshot.universities
       .filter((school) => (regionMap[school.area] || "기타") === region)
@@ -471,17 +499,20 @@ export const kusfRegionAdmissionGroups = regionFilters
         return {
           ...school,
           region,
-          earlyAdmissions: school.admissions.map((admission) => ({
-            ...admission,
-            detail: kusfAdmissionDetailsByKey.get(createKusfDetailKey(school, admission)),
-          })).map((admission) => ({
-            ...admission,
-            practicalSummary: summarizePracticalDetail(admission.detail, admission.elementSummary),
-            practicalTasks: admission.detail?.practicalTasks || [],
-            gradeSummary: summarizeKusfGradeDetail(admission.detail, admission.elementSummary),
-            minimumCriteriaSummary: summarizeMinimumCriteria(admission.detail),
-            detailUrl: admission.detail?.detailUrl || "",
-          })),
+          earlyAdmissions: school.admissions.map((admission) => {
+            const detail = kusfAdmissionDetailsByKey.get(createKusfDetailKey(school, admission));
+
+            return {
+              ...admission,
+              practicalSummary: summarizePracticalDetail(detail, admission.elementSummary),
+              practicalTasks: detail?.practicalTasks || [],
+              gradeSummary: summarizeKusfGradeDetail(detail, admission.elementSummary),
+              minimumCriteriaSummary: summarizeMinimumCriteria(detail),
+              detailUrl: detail?.detailUrl || "",
+              hasPracticalDetail: Boolean(detail?.hasPracticalDetail),
+              hasGradeDetail: Boolean(detail?.hasGradeDetail),
+            };
+          }),
           regularAdmissions: (regularSchool?.admissions || []).map((admission) => ({
             ...admission,
             unitSummary: getUnitSummary(admission.units),
@@ -499,6 +530,45 @@ export const kusfRegionAdmissionGroups = regionFilters
         };
       }),
   }));
+
+export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
+  const catalogGroup = universityRegionGroups.find((item) => item.region === group.region);
+  const catalogUniversities = catalogGroup?.universities || [];
+  const earlyAdmissionCount = group.universities.reduce((sum, school) => sum + school.earlyAdmissions.length, 0);
+  const regularAdmissionCount = group.universities.reduce((sum, school) => sum + school.regularAdmissions.length, 0);
+  const practicalDetailCount = group.universities.reduce(
+    (sum, school) => sum + school.earlyAdmissions.filter((admission) => admission.hasPracticalDetail).length,
+    0,
+  );
+  const gradeDetailCount = group.universities.reduce(
+    (sum, school) => sum + school.earlyAdmissions.filter((admission) => admission.hasGradeDetail).length,
+    0,
+  );
+  const regularUnitCount = group.universities.reduce(
+    (sum, school) =>
+      sum +
+      school.regularAdmissions.reduce(
+        (admissionSum, admission) => admissionSum + admission.units.length,
+        0,
+      ),
+    0,
+  );
+
+  return {
+    ...group,
+    slug: peExamRegionSlugs[group.region],
+    href: getPeExamRegionHref(group.region),
+    summary: regionOverviewCopy[group.region],
+    areas: uniqueItems([...catalogUniversities.map((school) => school.area), ...group.universities.map((school) => school.area)]),
+    catalogCount: catalogUniversities.length,
+    universityCount: group.universities.length,
+    earlyAdmissionCount,
+    regularAdmissionCount,
+    practicalDetailCount,
+    gradeDetailCount,
+    regularUnitCount,
+  };
+});
 
 const practicalGuide = "대학별 모집요강에서 실기 종목, 기록 기준, 배점, 결시·실격 기준을 확인";
 const gradeGuide = "전년도 입결, 학생부·수능 반영 방식, 실기 반영 비율을 함께 확인";

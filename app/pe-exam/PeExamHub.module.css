@@ -37,11 +37,18 @@
   color: var(--teal-dark);
 }
 
+.hubNav a[aria-current="page"] {
+  border-color: var(--teal-dark);
+  background: var(--teal-dark);
+  color: #fff;
+}
+
 .hero {
   padding: clamp(82px, 9vw, 128px) 0;
   background:
-    linear-gradient(135deg, rgba(16, 20, 29, 0.94) 0%, rgba(27, 42, 62, 0.9) 58%, rgba(10, 84, 76, 0.94) 100%),
-    url("https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1800&q=80") center / cover;
+    linear-gradient(90deg, rgba(6, 9, 12, 0.95) 0%, rgba(9, 13, 18, 0.86) 42%, rgba(7, 11, 15, 0.76) 100%),
+    url("/images/pe-exam-hero.png") center / cover;
+  background-color: #080c10;
   color: #fff;
 }
 
@@ -101,7 +108,11 @@
 .featuredHeader span,
 .catalogStats span,
 .aiPanel strong,
-.sourcePanel h3 {
+.sourcePanel h3,
+.regionOverviewHeader span,
+.regionDetailStats span,
+.universityScopeGrid strong,
+.regionDetailGuide strong {
   display: block;
   color: #f5a24a;
   font-size: 12px;
@@ -127,12 +138,14 @@
 .roadmapSection,
 .faqPreviewSection,
 .aiSection,
-.consultSection {
+.consultSection,
+.regionDetailSection {
   scroll-margin-top: 156px;
 }
 
 .resourcesSection,
-.faqPreviewSection {
+.faqPreviewSection,
+.regionDetailSection {
   background: #f7f9fc;
 }
 
@@ -268,15 +281,18 @@
 
 .timelineCards span {
   display: block;
-  margin-bottom: 6px;
-  color: #9fe0d4;
-  font-weight: 850;
+  margin-bottom: 8px;
+  color: #fff;
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 950;
+  line-height: 1.08;
+  letter-spacing: 0;
 }
 
 .timelineCards h3 {
   margin-bottom: 6px;
-  color: #fff;
-  font-size: 21px;
+  color: #9fe0d4;
+  font-size: 18px;
   line-height: 1.32;
 }
 
@@ -356,6 +372,117 @@
   flex-wrap: wrap;
   gap: 8px;
   margin: 18px 0 24px;
+}
+
+.universityScopeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.universityScopeGrid article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.universityScopeGrid strong {
+  margin-bottom: 8px;
+}
+
+.universityScopeGrid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.regionOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.regionOverviewCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid #d9e1ea;
+  border-top: 4px solid var(--teal-dark);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.regionOverviewHeader {
+  margin-bottom: 12px;
+}
+
+.regionOverviewHeader span {
+  margin-bottom: 8px;
+}
+
+.regionOverviewHeader h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 26px;
+  line-height: 1.25;
+}
+
+.regionOverviewCard > p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.68;
+}
+
+.regionOverviewStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: auto 0 18px;
+}
+
+.regionOverviewStats div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #e2e8ef;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.regionOverviewStats dt {
+  margin-bottom: 4px;
+  color: #526167;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.regionOverviewStats dd {
+  margin: 0;
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.regionOverviewLink {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--teal-dark);
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-weight: 950;
+}
+
+.regionOverviewLink:hover {
+  background: var(--teal-dark);
+  color: #fff;
 }
 
 .kusfDataPanel {
@@ -564,6 +691,139 @@
   color: var(--teal-dark);
   font-size: 14px;
   font-weight: 950;
+}
+
+.regionDetailHero {
+  padding: clamp(72px, 8vw, 110px) 0;
+  background:
+    linear-gradient(90deg, rgba(16, 20, 29, 0.96) 0%, rgba(20, 37, 49, 0.94) 52%, rgba(8, 71, 66, 0.94) 100%);
+  color: #fff;
+}
+
+.regionDetailHeroInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: clamp(26px, 5vw, 64px);
+  align-items: center;
+}
+
+.regionDetailHero h1 {
+  margin-bottom: 16px;
+  color: #fff;
+  font-size: clamp(36px, 5vw, 60px);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.regionDetailHero p:not(:global(.eyebrow)) {
+  max-width: 780px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+.regionDetailStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.regionDetailStats div {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.regionDetailStats span {
+  margin-bottom: 8px;
+}
+
+.regionDetailStats strong {
+  display: block;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.regionDetailGuide {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.regionDetailGuide article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.regionDetailGuide strong {
+  margin-bottom: 8px;
+}
+
+.regionDetailGuide p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.64;
+}
+
+.regionDetailTools {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0;
+  padding: 16px 0;
+  border-top: 1px solid #d9e1ea;
+  border-bottom: 1px solid #d9e1ea;
+}
+
+.regionDetailTools > a,
+.regionDetailTools div a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--teal-dark);
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.regionDetailTools div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.practicalTaskList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practicalTaskList li {
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid #c9dfda;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.35;
 }
 
 .featuredGrid {
@@ -863,7 +1123,9 @@
 @media (max-width: 1120px) {
   .resourceGrid,
   .catalogStats,
-  .schoolList {
+  .schoolList,
+  .universityScopeGrid,
+  .regionDetailGuide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -881,7 +1143,8 @@
   .timelineLayout,
   .aiLayout,
   .consultInner,
-  .faqPreviewLayout {
+  .faqPreviewLayout,
+  .regionDetailHeroInner {
     grid-template-columns: 1fr;
   }
 
@@ -895,9 +1158,18 @@
 
   .featuredGrid,
   .trackGrid,
+  .regionOverviewGrid,
   .kusfDataHead,
   .kusfTrackGrid {
     grid-template-columns: 1fr;
+  }
+
+  .regionDetailTools {
+    display: grid;
+  }
+
+  .regionDetailTools div {
+    justify-content: flex-start;
   }
 
   .consultInner :global(.button) {
@@ -937,6 +1209,10 @@
   .catalogStats,
   .sourceGrid,
   .schoolList,
+  .universityScopeGrid,
+  .regionOverviewStats,
+  .regionDetailStats,
+  .regionDetailGuide,
   .roadmapList,
   .kusfAdmissionItem dl,
   .aiPanel > div {
@@ -969,8 +1245,12 @@
 
   .resourceCard,
   .featuredCard,
+  .regionOverviewCard,
   .catalogStats article,
   .regionBlock,
+  .regionDetailGuide article,
+  .regionDetailStats div,
+  .universityScopeGrid article,
   .roadmapList li,
   .aiPanel {
     padding: 22px;
