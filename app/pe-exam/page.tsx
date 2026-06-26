@@ -7,6 +7,7 @@ import {
   catalogMeta,
   faqItems,
   featuredUniversityRows,
+  kusfAdmissionDetailMeta,
   kusfAdmissionMeta,
   kusfRegionAdmissionGroups,
   regionFilters,
@@ -207,9 +208,9 @@ export default function PeExamPage() {
               <p>정시 예체능 전형방법</p>
             </article>
             <article>
-              <span>최종 기준</span>
-              <strong>모집요강</strong>
-              <p>실기 기록과 등급은 공식 문서 기준</p>
+              <span>KUSF 상세</span>
+              <strong>{kusfAdmissionDetailMeta.practicalDetailCount}개</strong>
+              <p>수시 실기 과제 상세 보유</p>
             </article>
           </div>
 
@@ -230,8 +231,9 @@ export default function PeExamPage() {
                   {kusfAdmissionMeta.sourceName}에서 가져온 {kusfAdmissionMeta.universityCount}개 대학,
                   {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 {kusfAdmissionMeta.admissionCount}개
                   수시 전형과 {adigaRegularAdmissionMeta.sourceName}에서 가져온 {adigaRegularAdmissionMeta.universitiesWithAdmissions}개
-                  대학의 {adigaRegularAdmissionMeta.admissionCount}개 정시 전형방법입니다. 실기 종목별 기록 기준과
-                  전년도 입결 세부값은 대학별 모집요강 및 ADIGA 평가기준·입시결과 탭으로 별도 검수합니다.
+                  대학의 {adigaRegularAdmissionMeta.admissionCount}개 정시 전형방법입니다. 여기에 {kusfAdmissionDetailMeta.sourceName}
+                  에서 수시 실기 상세 {kusfAdmissionDetailMeta.practicalDetailCount}개, 학생부·등급 기준 {kusfAdmissionDetailMeta.gradeDetailCount}개를
+                  추가로 연결했습니다. 종목별 만점 기록표와 전년도 입결 세부값은 대학별 모집요강 및 ADIGA 평가기준·입시결과 탭으로 계속 검수합니다.
                 </p>
               </div>
               <div className={styles.dataSourceLinks}>
@@ -311,7 +313,23 @@ export default function PeExamPage() {
                                           <dt>등급·입결</dt>
                                           <dd>{admission.gradeSummary}</dd>
                                         </div>
+                                        {admission.minimumCriteriaSummary ? (
+                                          <div>
+                                            <dt>수능최저</dt>
+                                            <dd>{admission.minimumCriteriaSummary}</dd>
+                                          </div>
+                                        ) : null}
                                       </dl>
+                                      {admission.detailUrl ? (
+                                        <a
+                                          className={styles.kusfItemLink}
+                                          href={admission.detailUrl}
+                                          rel="noopener noreferrer"
+                                          target="_blank"
+                                        >
+                                          KUSF 전형 상세 확인
+                                        </a>
+                                      ) : null}
                                     </article>
                                   ))}
                                 </div>

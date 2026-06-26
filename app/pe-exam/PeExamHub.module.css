@@ -548,6 +548,15 @@
   line-height: 1.48;
 }
 
+.kusfItemLink {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 10px;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
 .kusfInlineLink {
   display: inline-flex;
   width: fit-content;

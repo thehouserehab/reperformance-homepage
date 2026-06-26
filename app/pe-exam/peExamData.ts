@@ -1,6 +1,7 @@
 type CatalogTuple = readonly [area: string, schoolType: string, name: string];
 
 import { kusfAdmissionSnapshot } from "./kusfAdmissionData";
+import { kusfAdmissionDetailSnapshot } from "./kusfAdmissionDetailData";
 import { adigaRegularAdmissionSnapshot } from "./adigaRegularAdmissionData";
 
 const catalogTuples = [
@@ -329,6 +330,61 @@ function getGradeSummary(elementSummary: string) {
   return "등급·입결은 대학별 입결 자료와 모집요강에서 별도 확인";
 }
 
+function summarizeKusfGradeDetail(
+  detail: (typeof kusfAdmissionDetailSnapshot.admissions)[number] | undefined,
+  elementSummary: string,
+) {
+  if (!detail?.hasGradeDetail) return getGradeSummary(elementSummary);
+
+  const source = `${detail.gradeSummary} ${detail.minimumCriteriaSummary}`;
+  const parts = [
+    source.includes("석차등급") ? "학생부 석차등급" : "",
+    source.includes("석차백분율") || source.includes("백분율") ? "석차백분율 환산" : "",
+    source.includes("검정고시") ? "검정고시 비교내신" : "",
+    source.includes("수능") || source.includes("최저") ? "수능최저 확인" : "",
+  ].filter(Boolean);
+
+  if (parts.length) return `KUSF 상세 기준: ${parts.slice(0, 4).join(", ")}`;
+  return "KUSF 상세 기준 학생부 반영방법 확인";
+}
+
+function summarizeMinimumCriteria(detail: (typeof kusfAdmissionDetailSnapshot.admissions)[number] | undefined) {
+  const text = detail?.minimumCriteriaSummary || "";
+  if (!text) return "";
+  if (text.includes("최저학력기준 없음")) return "수능 최저학력기준 없음";
+
+  const detailMatch = text.match(/세부내용\s*\/\s*([^/]{1,90})/);
+  if (detailMatch?.[1]) return detailMatch[1].trim();
+
+  const gradeMatch = text.match(/[^/]{0,30}등급[^/]{0,40}/);
+  if (gradeMatch?.[0]) return gradeMatch[0].trim();
+
+  return "KUSF 상세 기준 수능최저 확인";
+}
+
+function summarizePracticalDetail(
+  detail: (typeof kusfAdmissionDetailSnapshot.admissions)[number] | undefined,
+  elementSummary: string,
+) {
+  if (!detail?.practicalSummary) return getPracticalSummary(elementSummary);
+
+  return `KUSF 상세 기준: ${detail.practicalSummary}`;
+}
+
+function createKusfDetailKey(
+  school: (typeof kusfAdmissionSnapshot.universities)[number],
+  admission: (typeof kusfAdmissionSnapshot.universities)[number]["admissions"][number],
+) {
+  return [
+    school.code,
+    admission.detailParams.recruitmentCode,
+    admission.detailParams.selectionGroupCode,
+    admission.detailParams.recruitmentUnitCode,
+    admission.detailParams.recruitmentUnitSerial,
+    admission.admissionName,
+  ].join(":");
+}
+
 function getRegularPracticalSummary(method: string) {
   const practicalMatch = method.match(/실기\s*:\s*\d+/);
   if (practicalMatch) return `ADIGA 정시 전형방법 기준 ${practicalMatch[0]} 반영`;
@@ -368,6 +424,18 @@ export const kusfAdmissionMeta = {
   admissionCount: kusfAdmissionSnapshot.universities.reduce((sum, item) => sum + item.admissions.length, 0),
 };
 
+export const kusfAdmissionDetailMeta = {
+  schoolYear: kusfAdmissionDetailSnapshot.schoolYear,
+  recruitmentTrack: kusfAdmissionDetailSnapshot.recruitmentTrack,
+  sourceName: kusfAdmissionDetailSnapshot.sourceName,
+  sourceUrl: kusfAdmissionDetailSnapshot.sourceUrl,
+  generatedAt: kusfAdmissionDetailSnapshot.generatedAt,
+  coverageNote: kusfAdmissionDetailSnapshot.coverageNote,
+  admissionCount: kusfAdmissionDetailSnapshot.admissions.length,
+  practicalDetailCount: kusfAdmissionDetailSnapshot.admissions.filter((item) => item.hasPracticalDetail).length,
+  gradeDetailCount: kusfAdmissionDetailSnapshot.admissions.filter((item) => item.hasGradeDetail).length,
+};
+
 export const adigaRegularAdmissionMeta = {
   schoolYear: adigaRegularAdmissionSnapshot.schoolYear,
   recruitmentTrack: adigaRegularAdmissionSnapshot.recruitmentTrack,
@@ -386,6 +454,10 @@ export const adigaRegularAdmissionMeta = {
 };
 
 const regularAdmissionsByCode = new Map(adigaRegularAdmissionSnapshot.universities.map((school) => [school.code, school]));
+const kusfAdmissionDetailsByKey: ReadonlyMap<
+  string,
+  (typeof kusfAdmissionDetailSnapshot.admissions)[number]
+> = new Map(kusfAdmissionDetailSnapshot.admissions.map((detail) => [detail.key, detail]));
 
 export const kusfRegionAdmissionGroups = regionFilters
   .filter((region) => region !== "전체")
@@ -401,8 +473,14 @@ export const kusfRegionAdmissionGroups = regionFilters
           region,
           earlyAdmissions: school.admissions.map((admission) => ({
             ...admission,
-            practicalSummary: getPracticalSummary(admission.elementSummary),
-            gradeSummary: getGradeSummary(admission.elementSummary),
+            detail: kusfAdmissionDetailsByKey.get(createKusfDetailKey(school, admission)),
+          })).map((admission) => ({
+            ...admission,
+            practicalSummary: summarizePracticalDetail(admission.detail, admission.elementSummary),
+            practicalTasks: admission.detail?.practicalTasks || [],
+            gradeSummary: summarizeKusfGradeDetail(admission.detail, admission.elementSummary),
+            minimumCriteriaSummary: summarizeMinimumCriteria(admission.detail),
+            detailUrl: admission.detail?.detailUrl || "",
           })),
           regularAdmissions: (regularSchool?.admissions || []).map((admission) => ({
             ...admission,
