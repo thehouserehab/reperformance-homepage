@@ -117,7 +117,7 @@
 .careSection,
 .faqSection,
 .noreSection {
-  scroll-margin-top: 144px;
+  scroll-margin-top: 156px;
 }
 
 .portalSection,
@@ -258,6 +258,213 @@
 
 .scopeCard > p {
   color: #9a6d29;
+}
+
+.universityToolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.filterPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterPills span,
+.universityPrepLink {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #d9e1ea;
+  border-radius: 999px;
+  background: #fff;
+  color: #4d5d63;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.filterPills strong {
+  color: var(--teal-dark);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.universityPrepLink {
+  flex: 0 0 auto;
+  border-color: var(--teal-dark);
+  background: var(--teal-dark);
+  color: #fff;
+}
+
+.universityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.universityCard {
+  min-width: 0;
+  min-height: 370px;
+  padding: 24px;
+  border: 1px solid #d9e1ea;
+  border-top: 4px solid var(--teal-dark);
+  border-radius: 16px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+.universityCard:nth-child(2) {
+  border-top-color: #9a6d29;
+}
+
+.universityCard:nth-child(3) {
+  border-top-color: #315e7c;
+}
+
+.universityCard:nth-child(4) {
+  border-top-color: #c28032;
+}
+
+.universityCardHeader {
+  margin-bottom: 16px;
+}
+
+.universityCardHeader p {
+  margin-bottom: 12px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.universityCardHeader h3 {
+  margin-bottom: 8px;
+  color: var(--navy);
+  font-size: 24px;
+  line-height: 1.28;
+}
+
+.universityCardHeader span,
+.universityCard > p {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.universityCardHeader span {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.universityCard > p {
+  margin-bottom: 0;
+}
+
+.universityChecklist {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.universityChecklist li {
+  position: relative;
+  padding-left: 15px;
+  color: #526167;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.universityChecklist li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
+.universityActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.universityActions a {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.universityActions a:first-child {
+  background: var(--navy);
+  color: #fff;
+}
+
+.universityActions a:last-child {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--teal-dark);
+}
+
+.universityNoreBox {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-top: 18px;
+  padding: clamp(24px, 4vw, 34px);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #0f2b2e 0%, #13292f 58%, #1f3c42 100%);
+  color: #fff;
+}
+
+.universityNoreBox > div:first-child {
+  max-width: 720px;
+}
+
+.universityNoreBox h3 {
+  margin-bottom: 12px;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.2;
+}
+
+.universityNoreBox p:not(:global(.eyebrow)) {
+  margin-bottom: 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.72;
+}
+
+.universityNoreActions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.universityNoreActions :global(.button.secondary) {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .scheduleSection,
@@ -503,6 +710,7 @@
 @media (max-width: 1080px) {
   .portalGrid,
   .scopeGrid,
+  .universityGrid,
   .practicalGrid,
   .careAreaGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -545,6 +753,16 @@
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .universityToolbar,
+  .universityNoreBox {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .universityNoreActions {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 620px) {
@@ -564,6 +782,7 @@
 
   .portalGrid,
   .scopeGrid,
+  .universityGrid,
   .practicalGrid,
   .careAreaGrid,
   .standardGrid,
@@ -575,6 +794,7 @@
   .heroFlow article,
   .portalCard,
   .scopeCard,
+  .universityCard,
   .practicalCard,
   .careAreaCard,
   .roadmapList li,
@@ -583,7 +803,18 @@
   }
 
   .noreActions,
-  .noreActions :global(.button) {
+  .noreActions :global(.button),
+  .universityPrepLink,
+  .universityNoreActions,
+  .universityNoreActions :global(.button) {
     width: 100%;
+  }
+
+  .filterPills {
+    width: 100%;
+  }
+
+  .filterPills span {
+    flex: 1 1 100%;
   }
 }

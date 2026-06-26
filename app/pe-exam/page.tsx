@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "../_components/SiteChrome";
+import { site } from "../_components/siteData";
 import styles from "./PeExamHub.module.css";
 
 export const metadata: Metadata = {
@@ -78,11 +79,46 @@ const portalCards = [
   },
 ] as const;
 
-const universityScopes = [
-  ["REGION", "전북권 대학", "모집요강과 실기 구성을 공식 자료 기준으로 확인합니다."],
-  ["REGION", "수도권 대학", "지원 전형과 반영 항목을 구분해 상담 전에 정리합니다."],
-  ["FIELD", "특수체육·스포츠 계열", "계열과 모집 단위에 따라 달라지는 준비 요소를 확인합니다."],
-  ["CHECK", "상담 전 확인 항목", "희망 대학, 지원 전형, 실기 종목을 먼저 정리해 주세요."],
+const universityFilters = [
+  ["전체", "공식 모집요강 기준"],
+  ["전북권", "지역 지원 후보"],
+  ["수도권", "전국 지원 후보"],
+  ["체육계열", "학과·실기 확인"],
+] as const;
+
+const universityCards = [
+  {
+    region: "전북권",
+    name: "전북대학교",
+    department: "체육교육과·스포츠과학과 등",
+    summary: "지역 거점 국립대 지원 가능성을 검토할 때 먼저 확인하는 대학입니다.",
+    checks: ["모집 단위와 전형 구분", "내신·수능·실기 반영 비율", "실기 종목과 배점"],
+    href: "https://enter.jbnu.ac.kr/mainIntro/intro.do",
+  },
+  {
+    region: "전북권",
+    name: "전주대학교",
+    department: "운동처방·생활체육·경기지도 계열",
+    summary: "전주권 체육계열 진학을 준비하는 학생이 함께 비교할 수 있는 대학입니다.",
+    checks: ["학과별 지원 자격", "실기 고사 구성", "전형별 제출 자료"],
+    href: "https://iphak.jj.ac.kr/",
+  },
+  {
+    region: "수도권",
+    name: "한국체육대학교",
+    department: "체육계열 특화 대학",
+    summary: "체육계열 목표가 뚜렷한 학생이 전형과 실기 기준을 정밀하게 확인해야 하는 대학입니다.",
+    checks: ["전공별 모집요강", "실기 종목별 평가 방식", "수시·정시 지원 전략"],
+    href: "https://www.knsu.ac.kr/ipsi",
+  },
+  {
+    region: "수도권",
+    name: "용인대학교",
+    department: "무도·체육·경호·스포츠 계열",
+    summary: "종목 특성과 계열 선택에 따라 준비 방향이 달라질 수 있어 상담 전 확인이 필요합니다.",
+    checks: ["계열별 모집 단위", "실기와 면접 반영 방식", "목표 학과별 준비 항목"],
+    href: "https://ipsi.yongin.ac.kr/",
+  },
 ] as const;
 
 const scheduleSteps = [
@@ -207,21 +243,69 @@ export default function PeExamPage() {
         <div className="container">
           <div className={styles.sectionHead}>
             <p className="eyebrow">UNIVERSITY GUIDE</p>
-            <h2>대학별 정보는 공식 모집요강을 기준으로 확인합니다.</h2>
+            <h2>대학별 정보는 공식 모집요강과 상담 준비 항목을 함께 봅니다.</h2>
             <p>
-              관련 대학, 지원 전형, 희망 학과와 실기 종목을 먼저 정리하세요. 최신 정보는 각 대학의
-              공식 모집요강과 공지에서 확인해야 합니다.
+              희망 대학, 지원 전형, 목표 학과와 실기 종목을 먼저 정리하세요. 최신 날짜와 세부 기준은 각 대학의
+              공식 모집요강과 공지에서 다시 확인해야 합니다.
             </p>
           </div>
-          <div className={styles.scopeGrid}>
-            {universityScopes.map(([label, title, text]) => (
-              <article className={styles.scopeCard} key={title}>
-                <p>{label}</p>
-                <h3>{title}</h3>
-                <span>{text}</span>
+
+          <div className={styles.universityToolbar} aria-label="대학 정보 필터">
+            <div className={styles.filterPills}>
+              {universityFilters.map(([label, text]) => (
+                <span key={label}>
+                  <strong>{label}</strong>
+                  {text}
+                </span>
+              ))}
+            </div>
+            <Link className={styles.universityPrepLink} href="/apply?service=pe-exam">
+              상담 전 정보 남기기
+            </Link>
+          </div>
+
+          <div className={styles.universityGrid}>
+            {universityCards.map((card) => (
+              <article className={styles.universityCard} key={card.name}>
+                <div className={styles.universityCardHeader}>
+                  <p>{card.region}</p>
+                  <h3>{card.name}</h3>
+                  <span>{card.department}</span>
+                </div>
+                <p>{card.summary}</p>
+                <ul className={styles.universityChecklist}>
+                  {card.checks.map((check) => (
+                    <li key={check}>{check}</li>
+                  ))}
+                </ul>
+                <div className={styles.universityActions}>
+                  <a href={card.href} target="_blank" rel="noopener noreferrer">
+                    공식 입학처 보기
+                  </a>
+                  <Link href="/apply?service=pe-exam">상담 신청</Link>
+                </div>
               </article>
             ))}
           </div>
+
+          <aside className={styles.universityNoreBox}>
+            <div>
+              <p className="eyebrow light-text">AFTER CONSULTATION</p>
+              <h3>학생별 관리는 NORE에서 이어집니다.</h3>
+              <p>
+                목표 대학, 실기 기록, 수업 기록, 상담 메모, 일정 관리는 상담 완료 후 NORE에서 확인합니다.
+                공개 정보 확인 후 실제 학생 관리는 담당 코치 안내에 따라 연결합니다.
+              </p>
+            </div>
+            <div className={styles.universityNoreActions}>
+              <a className="button primary" href={site.norePeExamHref} target="_blank" rel="noopener noreferrer">
+                NORE 학생관리로 이동
+              </a>
+              <Link className="button secondary" href="/apply?service=pe-exam">
+                체대입시 상담 신청
+              </Link>
+            </div>
+          </aside>
         </div>
       </section>
 
