@@ -1,5 +1,7 @@
 type CatalogTuple = readonly [area: string, schoolType: string, name: string];
 
+import { kusfAdmissionSnapshot } from "./kusfAdmissionData";
+
 const catalogTuples = [
   ["경남", "4년제", "가야대학교"],
   ["경기", "4년제", "가천대학교"],
@@ -307,6 +309,56 @@ export const universityRegionGroups = regionFilters
   .map((region) => ({
     region,
     universities: universityCatalog.filter((item) => item.region === region),
+  }));
+
+function getPracticalSummary(elementSummary: string) {
+  const practicalMatch = elementSummary.match(/실기\s*:\s*\d+/);
+  if (practicalMatch) return `실기 반영 확인: ${practicalMatch[0]}`;
+  if (elementSummary.includes("실기")) return `실기 반영 포함: ${elementSummary}`;
+  return "KUSF 요약 기준 실기 반영 항목 없음";
+}
+
+function getGradeSummary(elementSummary: string) {
+  const studentRecordMatch = elementSummary.match(/학생부\s*:\s*\d+/);
+  const csatMatch = elementSummary.match(/수능\s*:\s*\d+/);
+  const documentMatch = elementSummary.match(/서류\s*:\s*\d+/);
+  const parts = [studentRecordMatch?.[0], csatMatch?.[0], documentMatch?.[0]].filter(Boolean);
+
+  if (parts.length) return `${parts.join(", ")} 기준으로 내신·수능·서류 위치 확인`;
+  return "등급·입결은 대학별 입결 자료와 모집요강에서 별도 확인";
+}
+
+export const kusfAdmissionMeta = {
+  schoolYear: kusfAdmissionSnapshot.schoolYear,
+  recruitmentTrack: kusfAdmissionSnapshot.recruitmentTrack,
+  sourceName: kusfAdmissionSnapshot.sourceName,
+  sourceUrl: kusfAdmissionSnapshot.sourceUrl,
+  generatedAt: kusfAdmissionSnapshot.generatedAt,
+  coverageNote: kusfAdmissionSnapshot.coverageNote,
+  universityCount: kusfAdmissionSnapshot.universities.length,
+  universitiesWithAdmissions: kusfAdmissionSnapshot.universities.filter((item) => item.admissions.length > 0).length,
+  admissionCount: kusfAdmissionSnapshot.universities.reduce((sum, item) => sum + item.admissions.length, 0),
+};
+
+export const kusfRegionAdmissionGroups = regionFilters
+  .filter((region) => region !== "전체")
+  .map((region) => ({
+    region,
+    universities: kusfAdmissionSnapshot.universities
+      .filter((school) => (regionMap[school.area] || "기타") === region)
+      .map((school) => ({
+        ...school,
+        region,
+        earlyAdmissions: school.admissions.map((admission) => ({
+          ...admission,
+          practicalSummary: getPracticalSummary(admission.elementSummary),
+          gradeSummary: getGradeSummary(admission.elementSummary),
+        })),
+        regularGuide: {
+          title: "정시 준비생",
+          text: "KUSF 체육관련학과 일반전형 페이지는 수시 요약 중심입니다. 정시는 대학별 정시 모집요강에서 모집군, 수능 반영영역, 실기 종목, 환산점수, 전년도 입결을 별도 확인해야 합니다.",
+        },
+      })),
   }));
 
 const practicalGuide = "대학별 모집요강에서 실기 종목, 기록 기준, 배점, 결시·실격 기준을 확인";

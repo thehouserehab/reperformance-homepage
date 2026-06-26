@@ -358,6 +358,189 @@
   margin: 18px 0 24px;
 }
 
+.kusfDataPanel {
+  display: grid;
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.kusfDataHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  padding: 22px 0;
+  border-top: 1px solid #d9e1ea;
+  border-bottom: 1px solid #d9e1ea;
+}
+
+.kusfDataHead h3 {
+  margin-bottom: 10px;
+  color: var(--navy);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.kusfDataHead p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.kusfDataHead a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--teal-dark);
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.kusfRegionStack,
+.kusfSchoolStack {
+  display: grid;
+  gap: 10px;
+}
+
+.kusfRegion,
+.kusfSchoolCard {
+  min-width: 0;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.kusfRegion > summary,
+.kusfSchoolCard > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+}
+
+.kusfRegion > summary::-webkit-details-marker,
+.kusfSchoolCard > summary::-webkit-details-marker {
+  display: none;
+}
+
+.kusfRegion > summary {
+  padding: 18px 20px;
+  background: #f7f9fc;
+}
+
+.kusfRegion > summary span {
+  color: var(--navy);
+  font-size: 21px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.kusfRegion > summary strong,
+.kusfSchoolCard > summary strong {
+  color: var(--teal-dark);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: right;
+}
+
+.kusfSchoolStack {
+  padding: 12px;
+}
+
+.kusfSchoolCard > summary {
+  padding: 15px 16px;
+}
+
+.kusfSchoolCard > summary span {
+  color: var(--navy);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.kusfTrackGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr);
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.kusfTrackBox {
+  min-width: 0;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8ef;
+}
+
+.kusfTrackBox h4 {
+  margin: 0 0 12px;
+  color: #18343c;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.kusfTrackBox > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.kusfAdmissionList {
+  display: grid;
+  gap: 10px;
+}
+
+.kusfAdmissionItem {
+  min-width: 0;
+  padding: 13px 14px;
+  border-left: 3px solid var(--teal-dark);
+  background: #f7f9fc;
+}
+
+.kusfAdmissionItem strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--navy);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.kusfAdmissionItem > span {
+  display: block;
+  margin-bottom: 10px;
+  color: #4b575b;
+  font-size: 14px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.kusfAdmissionItem dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.kusfAdmissionItem dt {
+  margin-bottom: 2px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.kusfAdmissionItem dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.48;
+}
+
 .featuredGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -686,7 +869,9 @@
   }
 
   .featuredGrid,
-  .trackGrid {
+  .trackGrid,
+  .kusfDataHead,
+  .kusfTrackGrid {
     grid-template-columns: 1fr;
   }
 
@@ -728,13 +913,25 @@
   .sourceGrid,
   .schoolList,
   .roadmapList,
+  .kusfAdmissionItem dl,
   .aiPanel > div {
     grid-template-columns: 1fr;
   }
 
   .catalogNotice,
-  .timelineCards li {
+  .timelineCards li,
+  .kusfRegion > summary,
+  .kusfSchoolCard > summary {
     grid-template-columns: 1fr;
+  }
+
+  .kusfRegion > summary strong,
+  .kusfSchoolCard > summary strong {
+    text-align: left;
+  }
+
+  .kusfDataHead a {
+    width: 100%;
   }
 
   .regionHeader {

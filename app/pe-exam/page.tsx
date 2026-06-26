@@ -6,6 +6,8 @@ import {
   catalogMeta,
   faqItems,
   featuredUniversityRows,
+  kusfAdmissionMeta,
+  kusfRegionAdmissionGroups,
   regionFilters,
   sourceLinks,
   universityRegionGroups,
@@ -194,9 +196,9 @@ export default function PeExamPage() {
               <p>전국 체육관련학과 대학</p>
             </article>
             <article>
-              <span>준비 구분</span>
-              <strong>수시 / 정시</strong>
-              <p>지원 흐름을 따로 확인</p>
+              <span>KUSF 수시</span>
+              <strong>{kusfAdmissionMeta.admissionCount}개</strong>
+              <p>수시 일반전형 요약</p>
             </article>
             <article>
               <span>최종 기준</span>
@@ -211,6 +213,107 @@ export default function PeExamPage() {
                 {region}
               </a>
             ))}
+          </div>
+
+          <div className={styles.kusfDataPanel}>
+            <div className={styles.kusfDataHead}>
+              <div>
+                <p className="eyebrow">KUSF DATA SNAPSHOT</p>
+                <h3>2026학년도 수시 일반전형 요약을 대학별로 정리했습니다.</h3>
+                <p>
+                  {kusfAdmissionMeta.sourceName}에서 가져온 {kusfAdmissionMeta.universityCount}개 대학,
+                  {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 {kusfAdmissionMeta.admissionCount}개
+                  전형 요약입니다. 정시와 세부 기록 기준, 등급·입결은 공식 모집요강 검수 단계로 분리했습니다.
+                </p>
+              </div>
+              <a href={kusfAdmissionMeta.sourceUrl} rel="noopener noreferrer" target="_blank">
+                KUSF 원문 확인
+              </a>
+            </div>
+
+            <div className={styles.kusfRegionStack}>
+              {kusfRegionAdmissionGroups.map((group) => {
+                const admissionCount = group.universities.reduce(
+                  (sum, school) => sum + school.earlyAdmissions.length,
+                  0,
+                );
+
+                return (
+                  <details className={styles.kusfRegion} key={group.region}>
+                    <summary>
+                      <span>{group.region}</span>
+                      <strong>
+                        {group.universities.length}개 대학 · 수시 {admissionCount}개 전형
+                      </strong>
+                    </summary>
+
+                    <div className={styles.kusfSchoolStack}>
+                      {group.universities.map((school) => (
+                        <details className={styles.kusfSchoolCard} key={school.code}>
+                          <summary>
+                            <span>
+                              {school.name}
+                              {school.campus ? ` ${school.campus}` : ""}
+                            </span>
+                            <strong>
+                              {school.area} · {school.schoolType} · 수시 {school.earlyAdmissions.length}개
+                            </strong>
+                          </summary>
+
+                          <div className={styles.kusfTrackGrid}>
+                            <section className={styles.kusfTrackBox}>
+                              <h4>수시 준비생</h4>
+                              {school.earlyAdmissions.length ? (
+                                <div className={styles.kusfAdmissionList}>
+                                  {school.earlyAdmissions.map((admission) => (
+                                    <article
+                                      className={styles.kusfAdmissionItem}
+                                      key={`${admission.detailParams.recruitmentUnitCode}-${admission.admissionName}`}
+                                    >
+                                      <strong>{admission.unit}</strong>
+                                      <span>{admission.admissionName}</span>
+                                      <dl>
+                                        <div>
+                                          <dt>전형유형</dt>
+                                          <dd>{admission.admissionType || "KUSF 요약 기준 확인"}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>반영요소</dt>
+                                          <dd>{admission.elementSummary || "KUSF 요약 기준 확인"}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>모집인원</dt>
+                                          <dd>{admission.quota || "모집요강 확인"}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>실기·기록</dt>
+                                          <dd>{admission.practicalSummary}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>등급·입결</dt>
+                                          <dd>{admission.gradeSummary}</dd>
+                                        </div>
+                                      </dl>
+                                    </article>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p>KUSF 수시 일반전형 요약에 전형 행이 없습니다. 대학 모집요강을 직접 확인합니다.</p>
+                              )}
+                            </section>
+
+                            <section className={styles.kusfTrackBox}>
+                              <h4>{school.regularGuide.title}</h4>
+                              <p>{school.regularGuide.text}</p>
+                            </section>
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
           </div>
 
           <div className={styles.featuredGrid}>
