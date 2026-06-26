@@ -175,7 +175,15 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
                                 <dd>{admission.quota || "모집요강 확인"}</dd>
                               </div>
                               <div>
-                                <dt>실기·기록</dt>
+                                <dt>실기 종목</dt>
+                                <dd>
+                                  {admission.practicalTasks.length
+                                    ? admission.practicalTasks.slice(0, 6).join(", ")
+                                    : "KUSF 상세 탭 또는 대학 모집요강 확인"}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt>기록 기준</dt>
                                 <dd>{admission.practicalSummary}</dd>
                               </div>
                               <div>
@@ -233,7 +241,7 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
                                 <dd>{admission.method || "ADIGA 모집인원 기준 확인"}</dd>
                               </div>
                               <div>
-                                <dt>실기·기록</dt>
+                                <dt>실기·기록 기준</dt>
                                 <dd>{admission.practicalSummary}</dd>
                               </div>
                               <div>

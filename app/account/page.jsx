@@ -38,6 +38,7 @@ export default async function AccountPage() {
             <p className="eyebrow">ACCESS</p>
             <h2>이 계정으로 이용 가능한 메뉴</h2>
             <div className={styles.linkGrid}>
+              <Link href="/pe-exam/faq">체대입시 질문</Link>
               <Link href="/signup">계정 신청</Link>
               <Link href="/contact">상담 문의</Link>
               {isStaff && <Link href="/admin">운영관리</Link>}

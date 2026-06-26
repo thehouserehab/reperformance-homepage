@@ -338,6 +338,28 @@ function uniqueItems(items: readonly string[]) {
   return [...new Set(items)].filter(Boolean);
 }
 
+function normalizeSchoolName(value: string) {
+  return value.replace(/\s+/g, "").replace(/본교$/g, "");
+}
+
+function getSchoolDisplayName(school: { readonly name: string; readonly campus?: string }) {
+  return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
+}
+
+function hasMatchingDetailSchool(
+  catalogSchool: (typeof universityCatalog)[number],
+  detailSchools: readonly { readonly area: string; readonly name: string; readonly campus?: string }[],
+) {
+  const catalogName = normalizeSchoolName(catalogSchool.name);
+
+  return detailSchools.some((school) => {
+    if (school.area !== catalogSchool.area) return false;
+
+    const detailName = normalizeSchoolName(getSchoolDisplayName(school));
+    return detailName === catalogName || detailName.includes(catalogName) || catalogName.includes(detailName);
+  });
+}
+
 export const universityRegionGroups = peExamRegionNames.map((region) => ({
   region,
   universities: universityCatalog.filter((item) => item.region === region),
@@ -534,6 +556,27 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
 export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
   const catalogGroup = universityRegionGroups.find((item) => item.region === group.region);
   const catalogUniversities = catalogGroup?.universities || [];
+  const catalogOnlyUniversities = catalogUniversities
+    .filter((school) => !hasMatchingDetailSchool(school, group.universities))
+    .map((school) => ({
+      code: school.id,
+      area: school.area,
+      schoolType: school.schoolType,
+      name: school.name,
+      campus: "",
+      track: "",
+      source: catalogMeta.source,
+      region: group.region,
+      admissions: [],
+      earlyAdmissions: [],
+      regularAdmissions: [],
+      regularDetailUrl: "",
+      regularGuide: {
+        title: "정시 준비생",
+        text: "ADIGA 정시 예체능계열 모집인원 표에 연결된 전형 행이 없습니다. 정시 모집요강 또는 대학 입학처 공지를 직접 확인합니다.",
+      },
+    }));
+  const universities = [...group.universities, ...catalogOnlyUniversities];
   const earlyAdmissionCount = group.universities.reduce((sum, school) => sum + school.earlyAdmissions.length, 0);
   const regularAdmissionCount = group.universities.reduce((sum, school) => sum + school.regularAdmissions.length, 0);
   const practicalDetailCount = group.universities.reduce(
@@ -556,12 +599,13 @@ export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
 
   return {
     ...group,
+    universities,
     slug: peExamRegionSlugs[group.region],
     href: getPeExamRegionHref(group.region),
     summary: regionOverviewCopy[group.region],
     areas: uniqueItems([...catalogUniversities.map((school) => school.area), ...group.universities.map((school) => school.area)]),
     catalogCount: catalogUniversities.length,
-    universityCount: group.universities.length,
+    universityCount: universities.length,
     earlyAdmissionCount,
     regularAdmissionCount,
     practicalDetailCount,
