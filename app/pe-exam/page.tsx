@@ -373,8 +373,8 @@ export default function PeExamPage() {
                 <span key={field}>{field}</span>
               ))}
             </div>
-            <Link className="button primary" href="/login?next=/pe-exam/faq">
-              로그인 후 질문 남기기
+            <Link className="button primary" href="/pe-exam/ai-consult">
+              AI 상담 사전 입력
             </Link>
           </aside>
         </div>

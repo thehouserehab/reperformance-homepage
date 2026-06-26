@@ -33,6 +33,7 @@ function sanitizeNext(value, account) {
   if (next.startsWith('/admin') && hasStaffRole(account?.role)) return next;
   if (next.startsWith('/account')) return next;
   if (next === '/pe-exam/faq') return next;
+  if (next === '/pe-exam/ai-consult') return next;
 
   return hasStaffRole(account?.role) ? '/admin' : '/account';
 }
