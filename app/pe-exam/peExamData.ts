@@ -1,6 +1,7 @@
 type CatalogTuple = readonly [area: string, schoolType: string, name: string];
 
 import { kusfAdmissionSnapshot } from "./kusfAdmissionData";
+import { adigaRegularAdmissionSnapshot } from "./adigaRegularAdmissionData";
 
 const catalogTuples = [
   ["경남", "4년제", "가야대학교"],
@@ -328,6 +329,33 @@ function getGradeSummary(elementSummary: string) {
   return "등급·입결은 대학별 입결 자료와 모집요강에서 별도 확인";
 }
 
+function getRegularPracticalSummary(method: string) {
+  const practicalMatch = method.match(/실기\s*:\s*\d+/);
+  if (practicalMatch) return `ADIGA 정시 전형방법 기준 ${practicalMatch[0]} 반영`;
+  if (method.includes("실기")) return `실기 반영 포함: ${method}`;
+  return "ADIGA 정시 전형방법 기준 실기 반영 항목 없음";
+}
+
+function getRegularGradeSummary(method: string) {
+  const studentRecordMatch = method.match(/학생부\s*:\s*\d+/);
+  const csatMatch = method.match(/수능\s*:\s*\d+/);
+  const documentMatch = method.match(/서류\s*:\s*\d+/);
+  const interviewMatch = method.match(/면접\s*:\s*\d+/);
+  const parts = [studentRecordMatch?.[0], csatMatch?.[0], documentMatch?.[0], interviewMatch?.[0]].filter(Boolean);
+
+  if (parts.length) return `${parts.join(", ")} 기준으로 수능·학생부·서류 위치 확인`;
+  return "전년도 입결 세부값은 ADIGA 평가기준·입시결과 탭과 대학 모집요강에서 확인";
+}
+
+function getUnitSummary(units: readonly { readonly name: string; readonly quota: string }[]) {
+  if (!units.length) return "모집단위는 ADIGA 세부 팝업 또는 대학 모집요강 확인";
+
+  const preview = units.slice(0, 3).map((unit) => `${unit.name}${unit.quota ? ` ${unit.quota}` : ""}`);
+  const suffix = units.length > preview.length ? ` 외 ${units.length - preview.length}개` : "";
+
+  return `${preview.join(", ")}${suffix}`;
+}
+
 export const kusfAdmissionMeta = {
   schoolYear: kusfAdmissionSnapshot.schoolYear,
   recruitmentTrack: kusfAdmissionSnapshot.recruitmentTrack,
@@ -340,25 +368,58 @@ export const kusfAdmissionMeta = {
   admissionCount: kusfAdmissionSnapshot.universities.reduce((sum, item) => sum + item.admissions.length, 0),
 };
 
+export const adigaRegularAdmissionMeta = {
+  schoolYear: adigaRegularAdmissionSnapshot.schoolYear,
+  recruitmentTrack: adigaRegularAdmissionSnapshot.recruitmentTrack,
+  sourceName: adigaRegularAdmissionSnapshot.sourceName,
+  sourceUrl: adigaRegularAdmissionSnapshot.sourceUrl,
+  generatedAt: adigaRegularAdmissionSnapshot.generatedAt,
+  coverageNote: adigaRegularAdmissionSnapshot.coverageNote,
+  universityCount: adigaRegularAdmissionSnapshot.universities.length,
+  universitiesWithAdmissions: adigaRegularAdmissionSnapshot.universities.filter((item) => item.admissions.length > 0)
+    .length,
+  admissionCount: adigaRegularAdmissionSnapshot.universities.reduce((sum, item) => sum + item.admissions.length, 0),
+  unitCount: adigaRegularAdmissionSnapshot.universities.reduce(
+    (sum, item) => sum + item.admissions.reduce((admissionSum, admission) => admissionSum + admission.units.length, 0),
+    0,
+  ),
+};
+
+const regularAdmissionsByCode = new Map(adigaRegularAdmissionSnapshot.universities.map((school) => [school.code, school]));
+
 export const kusfRegionAdmissionGroups = regionFilters
   .filter((region) => region !== "전체")
   .map((region) => ({
     region,
     universities: kusfAdmissionSnapshot.universities
       .filter((school) => (regionMap[school.area] || "기타") === region)
-      .map((school) => ({
-        ...school,
-        region,
-        earlyAdmissions: school.admissions.map((admission) => ({
-          ...admission,
-          practicalSummary: getPracticalSummary(admission.elementSummary),
-          gradeSummary: getGradeSummary(admission.elementSummary),
-        })),
-        regularGuide: {
-          title: "정시 준비생",
-          text: "KUSF 체육관련학과 일반전형 페이지는 수시 요약 중심입니다. 정시는 대학별 정시 모집요강에서 모집군, 수능 반영영역, 실기 종목, 환산점수, 전년도 입결을 별도 확인해야 합니다.",
-        },
-      })),
+      .map((school) => {
+        const regularSchool = regularAdmissionsByCode.get(school.code);
+
+        return {
+          ...school,
+          region,
+          earlyAdmissions: school.admissions.map((admission) => ({
+            ...admission,
+            practicalSummary: getPracticalSummary(admission.elementSummary),
+            gradeSummary: getGradeSummary(admission.elementSummary),
+          })),
+          regularAdmissions: (regularSchool?.admissions || []).map((admission) => ({
+            ...admission,
+            unitSummary: getUnitSummary(admission.units),
+            practicalSummary: getRegularPracticalSummary(admission.method),
+            gradeSummary: getRegularGradeSummary(admission.method),
+          })),
+          regularDetailUrl: regularSchool?.detailUrl || "",
+          regularGuide: {
+            title: "정시 준비생",
+            text:
+              regularSchool && regularSchool.admissions.length > 0
+                ? "ADIGA 대학 모집인원 기준 정시 예체능계열 전형방법입니다. 실기 종목별 기록표와 전년도 입결 세부값은 대학별 모집요강 및 ADIGA 평가기준·입시결과 탭에서 이어서 검수합니다."
+                : "ADIGA 정시 예체능계열 모집인원 표에 전형 행이 없습니다. 정시 모집요강 또는 대학 입학처 공지를 직접 확인합니다.",
+          },
+        };
+      }),
   }));
 
 const practicalGuide = "대학별 모집요강에서 실기 종목, 기록 기준, 배점, 결시·실격 기준을 확인";

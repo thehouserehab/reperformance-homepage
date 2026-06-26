@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageShell } from "../_components/SiteChrome";
 import {
   admissionTimeline2026,
+  adigaRegularAdmissionMeta,
   catalogMeta,
   faqItems,
   featuredUniversityRows,
@@ -201,6 +202,11 @@ export default function PeExamPage() {
               <p>수시 일반전형 요약</p>
             </article>
             <article>
+              <span>ADIGA 정시</span>
+              <strong>{adigaRegularAdmissionMeta.admissionCount}개</strong>
+              <p>정시 예체능 전형방법</p>
+            </article>
+            <article>
               <span>최종 기준</span>
               <strong>모집요강</strong>
               <p>실기 기록과 등급은 공식 문서 기준</p>
@@ -218,17 +224,24 @@ export default function PeExamPage() {
           <div className={styles.kusfDataPanel}>
             <div className={styles.kusfDataHead}>
               <div>
-                <p className="eyebrow">KUSF DATA SNAPSHOT</p>
-                <h3>2026학년도 수시 일반전형 요약을 대학별로 정리했습니다.</h3>
+                <p className="eyebrow">OFFICIAL DATA SNAPSHOT</p>
+                <h3>수시는 KUSF, 정시는 ADIGA 기준으로 대학별 전형을 정리했습니다.</h3>
                 <p>
                   {kusfAdmissionMeta.sourceName}에서 가져온 {kusfAdmissionMeta.universityCount}개 대학,
                   {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 {kusfAdmissionMeta.admissionCount}개
-                  전형 요약입니다. 정시와 세부 기록 기준, 등급·입결은 공식 모집요강 검수 단계로 분리했습니다.
+                  수시 전형과 {adigaRegularAdmissionMeta.sourceName}에서 가져온 {adigaRegularAdmissionMeta.universitiesWithAdmissions}개
+                  대학의 {adigaRegularAdmissionMeta.admissionCount}개 정시 전형방법입니다. 실기 종목별 기록 기준과
+                  전년도 입결 세부값은 대학별 모집요강 및 ADIGA 평가기준·입시결과 탭으로 별도 검수합니다.
                 </p>
               </div>
-              <a href={kusfAdmissionMeta.sourceUrl} rel="noopener noreferrer" target="_blank">
-                KUSF 원문 확인
-              </a>
+              <div className={styles.dataSourceLinks}>
+                <a href={kusfAdmissionMeta.sourceUrl} rel="noopener noreferrer" target="_blank">
+                  KUSF 수시 확인
+                </a>
+                <a href={adigaRegularAdmissionMeta.sourceUrl} rel="noopener noreferrer" target="_blank">
+                  ADIGA 정시 확인
+                </a>
+              </div>
             </div>
 
             <div className={styles.kusfRegionStack}>
@@ -237,13 +250,17 @@ export default function PeExamPage() {
                   (sum, school) => sum + school.earlyAdmissions.length,
                   0,
                 );
+                const regularAdmissionCount = group.universities.reduce(
+                  (sum, school) => sum + school.regularAdmissions.length,
+                  0,
+                );
 
                 return (
                   <details className={styles.kusfRegion} key={group.region}>
                     <summary>
                       <span>{group.region}</span>
                       <strong>
-                        {group.universities.length}개 대학 · 수시 {admissionCount}개 전형
+                        {group.universities.length}개 대학 · 수시 {admissionCount}개 · 정시 {regularAdmissionCount}개
                       </strong>
                     </summary>
 
@@ -256,7 +273,8 @@ export default function PeExamPage() {
                               {school.campus ? ` ${school.campus}` : ""}
                             </span>
                             <strong>
-                              {school.area} · {school.schoolType} · 수시 {school.earlyAdmissions.length}개
+                              {school.area} · {school.schoolType} · 수시 {school.earlyAdmissions.length}개 · 정시{" "}
+                              {school.regularAdmissions.length}개
                             </strong>
                           </summary>
 
@@ -305,6 +323,44 @@ export default function PeExamPage() {
                             <section className={styles.kusfTrackBox}>
                               <h4>{school.regularGuide.title}</h4>
                               <p>{school.regularGuide.text}</p>
+                              {school.regularAdmissions.length ? (
+                                <div className={styles.kusfAdmissionList}>
+                                  {school.regularAdmissions.map((admission) => (
+                                    <article className={styles.kusfAdmissionItem} key={admission.rowId}>
+                                      <strong>{admission.admissionName}</strong>
+                                      <span>{admission.unitSummary}</span>
+                                      <dl>
+                                        <div>
+                                          <dt>전형유형</dt>
+                                          <dd>{admission.admissionType || "ADIGA 모집인원 기준 확인"}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>전형방법</dt>
+                                          <dd>{admission.method || "ADIGA 모집인원 기준 확인"}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>실기·기록</dt>
+                                          <dd>{admission.practicalSummary}</dd>
+                                        </div>
+                                        <div>
+                                          <dt>등급·입결</dt>
+                                          <dd>{admission.gradeSummary}</dd>
+                                        </div>
+                                      </dl>
+                                    </article>
+                                  ))}
+                                </div>
+                              ) : null}
+                              {school.regularDetailUrl ? (
+                                <a
+                                  className={styles.kusfInlineLink}
+                                  href={school.regularDetailUrl}
+                                  rel="noopener noreferrer"
+                                  target="_blank"
+                                >
+                                  ADIGA 대학 모집인원 확인
+                                </a>
+                              ) : null}
                             </section>
                           </div>
                         </details>

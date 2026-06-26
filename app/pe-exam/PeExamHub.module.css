@@ -328,7 +328,7 @@
 
 .catalogStats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -399,6 +399,13 @@
   color: var(--teal-dark);
   font-weight: 900;
   white-space: nowrap;
+}
+
+.dataSourceLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .kusfRegionStack,
@@ -486,7 +493,7 @@
 }
 
 .kusfTrackBox > p {
-  margin: 0;
+  margin: 0 0 12px;
   color: var(--muted);
   line-height: 1.65;
 }
@@ -539,6 +546,15 @@
   color: var(--muted);
   font-size: 13px;
   line-height: 1.48;
+}
+
+.kusfInlineLink {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 12px;
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-weight: 950;
 }
 
 .featuredGrid {
@@ -932,6 +948,10 @@
 
   .kusfDataHead a {
     width: 100%;
+  }
+
+  .dataSourceLinks {
+    justify-content: stretch;
   }
 
   .regionHeader {
