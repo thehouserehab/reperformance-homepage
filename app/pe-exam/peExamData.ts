@@ -3,6 +3,7 @@ type CatalogTuple = readonly [area: string, schoolType: string, name: string];
 import { kusfAdmissionSnapshot } from "./kusfAdmissionData";
 import { kusfAdmissionDetailSnapshot } from "./kusfAdmissionDetailData";
 import { adigaRegularAdmissionSnapshot } from "./adigaRegularAdmissionData";
+import { adigaRegularSelectionSnapshot } from "./adigaRegularSelectionData";
 
 const catalogTuples = [
   ["경남", "4년제", "가야대학교"],
@@ -471,7 +472,13 @@ function getRegularPracticalSummary(method: string) {
   return "ADIGA 정시 전형방법 기준 실기 반영 항목 없음";
 }
 
-function getRegularGradeSummary(method: string) {
+function getRegularGradeSummary(
+  method: string,
+  selectionDetail?: (typeof adigaRegularSelectionSnapshot.universities)[number],
+) {
+  if (selectionDetail?.resultHighlights[0]) return `ADIGA 입시결과 요약: ${selectionDetail.resultHighlights[0]}`;
+  if (selectionDetail?.criteriaHighlights[0]) return `ADIGA 평가기준 요약: ${selectionDetail.criteriaHighlights[0]}`;
+
   const studentRecordMatch = method.match(/학생부\s*:\s*\d+/);
   const csatMatch = method.match(/수능\s*:\s*\d+/);
   const documentMatch = method.match(/서류\s*:\s*\d+/);
@@ -532,7 +539,33 @@ export const adigaRegularAdmissionMeta = {
   ),
 };
 
-const regularAdmissionsByCode = new Map(adigaRegularAdmissionSnapshot.universities.map((school) => [school.code, school]));
+export const adigaRegularSelectionMeta = {
+  schoolYear: adigaRegularSelectionSnapshot.schoolYear,
+  resultYear: adigaRegularSelectionSnapshot.resultYear,
+  recruitmentTrack: adigaRegularSelectionSnapshot.recruitmentTrack,
+  sourceName: adigaRegularSelectionSnapshot.sourceName,
+  sourceUrl: adigaRegularSelectionSnapshot.sourceUrl,
+  generatedAt: adigaRegularSelectionSnapshot.generatedAt,
+  coverageNote: adigaRegularSelectionSnapshot.coverageNote,
+  universityCount: adigaRegularSelectionSnapshot.universities.length,
+  universitiesWithResults: adigaRegularSelectionSnapshot.universities.filter((item) => item.hasResultTable).length,
+  universitiesWithCriteria: adigaRegularSelectionSnapshot.universities.filter((item) => item.hasCriteria).length,
+  resultRowCount: adigaRegularSelectionSnapshot.universities.reduce(
+    (sum, item) => sum + item.resultRows.length,
+    0,
+  ),
+};
+
+const regularAdmissionsByCode: ReadonlyMap<
+  string,
+  (typeof adigaRegularAdmissionSnapshot.universities)[number]
+> = new Map(adigaRegularAdmissionSnapshot.universities.map((school) => [school.code, school]));
+const regularSelectionsByCode: ReadonlyMap<
+  string,
+  (typeof adigaRegularSelectionSnapshot.universities)[number]
+> = new Map(
+  adigaRegularSelectionSnapshot.universities.map((school) => [school.code, school]),
+);
 const kusfAdmissionDetailsByKey: ReadonlyMap<
   string,
   (typeof kusfAdmissionDetailSnapshot.admissions)[number]
@@ -544,6 +577,7 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
       .filter((school) => (regionMap[school.area] || "기타") === region)
       .map((school) => {
         const regularSchool = regularAdmissionsByCode.get(school.code);
+        const regularSelection = regularSelectionsByCode.get(school.code);
 
         return {
           ...school,
@@ -566,14 +600,28 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
             ...admission,
             unitSummary: getUnitSummary(admission.units),
             practicalSummary: getRegularPracticalSummary(admission.method),
-            gradeSummary: getRegularGradeSummary(admission.method),
+            gradeSummary: getRegularGradeSummary(admission.method, regularSelection),
+            hasResultDetail: Boolean(regularSelection?.hasResultTable),
+            hasCriteriaDetail: Boolean(regularSelection?.hasCriteria),
           })),
-          regularDetailUrl: regularSchool?.detailUrl || "",
+          regularDetailUrl: regularSelection?.selectionUrl || regularSchool?.detailUrl || "",
+          regularSelectionDetail: regularSelection
+            ? {
+                selectionUrl: regularSelection.selectionUrl,
+                resultRows: regularSelection.resultRows.map((row) => ({ ...row })),
+                resultHighlights: [...regularSelection.resultHighlights],
+                criteriaHighlights: [...regularSelection.criteriaHighlights],
+                hasResultTable: regularSelection.hasResultTable,
+                hasCriteria: regularSelection.hasCriteria,
+              }
+            : undefined,
           regularGuide: {
             title: "정시 준비생",
             text:
-              regularSchool && regularSchool.admissions.length > 0
-                ? "ADIGA 대학 모집인원 기준 정시 예체능계열 전형방법입니다. 실기 종목별 기록표와 전년도 입결 세부값은 대학별 모집요강 및 ADIGA 평가기준·입시결과 탭에서 이어서 검수합니다."
+              regularSchool && regularSchool.admissions.length > 0 && regularSelection?.hasResultTable
+                ? "ADIGA 대학 모집인원 기준 정시 전형방법에 평가기준·입시결과 탭의 체육 관련 전년도 결과를 함께 연결했습니다. 표 원문은 대학별 ADIGA 공식 탭에서 다시 확인합니다."
+                : regularSchool && regularSchool.admissions.length > 0
+                  ? "ADIGA 대학 모집인원 기준 정시 예체능계열 전형방법입니다. 실기 종목별 기록표와 전년도 입결 세부값은 대학별 모집요강 및 ADIGA 평가기준·입시결과 탭에서 이어서 검수합니다."
                 : "ADIGA 정시 예체능계열 모집인원 표에 전형 행이 없습니다. 정시 모집요강 또는 대학 입학처 공지를 직접 확인합니다.",
           },
         };
@@ -598,6 +646,7 @@ export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
       earlyAdmissions: [],
       regularAdmissions: [],
       regularDetailUrl: "",
+      regularSelectionDetail: undefined,
       regularGuide: {
         title: "정시 준비생",
         text: "ADIGA 정시 예체능계열 모집인원 표에 연결된 전형 행이 없습니다. 정시 모집요강 또는 대학 입학처 공지를 직접 확인합니다.",

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PageShell } from "../../../../_components/SiteChrome";
 import {
   adigaRegularAdmissionMeta,
+  adigaRegularSelectionMeta,
   catalogMeta,
   getPeExamAdmissionTrackBySlug,
   getPeExamRegionNameBySlug,
@@ -24,6 +25,16 @@ type TrackPageProps = {
 };
 
 type RegionSchool = (typeof peExamRegionDetails)[number]["universities"][number];
+type RegularResultRow = {
+  readonly title: string;
+  readonly group: string;
+  readonly unit: string;
+  readonly quotaFinal: string;
+  readonly competitionRate: string;
+  readonly percentileAverage70: string;
+  readonly englishGrade70: string;
+  readonly note: string;
+};
 type SchoolTrackBrief = {
   stats: { label: string; value: string }[];
   groups: { label: string; items: string[] }[];
@@ -99,8 +110,8 @@ function getRegularStatusBadges(
       tone: admission.method.includes("실기") ? "neutral" : "muted",
     },
     {
-      label: "등급·입결 별도 확인",
-      tone: "warn",
+      label: admission.hasResultDetail ? "입결 표 연결" : "등급·입결 별도 확인",
+      tone: admission.hasResultDetail ? "good" : "warn",
     },
   ] as const;
 }
@@ -124,6 +135,10 @@ function hasPositivePracticalMethod(method: string) {
   const practicalMatch = method.match(/실기\s*:\s*(\d+)/);
   if (practicalMatch?.[1]) return Number(practicalMatch[1]) > 0;
   return method.includes("실기");
+}
+
+function formatResultMetric(value: string, suffix = "") {
+  return value ? `${value}${suffix}` : "공개값 없음";
 }
 
 function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
@@ -158,6 +173,7 @@ function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
 
 function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
   const admissions = school.regularAdmissions;
+  const selectionDetail = school.regularSelectionDetail;
   const units = uniqueBriefItems(admissions.flatMap((admission) => admission.units.map((unit) => unit.name))).slice(0, 10);
   const methodSummaries = uniqueBriefItems(
     admissions.map((admission) => compactBriefText(admission.method, 110)).filter(Boolean),
@@ -167,6 +183,12 @@ function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
       .filter((admission) => hasPositivePracticalMethod(admission.method))
       .map((admission) => compactBriefText(admission.practicalSummary, 110)),
   ).slice(0, 3);
+  const selectionSummaries = uniqueBriefItems(
+    [
+      ...(selectionDetail?.resultHighlights || []).map((item) => compactBriefText(item, 120)),
+      ...(selectionDetail?.criteriaHighlights || []).map((item) => compactBriefText(item, 120)),
+    ],
+  ).slice(0, 5);
 
   return {
     stats: [
@@ -176,12 +198,13 @@ function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
         value: `${admissions.reduce((sum, admission) => sum + admission.units.length, 0)}개`,
       },
       { label: "실기 반영", value: `${admissions.filter((admission) => hasPositivePracticalMethod(admission.method)).length}개` },
-      { label: "공식 링크", value: school.regularDetailUrl ? "연결" : "확인 필요" },
+      { label: "입결 표", value: selectionDetail?.hasResultTable ? `${selectionDetail.resultRows.length}건` : "확인 필요" },
     ],
     groups: [
       { label: "모집단위", items: units },
       { label: "전형방법", items: methodSummaries },
       { label: "실기 반영 힌트", items: practicalSummaries },
+      { label: "평가기준·입결", items: selectionSummaries },
     ].filter((group) => group.items.length > 0),
   };
 }
@@ -257,10 +280,10 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
           href: adigaRegularAdmissionMeta.sourceUrl,
         },
         {
-          label: "등급·입결 확인",
-          title: "공식 탭 별도 확인",
-          text: "정시 전년도 입결 세부값과 종목별 기록표는 ADIGA 평가기준·입시결과 탭과 대학별 모집요강에서 이어서 확인합니다.",
-          href: sourceLinks[1].href,
+          label: "ADIGA 평가기준·입시결과",
+          title: `${adigaRegularSelectionMeta.universitiesWithResults}개 대학 · ${adigaRegularSelectionMeta.resultRowCount}개 입결 행`,
+          text: `${adigaRegularSelectionMeta.resultYear}학년도 전형 결과 표와 ${adigaRegularSelectionMeta.universitiesWithCriteria}개 대학의 정시 평가기준 요약을 함께 연결했습니다.`,
+          href: adigaRegularSelectionMeta.sourceUrl,
         },
       ];
 
@@ -412,6 +435,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
             {sortedSchools.map((school, index) => {
               const trackCount = isEarly ? school.earlyAdmissions.length : school.regularAdmissions.length;
               const schoolBrief = isEarly ? getEarlySchoolBrief(school) : getRegularSchoolBrief(school);
+              const regularResultRows = (school.regularSelectionDetail?.resultRows || []) as readonly RegularResultRow[];
 
               return (
                 <details
@@ -447,8 +471,8 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                               <div className={styles.schoolTrackBriefGroup} key={group.label}>
                                 <strong>{group.label}</strong>
                                 <ul className={styles.schoolTrackChipList}>
-                                  {group.items.map((item) => (
-                                    <li key={item}>{item}</li>
+                                  {group.items.map((item, itemIndex) => (
+                                    <li key={`${group.label}-${itemIndex}-${item}`}>{item}</li>
                                   ))}
                                 </ul>
                               </div>
@@ -509,8 +533,8 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                               </dl>
                               {admission.practicalTasks.length ? (
                                 <ul className={styles.practicalTaskList} aria-label="실기 과제">
-                                  {admission.practicalTasks.slice(0, 8).map((task) => (
-                                    <li key={task}>{task}</li>
+                                  {admission.practicalTasks.slice(0, 8).map((task, taskIndex) => (
+                                    <li key={`${admission.admissionName}-${taskIndex}-${task}`}>{task}</li>
                                   ))}
                                 </ul>
                               ) : null}
@@ -537,8 +561,11 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                         <p className={styles.trackOnlyIntro}>{school.regularGuide.text}</p>
                         {school.regularAdmissions.length ? (
                           <div className={styles.kusfAdmissionList}>
-                            {school.regularAdmissions.map((admission) => (
-                              <article className={styles.kusfAdmissionItem} key={admission.rowId}>
+                            {school.regularAdmissions.map((admission, admissionIndex) => (
+                              <article
+                                className={styles.kusfAdmissionItem}
+                                key={`${admission.rowId}-${admission.admissionCode}-${admissionIndex}`}
+                              >
                                 <strong>{admission.admissionName}</strong>
                                 <span>{admission.unitSummary}</span>
                                 <div className={styles.dataStatusBadges} aria-label="자료 상태">
@@ -570,6 +597,46 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                             ))}
                           </div>
                         ) : null}
+                        {regularResultRows.length ? (
+                          <div className={styles.regularResultPanel}>
+                            <strong>ADIGA 입시결과 요약</strong>
+                            <div className={styles.regularResultList}>
+                              {regularResultRows.slice(0, 4).map((row, rowIndex) => (
+                                <div
+                                  className={styles.regularResultItem}
+                                  key={`${row.title}-${row.group}-${row.unit}-${rowIndex}`}
+                                >
+                                  <div className={styles.regularResultItemHead}>
+                                    <strong>{row.unit}</strong>
+                                    <span>{row.title || row.group}</span>
+                                  </div>
+                                  {row.note ? (
+                                    <p>{row.note}</p>
+                                  ) : (
+                                    <dl>
+                                      <div>
+                                        <dt>최종모집</dt>
+                                        <dd>{formatResultMetric(row.quotaFinal, "명")}</dd>
+                                      </div>
+                                      <div>
+                                        <dt>경쟁률</dt>
+                                        <dd>{formatResultMetric(row.competitionRate, ":1")}</dd>
+                                      </div>
+                                      <div>
+                                        <dt>70% 평균</dt>
+                                        <dd>{formatResultMetric(row.percentileAverage70)}</dd>
+                                      </div>
+                                      <div>
+                                        <dt>영어 70%</dt>
+                                        <dd>{formatResultMetric(row.englishGrade70, "등급")}</dd>
+                                      </div>
+                                    </dl>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
                         {school.regularDetailUrl ? (
                           <a
                             className={styles.kusfInlineLink}
@@ -577,7 +644,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                             rel="noopener noreferrer"
                             target="_blank"
                           >
-                            ADIGA 대학 모집인원 확인
+                            ADIGA 평가기준·입시결과 확인
                           </a>
                         ) : null}
                       </>
