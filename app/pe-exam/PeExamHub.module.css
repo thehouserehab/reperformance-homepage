@@ -805,6 +805,116 @@
   justify-content: flex-end;
 }
 
+.admissionChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.admissionChoiceCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 26px;
+  border: 1px solid #d9e1ea;
+  border-top: 4px solid var(--teal-dark);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.admissionChoiceCard span {
+  display: block;
+  margin-bottom: 10px;
+  color: #f5a24a;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.admissionChoiceCard h2 {
+  margin-bottom: 12px;
+  color: var(--navy);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.18;
+}
+
+.admissionChoiceCard p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.68;
+}
+
+.admissionChoiceStats {
+  display: grid;
+  gap: 8px;
+  margin: 22px 0;
+}
+
+.admissionChoiceStats div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e2e8ef;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.admissionChoiceStats dt {
+  margin-bottom: 4px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.admissionChoiceStats dd {
+  margin: 0;
+  color: var(--navy);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.trackSwitchBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0;
+  padding: 16px 0;
+  border-top: 1px solid #d9e1ea;
+  border-bottom: 1px solid #d9e1ea;
+}
+
+.trackSwitchBar a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--teal-dark);
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.trackSwitchBar a:hover {
+  background: var(--teal-dark);
+  color: #fff;
+}
+
+.trackOnlyBody {
+  min-width: 0;
+  padding: 0 16px 16px;
+  border-top: 1px solid #e2e8ef;
+}
+
+.trackOnlyIntro,
+.trackOnlyEmpty {
+  margin: 14px 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
 .practicalTaskList {
   display: flex;
   flex-wrap: wrap;
@@ -1000,6 +1110,66 @@
   font-size: 13px;
 }
 
+.regionSchoolDirectory {
+  margin-top: 28px;
+}
+
+.regionSchoolDirectoryHead {
+  max-width: 780px;
+  margin-bottom: 18px;
+}
+
+.regionSchoolDirectoryHead h2 {
+  margin-bottom: 10px;
+  color: var(--navy);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.2;
+}
+
+.regionSchoolDirectoryHead p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.regionSchoolList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.regionSchoolList article {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #d9e1ea;
+  border-left: 3px solid #c28032;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.regionSchoolList strong {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--navy);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.regionSchoolList span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.regionSchoolList p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .roadmapList {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1124,6 +1294,7 @@
   .resourceGrid,
   .catalogStats,
   .schoolList,
+  .regionSchoolList,
   .universityScopeGrid,
   .regionDetailGuide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1209,10 +1380,12 @@
   .catalogStats,
   .sourceGrid,
   .schoolList,
+  .regionSchoolList,
   .universityScopeGrid,
   .regionOverviewStats,
   .regionDetailStats,
   .regionDetailGuide,
+  .admissionChoiceGrid,
   .roadmapList,
   .kusfAdmissionItem dl,
   .aiPanel > div {
@@ -1235,6 +1408,10 @@
     width: 100%;
   }
 
+  .trackSwitchBar a {
+    width: 100%;
+  }
+
   .dataSourceLinks {
     justify-content: stretch;
   }
@@ -1246,6 +1423,7 @@
   .resourceCard,
   .featuredCard,
   .regionOverviewCard,
+  .admissionChoiceCard,
   .catalogStats article,
   .regionBlock,
   .regionDetailGuide article,

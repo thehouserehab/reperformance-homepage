@@ -57,7 +57,7 @@ const universityScopeCards = [
   },
   {
     title: "상세 페이지 구성",
-    text: "지역 상세 페이지에서 대학별 수시 모집단위, 정시 전형방법, 실기·등급 확인 지점을 이어서 봅니다.",
+    text: "지역별 전형 선택 페이지에서 먼저 수시/정시를 고른 뒤, 선택한 전형 전용 페이지에서 이어서 봅니다.",
   },
   {
     title: "공식자료 기준",
@@ -222,7 +222,7 @@ export default function PeExamPage() {
             </article>
           </div>
 
-          <div className={styles.filterPills} aria-label="지역 상세 페이지 바로가기">
+          <div className={styles.filterPills} aria-label="지역별 수시 정시 선택 페이지 바로가기">
             <a href="#universities">전체</a>
             {peExamRegionDetails.map((region) => (
               <Link href={region.href} key={region.slug}>
@@ -294,7 +294,7 @@ export default function PeExamPage() {
                   </div>
                 </dl>
                 <Link className={styles.regionOverviewLink} href={region.href}>
-                  지역 상세 보기
+                  수시·정시 선택
                 </Link>
               </article>
             ))}

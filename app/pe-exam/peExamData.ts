@@ -322,6 +322,33 @@ export function getPeExamRegionHref(region: PeExamRegionName) {
   return `/pe-exam/universities/${peExamRegionSlugs[region]}`;
 }
 
+export const peExamAdmissionTracks = [
+  {
+    key: "early",
+    label: "수시",
+    studentLabel: "수시 준비생",
+    sourceLabel: "KUSF 수시",
+    sourceDescription: "2026학년도 수시 일반전형 기준",
+  },
+  {
+    key: "regular",
+    label: "정시",
+    studentLabel: "정시 준비생",
+    sourceLabel: "ADIGA 정시",
+    sourceDescription: "2027학년도 정시 예체능계열 기준",
+  },
+] as const;
+
+export type PeExamAdmissionTrackKey = (typeof peExamAdmissionTracks)[number]["key"];
+
+export function getPeExamAdmissionTrackBySlug(slug: string) {
+  return peExamAdmissionTracks.find((track) => track.key === slug);
+}
+
+export function getPeExamRegionTrackHref(region: PeExamRegionName, track: PeExamAdmissionTrackKey) {
+  return `${getPeExamRegionHref(region)}/${track}`;
+}
+
 export function getPeExamRegionNameBySlug(slug: string) {
   return peExamRegionNames.find((region) => peExamRegionSlugs[region] === slug);
 }

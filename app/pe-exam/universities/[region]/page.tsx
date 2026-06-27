@@ -5,6 +5,8 @@ import { PageShell } from "../../../_components/SiteChrome";
 import {
   catalogMeta,
   getPeExamRegionNameBySlug,
+  getPeExamRegionTrackHref,
+  peExamAdmissionTracks,
   peExamRegionDetails,
   sourceLinks,
 } from "../../peExamData";
@@ -22,16 +24,6 @@ function getRegionDetail(slug: string) {
   return peExamRegionDetails.find((region) => region.region === regionName);
 }
 
-function earlyAdmissionKey(admission: (typeof peExamRegionDetails)[number]["universities"][number]["earlyAdmissions"][number]) {
-  return [
-    admission.detailParams.recruitmentCode,
-    admission.detailParams.selectionGroupCode,
-    admission.detailParams.recruitmentUnitCode,
-    admission.detailParams.recruitmentUnitSerial,
-    admission.admissionName,
-  ].join("-");
-}
-
 export function generateStaticParams() {
   return peExamRegionDetails.map((region) => ({
     region: region.slug,
@@ -44,13 +36,13 @@ export async function generateMetadata({ params }: RegionPageProps): Promise<Met
 
   if (!region) {
     return {
-      title: "지역별 대학 상세 | RePERFORMANCE",
+      title: "지역별 대학 전형 선택 | RePERFORMANCE",
     };
   }
 
   return {
-    title: `${region.region} 체대입시 대학 상세 | RePERFORMANCE`,
-    description: `${region.region} 체육관련학과 대학의 수시·정시 전형, 실기·등급 확인 지점을 정리한 RePERFORMANCE 체대입시 지역 상세 페이지입니다.`,
+    title: `${region.region} 체대입시 전형 선택 | RePERFORMANCE`,
+    description: `${region.region} 체육관련학과 대학 정보를 수시 준비생 페이지와 정시 준비생 페이지로 나누어 안내합니다.`,
   };
 }
 
@@ -76,11 +68,11 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
       <section className={styles.regionDetailHero}>
         <div className={`container ${styles.regionDetailHeroInner}`}>
           <div>
-            <p className="eyebrow light-text">REGIONAL UNIVERSITY DETAIL</p>
-            <h1>{region.region} 체대입시 대학 상세</h1>
+            <p className="eyebrow light-text">ADMISSION TRACK SELECTOR</p>
+            <h1>{region.region} 체대입시 전형 선택</h1>
             <p>
-              {region.summary} 대학별 수시 일반전형과 정시 예체능계열 전형방법을 나누어 보고,
-              실기·등급·수능최저 확인 지점을 빠르게 훑을 수 있게 정리했습니다.
+              {region.summary} 먼저 수시와 정시 중 현재 준비 전형을 선택한 뒤, 해당 전형에 맞는 대학별
+              전형·실기·등급 확인 지점을 한 페이지에서 이어서 봅니다.
             </p>
           </div>
 
@@ -113,18 +105,53 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
               <p>{region.areas.join(" · ")}</p>
             </article>
             <article>
-              <strong>수시 확인</strong>
-              <p>KUSF 2026학년도 수시 일반전형 기준으로 모집단위, 전형유형, 반영요소를 정리했습니다.</p>
+              <strong>수시 먼저 보기</strong>
+              <p>KUSF 2026학년도 수시 일반전형 기준으로 모집단위, 전형유형, 실기·등급 확인 지점을 봅니다.</p>
             </article>
             <article>
-              <strong>정시 확인</strong>
-              <p>ADIGA 2027학년도 정시 예체능계열 기준으로 전형방법과 모집단위 요약을 연결했습니다.</p>
+              <strong>정시 먼저 보기</strong>
+              <p>ADIGA 2027학년도 정시 예체능계열 기준으로 전형방법, 모집단위, 수능·실기 확인 지점을 봅니다.</p>
             </article>
           </div>
 
-          <div className={styles.catalogNotice}>
-            <strong>확인 기준</strong>
-            <p>{catalogMeta.note}</p>
+          <div className={styles.admissionChoiceGrid} aria-label="수시 정시 전형 선택">
+            {peExamAdmissionTracks.map((track) => {
+              const isEarly = track.key === "early";
+              const admissionCount = isEarly ? region.earlyAdmissionCount : region.regularAdmissionCount;
+              const detailCount = isEarly ? region.practicalDetailCount : region.regularUnitCount;
+              const detailLabel = isEarly ? "실기 상세" : "모집단위";
+
+              return (
+                <article className={styles.admissionChoiceCard} key={track.key}>
+                  <div>
+                    <span>{track.sourceLabel}</span>
+                    <h2>{track.studentLabel} 페이지</h2>
+                    <p>
+                      {isEarly
+                        ? "학생부·실기·수능최저를 함께 확인해야 하는 수시 준비생용 페이지입니다. 같은 대학 안에서도 수시 전형만 따로 모아 봅니다."
+                        : "수능 반영 방식과 실기 반영 여부, 모집군 흐름을 확인해야 하는 정시 준비생용 페이지입니다. 정시 전형만 따로 모아 봅니다."}
+                    </p>
+                  </div>
+                  <dl className={styles.admissionChoiceStats}>
+                    <div>
+                      <dt>연결 전형</dt>
+                      <dd>{admissionCount}개</dd>
+                    </div>
+                    <div>
+                      <dt>{detailLabel}</dt>
+                      <dd>{detailCount}개</dd>
+                    </div>
+                    <div>
+                      <dt>기준 자료</dt>
+                      <dd>{track.sourceDescription}</dd>
+                    </div>
+                  </dl>
+                  <Link className={styles.regionOverviewLink} href={getPeExamRegionTrackHref(region.region, track.key)}>
+                    {track.label} 페이지 보기
+                  </Link>
+                </article>
+              );
+            })}
           </div>
 
           <div className={styles.regionDetailTools}>
@@ -138,136 +165,34 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
             </div>
           </div>
 
-          <div className={styles.kusfSchoolStack}>
-            {region.universities.map((school, index) => (
-              <details className={styles.kusfSchoolCard} key={school.code} open={index < 3}>
-                <summary>
-                  <span>
+          <div className={styles.catalogNotice}>
+            <strong>확인 기준</strong>
+            <p>{catalogMeta.note}</p>
+          </div>
+
+          <section className={styles.regionSchoolDirectory} aria-label={`${region.region} 체육관련학과 대학 목록`}>
+            <div className={styles.regionSchoolDirectoryHead}>
+              <p className="eyebrow">REGIONAL DIRECTORY</p>
+              <h2>{region.region} 대학 목록</h2>
+              <p>아래 목록은 전형 선택 전 전체 범위를 빠르게 확인하는 용도입니다. 전형별 세부 내용은 수시/정시 페이지에서 확인합니다.</p>
+            </div>
+            <div className={styles.regionSchoolList}>
+              {region.universities.map((school) => (
+                <article key={school.code}>
+                  <strong>
                     {school.name}
                     {school.campus ? ` ${school.campus}` : ""}
-                  </span>
-                  <strong>
-                    {school.area} · {school.schoolType} · 수시 {school.earlyAdmissions.length}개 · 정시{" "}
-                    {school.regularAdmissions.length}개
                   </strong>
-                </summary>
-
-                <div className={styles.kusfTrackGrid}>
-                  <section className={styles.kusfTrackBox}>
-                    <h4>수시 준비생</h4>
-                    {school.earlyAdmissions.length ? (
-                      <div className={styles.kusfAdmissionList}>
-                        {school.earlyAdmissions.map((admission) => (
-                          <article className={styles.kusfAdmissionItem} key={earlyAdmissionKey(admission)}>
-                            <strong>{admission.unit}</strong>
-                            <span>{admission.admissionName}</span>
-                            <dl>
-                              <div>
-                                <dt>전형유형</dt>
-                                <dd>{admission.admissionType || "KUSF 요약 기준 확인"}</dd>
-                              </div>
-                              <div>
-                                <dt>반영요소</dt>
-                                <dd>{admission.elementSummary || "KUSF 요약 기준 확인"}</dd>
-                              </div>
-                              <div>
-                                <dt>모집인원</dt>
-                                <dd>{admission.quota || "모집요강 확인"}</dd>
-                              </div>
-                              <div>
-                                <dt>실기 종목</dt>
-                                <dd>
-                                  {admission.practicalTasks.length
-                                    ? admission.practicalTasks.slice(0, 6).join(", ")
-                                    : "KUSF 상세 탭 또는 대학 모집요강 확인"}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt>기록 기준</dt>
-                                <dd>{admission.practicalSummary}</dd>
-                              </div>
-                              <div>
-                                <dt>등급·입결</dt>
-                                <dd>{admission.gradeSummary}</dd>
-                              </div>
-                              {admission.minimumCriteriaSummary ? (
-                                <div>
-                                  <dt>수능최저</dt>
-                                  <dd>{admission.minimumCriteriaSummary}</dd>
-                                </div>
-                              ) : null}
-                            </dl>
-                            {admission.practicalTasks.length ? (
-                              <ul className={styles.practicalTaskList} aria-label="실기 과제">
-                                {admission.practicalTasks.slice(0, 8).map((task) => (
-                                  <li key={task}>{task}</li>
-                                ))}
-                              </ul>
-                            ) : null}
-                            {admission.detailUrl ? (
-                              <a
-                                className={styles.kusfItemLink}
-                                href={admission.detailUrl}
-                                rel="noopener noreferrer"
-                                target="_blank"
-                              >
-                                KUSF 전형 상세 확인
-                              </a>
-                            ) : null}
-                          </article>
-                        ))}
-                      </div>
-                    ) : (
-                      <p>KUSF 수시 일반전형 요약에 전형 행이 없습니다. 대학 모집요강을 직접 확인합니다.</p>
-                    )}
-                  </section>
-
-                  <section className={styles.kusfTrackBox}>
-                    <h4>{school.regularGuide.title}</h4>
-                    <p>{school.regularGuide.text}</p>
-                    {school.regularAdmissions.length ? (
-                      <div className={styles.kusfAdmissionList}>
-                        {school.regularAdmissions.map((admission) => (
-                          <article className={styles.kusfAdmissionItem} key={admission.rowId}>
-                            <strong>{admission.admissionName}</strong>
-                            <span>{admission.unitSummary}</span>
-                            <dl>
-                              <div>
-                                <dt>전형유형</dt>
-                                <dd>{admission.admissionType || "ADIGA 모집인원 기준 확인"}</dd>
-                              </div>
-                              <div>
-                                <dt>전형방법</dt>
-                                <dd>{admission.method || "ADIGA 모집인원 기준 확인"}</dd>
-                              </div>
-                              <div>
-                                <dt>실기·기록 기준</dt>
-                                <dd>{admission.practicalSummary}</dd>
-                              </div>
-                              <div>
-                                <dt>등급·입결</dt>
-                                <dd>{admission.gradeSummary}</dd>
-                              </div>
-                            </dl>
-                          </article>
-                        ))}
-                      </div>
-                    ) : null}
-                    {school.regularDetailUrl ? (
-                      <a
-                        className={styles.kusfInlineLink}
-                        href={school.regularDetailUrl}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        ADIGA 대학 모집인원 확인
-                      </a>
-                    ) : null}
-                  </section>
-                </div>
-              </details>
-            ))}
-          </div>
+                  <span>
+                    {school.area} · {school.schoolType}
+                  </span>
+                  <p>
+                    수시 {school.earlyAdmissions.length}개 · 정시 {school.regularAdmissions.length}개
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
       </section>
     </PageShell>
