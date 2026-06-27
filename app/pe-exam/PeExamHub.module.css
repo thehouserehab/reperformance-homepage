@@ -1301,6 +1301,55 @@
   line-height: 1.35;
 }
 
+.practicalCriteriaBox {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8ef;
+}
+
+.practicalCriteriaBox strong {
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.practicalCriteriaBox .practicalTaskList {
+  margin: 0;
+}
+
+.practicalCriteriaList {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practicalCriteriaList li {
+  position: relative;
+  min-width: 0;
+  padding-left: 13px;
+  color: #526167;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.practicalCriteriaList li::before {
+  content: "";
+  position: absolute;
+  top: 0.68em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+
 .featuredGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

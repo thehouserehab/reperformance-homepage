@@ -106,8 +106,12 @@ function getRegularStatusBadges(
       tone: admission.units.length ? "good" : "warn",
     },
     {
-      label: admission.method.includes("실기") ? "실기 반영 확인" : "실기 반영 없음",
-      tone: admission.method.includes("실기") ? "neutral" : "muted",
+      label: admission.practicalTasks.length
+        ? `실기 종목 ${admission.practicalTasks.length}개`
+        : admission.method.includes("실기")
+          ? "실기 반영 확인"
+          : "실기 반영 없음",
+      tone: admission.practicalTasks.length || admission.method.includes("실기") ? "neutral" : "muted",
     },
     {
       label: admission.hasResultDetail ? "입결 표 연결" : "등급·입결 별도 확인",
@@ -144,6 +148,9 @@ function formatResultMetric(value: string, suffix = "") {
 function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
   const admissions = school.earlyAdmissions;
   const practicalTasks = uniqueBriefItems(admissions.flatMap((admission) => admission.practicalTasks)).slice(0, 10);
+  const practicalCriteriaItems = uniqueBriefItems(
+    admissions.flatMap((admission) => admission.practicalCriteriaItems),
+  ).slice(0, 5);
   const practicalSummaries = uniqueBriefItems(
     admissions
       .map((admission) => compactBriefText(admission.practicalSummary))
@@ -165,6 +172,7 @@ function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
     ],
     groups: [
       { label: "주요 실기 종목", items: practicalTasks },
+      { label: "기록 기준", items: practicalCriteriaItems },
       { label: "기록 기준 힌트", items: practicalSummaries },
       { label: "등급·최저 힌트", items: uniqueBriefItems([...gradeSummaries, ...minimumSummaries]).slice(0, 4) },
     ].filter((group) => group.items.length > 0),
@@ -175,6 +183,10 @@ function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
   const admissions = school.regularAdmissions;
   const selectionDetail = school.regularSelectionDetail;
   const units = uniqueBriefItems(admissions.flatMap((admission) => admission.units.map((unit) => unit.name))).slice(0, 10);
+  const practicalTasks = uniqueBriefItems(admissions.flatMap((admission) => admission.practicalTasks)).slice(0, 10);
+  const practicalCriteriaItems = uniqueBriefItems(
+    admissions.flatMap((admission) => admission.practicalCriteriaItems),
+  ).slice(0, 5);
   const methodSummaries = uniqueBriefItems(
     admissions.map((admission) => compactBriefText(admission.method, 110)).filter(Boolean),
   ).slice(0, 3);
@@ -203,6 +215,8 @@ function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
     groups: [
       { label: "모집단위", items: units },
       { label: "전형방법", items: methodSummaries },
+      { label: "실기 종목", items: practicalTasks },
+      { label: "실기 기준", items: practicalCriteriaItems },
       { label: "실기 반영 힌트", items: practicalSummaries },
       { label: "평가기준·입결", items: selectionSummaries },
     ].filter((group) => group.items.length > 0),
@@ -538,6 +552,16 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                                   ))}
                                 </ul>
                               ) : null}
+                              {admission.practicalCriteriaItems.length ? (
+                                <div className={styles.practicalCriteriaBox}>
+                                  <strong>기록 기준 체크포인트</strong>
+                                  <ul className={styles.practicalCriteriaList}>
+                                    {admission.practicalCriteriaItems.map((item, itemIndex) => (
+                                      <li key={`${admission.admissionName}-criteria-${itemIndex}-${item}`}>{item}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ) : null}
                               {admission.detailUrl ? (
                                 <a
                                   className={styles.kusfItemLink}
@@ -593,6 +617,29 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                                     <dd>{admission.gradeSummary}</dd>
                                   </div>
                                 </dl>
+                                {admission.practicalTasks.length || admission.practicalCriteriaItems.length ? (
+                                  <div className={styles.practicalCriteriaBox}>
+                                    <strong>정시 실기 확인 포인트</strong>
+                                    {admission.practicalTasks.length ? (
+                                      <ul className={styles.practicalTaskList} aria-label="정시 실기 종목">
+                                        {admission.practicalTasks.slice(0, 8).map((task, taskIndex) => (
+                                          <li key={`${admission.admissionName}-regular-task-${taskIndex}-${task}`}>
+                                            {task}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : null}
+                                    {admission.practicalCriteriaItems.length ? (
+                                      <ul className={styles.practicalCriteriaList}>
+                                        {admission.practicalCriteriaItems.map((item, itemIndex) => (
+                                          <li key={`${admission.admissionName}-regular-criteria-${itemIndex}-${item}`}>
+                                            {item}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    ) : null}
+                                  </div>
+                                ) : null}
                               </article>
                             ))}
                           </div>

@@ -451,6 +451,94 @@ function summarizePracticalDetail(
   return `KUSF 상세 기준: ${detail.practicalSummary}`;
 }
 
+const practicalTaskPatterns = [
+  /10m\s*왕복달리기/gi,
+  /20m\s*왕복달리기/gi,
+  /25m\s*왕복달리기/gi,
+  /제자리\s*멀리뛰기/gi,
+  /제자리\s*높이뛰기/gi,
+  /서전트\s*점프/gi,
+  /메디신볼\s*던지기/gi,
+  /핸드볼공\s*던지기/gi,
+  /배근력/gi,
+  /악력/gi,
+  /좌전굴/gi,
+  /체전굴/gi,
+  /윗몸\s*일으키기/gi,
+  /팔굽혀\s*펴기/gi,
+  /턱걸이/gi,
+  /농구/gi,
+  /배구/gi,
+  /축구/gi,
+  /기본차기/gi,
+  /표적차기/gi,
+  /품새/gi,
+] as const;
+
+function cleanPracticalItem(value: string) {
+  return value
+    .replace(/[.…]+$/g, "")
+    .replace(/^[\s•·ㆍ\-–]+/, "")
+    .replace(/^(실기\s*)?(고사\s*)?(종목|과제|유형 및 과제|출제형식)\s*[:：-]?\s*/g, "")
+    .replace(/[\s.]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hasRegularPracticalMethod(method: string) {
+  const practicalMatch = method.match(/실기\s*:\s*(\d+)/);
+  if (practicalMatch?.[1]) return Number(practicalMatch[1]) > 0;
+  return method.includes("실기");
+}
+
+function extractPracticalTasksFromTexts(texts: readonly string[], fallbackTasks: readonly string[] = []) {
+  const joined = texts.join(" / ");
+  const explicitSections = [...joined.matchAll(/(?:실기고사\s*)?(?:종목|과제)\s*[:：]\s*([^/\]]{1,140})/g)]
+    .flatMap((match) => match[1].split(/[,，·ㆍ]/g));
+  const patternMatches = practicalTaskPatterns.flatMap((pattern) => joined.match(pattern) || []);
+  const cleaned = [...fallbackTasks, ...explicitSections, ...patternMatches]
+    .map(cleanPracticalItem)
+    .filter((item) => item.length >= 2 && item.length <= 34 && !item.includes("반영"));
+
+  return uniqueItems(cleaned).slice(0, 10);
+}
+
+function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 4) {
+  const normalized = texts
+    .join(" / ")
+    .replace(/^KUSF 상세 기준:\s*/g, "")
+    .replace(/^ADIGA 정시 전형방법 기준\s*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized || normalized.includes("항목 없음") || normalized.includes("반영 없음")) return [];
+
+  const explicitItems = [...normalized.matchAll(/(?:실기고사\s*)?(?:종목|과제)\s*[:：]\s*([^/\]]{1,120})/g)]
+    .flatMap((match) => match[1].split(/[,，·ㆍ]/g))
+    .map(cleanPracticalItem)
+    .filter((item) => item.length >= 2 && item.length <= 34);
+  const ratioItems = uniqueItems(normalized.match(/실기\s*:?\s*\d+(?:\.\d+)?%?/g) || []);
+  const practicalIndex = normalized.search(/실기|기록|종목|과제|왕복|멀리뛰기|던지기|배근력|품새|차기/);
+  const focused = practicalIndex >= 0 ? normalized.slice(practicalIndex) : normalized;
+  const candidates = focused
+    .split(/\s*\/\s*|[;；]/g)
+    .map(cleanPracticalItem)
+    .filter((item) => {
+      if (item.length < 4 || item === "실기 유형 및 과제 출제형식") return false;
+      if (/영어|탐구|백분위|국어|수학|한국사|변환표준점수|성적 발표|미응시영역/.test(item)) return false;
+      if (/실기|기록|종목|과제|왕복|멀리뛰기|높이뛰기|던지기|배근력|품새|차기|농구|배구|축구|윗몸|악력|좌전굴|체전굴|턱걸이|팔굽혀/.test(item)) {
+        return true;
+      }
+      return /\d+\s*(초|회|m)/i.test(item);
+    })
+    .map((item) => (item.length > 115 ? `${item.slice(0, 112)}...` : item));
+
+  const items = uniqueItems([...ratioItems, ...explicitItems, ...candidates]);
+  if (items.length) return items.slice(0, maxItems);
+  if (focused.includes("실기")) return [focused.length > 115 ? `${focused.slice(0, 112)}...` : focused];
+  return [];
+}
+
 function createKusfDetailKey(
   school: (typeof kusfAdmissionSnapshot.universities)[number],
   admission: (typeof kusfAdmissionSnapshot.universities)[number]["admissions"][number],
@@ -584,11 +672,14 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
           region,
           earlyAdmissions: school.admissions.map((admission) => {
             const detail = kusfAdmissionDetailsByKey.get(createKusfDetailKey(school, admission));
+            const practicalSummary = summarizePracticalDetail(detail, admission.elementSummary);
+            const practicalTasks = detail?.practicalTasks || [];
 
             return {
               ...admission,
-              practicalSummary: summarizePracticalDetail(detail, admission.elementSummary),
-              practicalTasks: detail?.practicalTasks || [],
+              practicalSummary,
+              practicalTasks,
+              practicalCriteriaItems: extractPracticalCriteriaItems([practicalSummary, ...practicalTasks]),
               gradeSummary: summarizeKusfGradeDetail(detail, admission.elementSummary),
               minimumCriteriaSummary: summarizeMinimumCriteria(detail),
               detailUrl: detail?.detailUrl || "",
@@ -596,14 +687,22 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
               hasGradeDetail: Boolean(detail?.hasGradeDetail),
             };
           }),
-          regularAdmissions: (regularSchool?.admissions || []).map((admission) => ({
-            ...admission,
-            unitSummary: getUnitSummary(admission.units),
-            practicalSummary: getRegularPracticalSummary(admission.method),
-            gradeSummary: getRegularGradeSummary(admission.method, regularSelection),
-            hasResultDetail: Boolean(regularSelection?.hasResultTable),
-            hasCriteriaDetail: Boolean(regularSelection?.hasCriteria),
-          })),
+          regularAdmissions: (regularSchool?.admissions || []).map((admission) => {
+            const criteriaTexts = regularSelection?.criteriaHighlights || [];
+            const practicalTexts = [admission.method, ...criteriaTexts];
+            const hasPractical = hasRegularPracticalMethod(admission.method) || criteriaTexts.some((item) => item.includes("실기"));
+
+            return {
+              ...admission,
+              unitSummary: getUnitSummary(admission.units),
+              practicalSummary: getRegularPracticalSummary(admission.method),
+              practicalTasks: hasPractical ? extractPracticalTasksFromTexts(practicalTexts) : [],
+              practicalCriteriaItems: hasPractical ? extractPracticalCriteriaItems([admission.method]) : [],
+              gradeSummary: getRegularGradeSummary(admission.method, regularSelection),
+              hasResultDetail: Boolean(regularSelection?.hasResultTable),
+              hasCriteriaDetail: Boolean(regularSelection?.hasCriteria),
+            };
+          }),
           regularDetailUrl: regularSelection?.selectionUrl || regularSchool?.detailUrl || "",
           regularSelectionDetail: regularSelection
             ? {
