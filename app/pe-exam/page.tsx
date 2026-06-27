@@ -16,7 +16,7 @@ import styles from "./PeExamHub.module.css";
 export const metadata: Metadata = {
   title: "체대입시 정보 허브 | RePERFORMANCE",
   description:
-    "2026년 대입 흐름, 전국 체육관련학과 대학 목록, 수시·정시 준비 기준, FAQ와 향후 AI 입시 상담 안내를 확인하는 RePERFORMANCE 체대입시 정보 허브입니다.",
+    "2026년 대입 흐름, 전국 체육관련학과 대학 목록, 수시·정시 준비 기준, FAQ와 로그인 회원용 AI 입시 상담 방향 가이드를 확인하는 RePERFORMANCE 체대입시 정보 허브입니다.",
 };
 
 const hubLinks = [
@@ -115,8 +115,8 @@ export default function PeExamPage() {
             </article>
             <article>
               <strong>MEMBER</strong>
-              <h2>질문과 향후 AI 상담</h2>
-              <p>로그인 회원은 FAQ 페이지에서 질문을 남기고, AI 상담 기능은 도입 예정입니다.</p>
+              <h2>질문과 AI 상담 방향</h2>
+              <p>로그인 회원은 FAQ 페이지에서 질문을 남기고, 성적·실기 기록 기반 방향 가이드를 확인합니다.</p>
             </article>
             <article>
               <strong>CARE</strong>
@@ -359,10 +359,10 @@ export default function PeExamPage() {
         <div className={`container ${styles.aiLayout}`}>
           <div>
             <p className="eyebrow light-text">LIMITED ACCESS</p>
-            <h2>AI 입시 상담 서비스는 로그인 회원 대상으로 도입 예정입니다.</h2>
+            <h2>AI 입시 상담 방향 가이드는 로그인 회원 대상으로 제한 공개합니다.</h2>
             <p>
-              본인의 성적, 운동 기록, 희망 대학, 컨디션을 입력하면 입시 방향을 제시하는
-              기능을 준비하고 있습니다. 공개 페이지에서는 개인정보와 기록을 받지 않습니다.
+              본인의 성적, 운동 기록, 희망 대학, 컨디션을 입력하면 수시·정시 준비 방향과
+              확인 우선순위를 정리합니다. 공개 페이지에서는 개인정보와 기록을 받지 않습니다.
             </p>
           </div>
 
@@ -374,7 +374,7 @@ export default function PeExamPage() {
               ))}
             </div>
             <Link className="button primary" href="/pe-exam/ai-consult">
-              AI 상담 사전 입력
+              AI 상담 방향 가이드
             </Link>
           </aside>
         </div>
