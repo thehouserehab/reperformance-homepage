@@ -23,6 +23,12 @@ type TrackPageProps = {
   }>;
 };
 
+type RegionSchool = (typeof peExamRegionDetails)[number]["universities"][number];
+type SchoolTrackBrief = {
+  stats: { label: string; value: string }[];
+  groups: { label: string; items: string[] }[];
+};
+
 function getRegionDetail(slug: string) {
   const regionName = getPeExamRegionNameBySlug(slug);
   if (!regionName) return undefined;
@@ -97,6 +103,87 @@ function getRegularStatusBadges(
       tone: "warn",
     },
   ] as const;
+}
+
+function uniqueBriefItems(items: readonly string[]) {
+  return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
+}
+
+function compactBriefText(value: string, maxLength = 110) {
+  const normalized = value
+    .replace(/^KUSF 상세 기준:\s*/, "")
+    .replace(/^ADIGA 정시 전형방법 기준\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 3)}...`;
+}
+
+function hasPositivePracticalMethod(method: string) {
+  const practicalMatch = method.match(/실기\s*:\s*(\d+)/);
+  if (practicalMatch?.[1]) return Number(practicalMatch[1]) > 0;
+  return method.includes("실기");
+}
+
+function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
+  const admissions = school.earlyAdmissions;
+  const practicalTasks = uniqueBriefItems(admissions.flatMap((admission) => admission.practicalTasks)).slice(0, 10);
+  const practicalSummaries = uniqueBriefItems(
+    admissions
+      .map((admission) => compactBriefText(admission.practicalSummary))
+      .filter((summary) => summary && !summary.includes("항목 없음")),
+  ).slice(0, 3);
+  const gradeSummaries = uniqueBriefItems(
+    admissions.map((admission) => compactBriefText(admission.gradeSummary)).filter(Boolean),
+  ).slice(0, 3);
+  const minimumSummaries = uniqueBriefItems(
+    admissions.map((admission) => compactBriefText(admission.minimumCriteriaSummary, 90)).filter(Boolean),
+  ).slice(0, 2);
+
+  return {
+    stats: [
+      { label: "수시 전형", value: `${admissions.length}개` },
+      { label: "실기 상세", value: `${admissions.filter((admission) => admission.hasPracticalDetail).length}개` },
+      { label: "등급 상세", value: `${admissions.filter((admission) => admission.hasGradeDetail).length}개` },
+      { label: "수능최저", value: `${minimumSummaries.length}건` },
+    ],
+    groups: [
+      { label: "주요 실기 종목", items: practicalTasks },
+      { label: "기록 기준 힌트", items: practicalSummaries },
+      { label: "등급·최저 힌트", items: uniqueBriefItems([...gradeSummaries, ...minimumSummaries]).slice(0, 4) },
+    ].filter((group) => group.items.length > 0),
+  };
+}
+
+function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
+  const admissions = school.regularAdmissions;
+  const units = uniqueBriefItems(admissions.flatMap((admission) => admission.units.map((unit) => unit.name))).slice(0, 10);
+  const methodSummaries = uniqueBriefItems(
+    admissions.map((admission) => compactBriefText(admission.method, 110)).filter(Boolean),
+  ).slice(0, 3);
+  const practicalSummaries = uniqueBriefItems(
+    admissions
+      .filter((admission) => hasPositivePracticalMethod(admission.method))
+      .map((admission) => compactBriefText(admission.practicalSummary, 110)),
+  ).slice(0, 3);
+
+  return {
+    stats: [
+      { label: "정시 전형", value: `${admissions.length}개` },
+      {
+        label: "모집단위",
+        value: `${admissions.reduce((sum, admission) => sum + admission.units.length, 0)}개`,
+      },
+      { label: "실기 반영", value: `${admissions.filter((admission) => hasPositivePracticalMethod(admission.method)).length}개` },
+      { label: "공식 링크", value: school.regularDetailUrl ? "연결" : "확인 필요" },
+    ],
+    groups: [
+      { label: "모집단위", items: units },
+      { label: "전형방법", items: methodSummaries },
+      { label: "실기 반영 힌트", items: practicalSummaries },
+    ].filter((group) => group.items.length > 0),
+  };
 }
 
 export function generateStaticParams() {
@@ -324,6 +411,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
           <div className={styles.kusfSchoolStack}>
             {sortedSchools.map((school, index) => {
               const trackCount = isEarly ? school.earlyAdmissions.length : school.regularAdmissions.length;
+              const schoolBrief = isEarly ? getEarlySchoolBrief(school) : getRegularSchoolBrief(school);
 
               return (
                 <details
@@ -340,6 +428,35 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                   </summary>
 
                   <div className={styles.trackOnlyBody}>
+                    {trackCount > 0 ? (
+                      <div
+                        className={styles.schoolTrackBrief}
+                        aria-label={`${getSchoolDisplayName(school)} ${track.label} 핵심 요약`}
+                      >
+                        <dl className={styles.schoolTrackBriefStats}>
+                          {schoolBrief.stats.map((stat) => (
+                            <div key={stat.label}>
+                              <dt>{stat.label}</dt>
+                              <dd>{stat.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                        {schoolBrief.groups.length ? (
+                          <div className={styles.schoolTrackBriefGroups}>
+                            {schoolBrief.groups.map((group) => (
+                              <div className={styles.schoolTrackBriefGroup} key={group.label}>
+                                <strong>{group.label}</strong>
+                                <ul className={styles.schoolTrackChipList}>
+                                  {group.items.map((item) => (
+                                    <li key={item}>{item}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
                     {isEarly ? (
                       school.earlyAdmissions.length ? (
                         <div className={styles.kusfAdmissionList}>
