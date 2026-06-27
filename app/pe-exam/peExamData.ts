@@ -350,8 +350,42 @@ export function getPeExamRegionTrackHref(region: PeExamRegionName, track: PeExam
   return `${getPeExamRegionHref(region)}/${track}`;
 }
 
+function slugSafePart(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function createPeExamSchoolSlug(school: { readonly code: string; readonly name: string }, index: number) {
+  const codePart = slugSafePart(school.code);
+  return `${codePart || "school"}-${index + 1}`;
+}
+
+export function getPeExamSchoolTrackHref(
+  region: PeExamRegionName,
+  track: PeExamAdmissionTrackKey,
+  schoolSlug: string,
+) {
+  return `${getPeExamRegionTrackHref(region, track)}/${schoolSlug}`;
+}
+
 export function getPeExamRegionNameBySlug(slug: string) {
   return peExamRegionNames.find((region) => peExamRegionSlugs[region] === slug);
+}
+
+export function getPeExamRegionDetailBySlug(slug: string) {
+  const regionName = getPeExamRegionNameBySlug(slug);
+  if (!regionName) return undefined;
+  return peExamRegionDetails.find((region) => region.region === regionName);
+}
+
+export function getPeExamSchoolDetailBySlug(regionSlug: string, schoolSlug: string) {
+  const region = getPeExamRegionDetailBySlug(regionSlug);
+  if (!region) return undefined;
+
+  const school = region.universities.find((item) => item.slug === schoolSlug);
+  return school ? { region, school } : undefined;
 }
 
 const regionOverviewCopy: Record<PeExamRegionName, string> = {
@@ -751,7 +785,10 @@ export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
         text: "ADIGA 정시 예체능계열 모집인원 표에 연결된 전형 행이 없습니다. 정시 모집요강 또는 대학 입학처 공지를 직접 확인합니다.",
       },
     }));
-  const universities = [...group.universities, ...catalogOnlyUniversities];
+  const universities = [...group.universities, ...catalogOnlyUniversities].map((school, index) => ({
+    ...school,
+    slug: createPeExamSchoolSlug(school, index),
+  }));
   const earlyAdmissionCount = group.universities.reduce((sum, school) => sum + school.earlyAdmissions.length, 0);
   const regularAdmissionCount = group.universities.reduce((sum, school) => sum + school.regularAdmissions.length, 0);
   const practicalDetailCount = group.universities.reduce(

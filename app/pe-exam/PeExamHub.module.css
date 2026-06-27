@@ -1112,6 +1112,16 @@
   line-height: 1.35;
 }
 
+.universityJumpCard small {
+  display: block;
+  min-width: 0;
+  color: #6d777c;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .trackOnlyBody {
   min-width: 0;
   padding: 0 16px 16px;
@@ -1254,7 +1264,7 @@
 
 .regularResultItem dl {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   gap: 8px;
   margin: 0;
 }
@@ -1348,6 +1358,58 @@
   height: 5px;
   border-radius: 50%;
   background: var(--teal);
+}
+
+.schoolDetailStack {
+  display: grid;
+  gap: 12px;
+}
+
+.practicalRecordPanel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8ef;
+}
+
+.practicalRecordPanel > strong {
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.practicalRecordGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.practicalRecordGrid div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.practicalRecordGrid dt {
+  margin-bottom: 4px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.practicalRecordGrid dd {
+  margin: 0;
+  color: #526167;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .featuredGrid {

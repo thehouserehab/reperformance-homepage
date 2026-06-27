@@ -4,6 +4,10 @@
   gap: 18px;
 }
 
+.recoverySection {
+  background: #f7f9fc;
+}
+
 .card {
   display: grid;
   align-content: start;
@@ -64,5 +68,150 @@
   .card {
     min-height: auto;
     padding: 24px;
+  }
+}
+
+.findAccountPanel {
+  display: grid;
+  gap: 18px;
+}
+
+.findAccountTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.findAccountTabs button {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #d9ddd8;
+  border-radius: 999px;
+  background: #fff;
+  color: #17191d;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.findAccountTabs button[aria-pressed="true"] {
+  border-color: #087b72;
+  background: #087b72;
+  color: #fff;
+}
+
+.findAccountGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.findAccountCard {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+}
+
+.findAccountCard h2 {
+  margin: 0;
+  color: #17191d;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.16;
+}
+
+.findAccountCard p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.7;
+}
+
+.findAccountCard label {
+  display: grid;
+  gap: 6px;
+  color: #17191d;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.findAccountCard input {
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  background: #fff;
+  color: #17191d;
+  font: inherit;
+}
+
+.findAccountCard button[type="submit"] {
+  min-height: 50px;
+  margin-top: 4px;
+  border: 1px solid #087b72;
+  border-radius: 999px;
+  background: #087b72;
+  color: #fff;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.findAccountCard button[type="submit"]:disabled {
+  border-color: #cfd6d3;
+  background: #d9ddd8;
+  color: #69706d;
+  cursor: not-allowed;
+}
+
+.findAccountStatus,
+.findAccountResult {
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.findAccountStatus strong,
+.findAccountResult strong {
+  color: #17191d;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.findAccountStatus span,
+.findAccountResult span {
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.findAccountStatus[data-tone="good"] {
+  border-color: #b8d8d1;
+  background: #e8f2f1;
+}
+
+.findAccountStatus[data-tone="warn"] {
+  border-color: #e5c38a;
+  background: #fff6e7;
+}
+
+.findAccountStatus[data-tone="error"] {
+  border-color: #e4b8b8;
+  background: #fff0f0;
+}
+
+@media (max-width: 900px) {
+  .findAccountGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .findAccountCard {
+    padding: 22px;
   }
 }
