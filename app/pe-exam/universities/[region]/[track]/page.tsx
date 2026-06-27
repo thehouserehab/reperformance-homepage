@@ -47,6 +47,48 @@ function getSchoolAnchorId(
   return `school-${school.code}-${index}`;
 }
 
+function getEarlyStatusBadges(
+  admission: (typeof peExamRegionDetails)[number]["universities"][number]["earlyAdmissions"][number],
+) {
+  return [
+    {
+      label: admission.practicalTasks.length ? `실기 종목 ${admission.practicalTasks.length}개` : "실기 종목 확인 필요",
+      tone: admission.practicalTasks.length ? "good" : "warn",
+    },
+    {
+      label: admission.hasPracticalDetail ? "기록 기준 상세" : "기록 기준 확인 필요",
+      tone: admission.hasPracticalDetail ? "good" : "warn",
+    },
+    {
+      label: admission.hasGradeDetail ? "등급 산출 상세" : "등급·입결 확인 필요",
+      tone: admission.hasGradeDetail ? "good" : "warn",
+    },
+    {
+      label: admission.minimumCriteriaSummary ? "수능최저 확인" : "수능최저 별도 확인",
+      tone: admission.minimumCriteriaSummary ? "neutral" : "muted",
+    },
+  ] as const;
+}
+
+function getRegularStatusBadges(
+  admission: (typeof peExamRegionDetails)[number]["universities"][number]["regularAdmissions"][number],
+) {
+  return [
+    {
+      label: admission.units.length ? `모집단위 ${admission.units.length}개` : "모집단위 확인 필요",
+      tone: admission.units.length ? "good" : "warn",
+    },
+    {
+      label: admission.method.includes("실기") ? "실기 반영 확인" : "실기 반영 없음",
+      tone: admission.method.includes("실기") ? "neutral" : "muted",
+    },
+    {
+      label: "등급·입결 별도 확인",
+      tone: "warn",
+    },
+  ] as const;
+}
+
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.map((track) => ({
@@ -253,6 +295,13 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                             <article className={styles.kusfAdmissionItem} key={earlyAdmissionKey(admission)}>
                               <strong>{admission.unit}</strong>
                               <span>{admission.admissionName}</span>
+                              <div className={styles.dataStatusBadges} aria-label="자료 상태">
+                                {getEarlyStatusBadges(admission).map((badge) => (
+                                  <em data-tone={badge.tone} key={badge.label}>
+                                    {badge.label}
+                                  </em>
+                                ))}
+                              </div>
                               <dl>
                                 <div>
                                   <dt>전형유형</dt>
@@ -323,6 +372,13 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                               <article className={styles.kusfAdmissionItem} key={admission.rowId}>
                                 <strong>{admission.admissionName}</strong>
                                 <span>{admission.unitSummary}</span>
+                                <div className={styles.dataStatusBadges} aria-label="자료 상태">
+                                  {getRegularStatusBadges(admission).map((badge) => (
+                                    <em data-tone={badge.tone} key={badge.label}>
+                                      {badge.label}
+                                    </em>
+                                  ))}
+                                </div>
                                 <dl>
                                   <div>
                                     <dt>전형유형</dt>
