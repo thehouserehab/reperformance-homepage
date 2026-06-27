@@ -672,6 +672,16 @@ export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
       ),
     0,
   );
+  const regularResultRowCount = group.universities.reduce(
+    (sum, school) => sum + (school.regularSelectionDetail?.resultRows.length || 0),
+    0,
+  );
+  const regularResultSchoolCount = group.universities.filter(
+    (school) => school.regularSelectionDetail?.hasResultTable,
+  ).length;
+  const regularCriteriaSchoolCount = group.universities.filter(
+    (school) => school.regularSelectionDetail?.hasCriteria,
+  ).length;
 
   return {
     ...group,
@@ -687,6 +697,9 @@ export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {
     practicalDetailCount,
     gradeDetailCount,
     regularUnitCount,
+    regularResultRowCount,
+    regularResultSchoolCount,
+    regularCriteriaSchoolCount,
   };
 });
 

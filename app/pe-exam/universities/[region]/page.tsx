@@ -90,8 +90,8 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
               <strong>{region.regularAdmissionCount}개</strong>
             </div>
             <div>
-              <span>실기 상세</span>
-              <strong>{region.practicalDetailCount}개</strong>
+              <span>정시 입결</span>
+              <strong>{region.regularResultRowCount}건</strong>
             </div>
           </aside>
         </div>
@@ -110,7 +110,10 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
             </article>
             <article>
               <strong>정시 먼저 보기</strong>
-              <p>ADIGA 2027학년도 정시 예체능계열 기준으로 전형방법, 모집단위, 수능·실기 확인 지점을 봅니다.</p>
+              <p>
+                ADIGA 2027학년도 정시 예체능계열 기준으로 전형방법, 모집단위,
+                {region.regularResultRowCount}건의 전년도 입결 요약을 함께 봅니다.
+              </p>
             </article>
           </div>
 
@@ -120,6 +123,8 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
               const admissionCount = isEarly ? region.earlyAdmissionCount : region.regularAdmissionCount;
               const detailCount = isEarly ? region.practicalDetailCount : region.regularUnitCount;
               const detailLabel = isEarly ? "실기 상세" : "모집단위";
+              const evidenceCount = isEarly ? region.gradeDetailCount : region.regularResultRowCount;
+              const evidenceLabel = isEarly ? "등급 상세" : "입결 행";
 
               return (
                 <article className={styles.admissionChoiceCard} key={track.key}>
@@ -140,6 +145,10 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
                     <div>
                       <dt>{detailLabel}</dt>
                       <dd>{detailCount}개</dd>
+                    </div>
+                    <div>
+                      <dt>{evidenceLabel}</dt>
+                      <dd>{evidenceCount}{isEarly ? "개" : "건"}</dd>
                     </div>
                     <div>
                       <dt>기준 자료</dt>
