@@ -948,6 +948,63 @@
   color: #fff;
 }
 
+.trackSourceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.trackSourceGrid article {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid #d9e1ea;
+  border-top: 4px solid var(--teal-dark);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.trackSourceGrid span {
+  display: block;
+  margin-bottom: 8px;
+  color: #c28032;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.trackSourceGrid h2 {
+  margin-bottom: 8px;
+  color: var(--navy);
+  font-size: clamp(21px, 2.4vw, 28px);
+  line-height: 1.25;
+}
+
+.trackSourceGrid p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.trackSourceGrid a {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid var(--teal-dark);
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.trackSourceGrid a:hover {
+  background: var(--teal-dark);
+  color: #fff;
+}
+
 .trackSummaryPanel {
   display: grid;
   gap: 16px;
@@ -1541,6 +1598,7 @@
   .regionDetailStats,
   .regionDetailGuide,
   .admissionChoiceGrid,
+  .trackSourceGrid,
   .trackSummaryStats,
   .universityJumpGrid,
   .roadmapList,

@@ -3,10 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "../../../../_components/SiteChrome";
 import {
+  adigaRegularAdmissionMeta,
   catalogMeta,
   getPeExamAdmissionTrackBySlug,
   getPeExamRegionNameBySlug,
   getPeExamRegionTrackHref,
+  kusfAdmissionDetailMeta,
+  kusfAdmissionMeta,
   peExamAdmissionTracks,
   peExamRegionDetails,
   sourceLinks,
@@ -45,6 +48,13 @@ function getSchoolAnchorId(
   index: number,
 ) {
   return `school-${school.code}-${index}`;
+}
+
+function formatSourceDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function getEarlyStatusBadges(
@@ -137,6 +147,35 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
     isEarly ? school.earlyAdmissions.length > 0 : school.regularAdmissions.length > 0,
   );
   const schoolsWithoutTrack = sortedSchools.length - schoolsWithTrack.length;
+  const sourceCards = isEarly
+    ? [
+        {
+          label: "KUSF 수시 요약",
+          title: `${region.earlyAdmissionCount}개 수시 전형`,
+          text: `${kusfAdmissionMeta.schoolYear}학년도 수시 일반전형 요약입니다. 생성 기준일은 ${formatSourceDate(kusfAdmissionMeta.generatedAt)}입니다.`,
+          href: kusfAdmissionMeta.sourceUrl,
+        },
+        {
+          label: "KUSF 실기·등급 상세",
+          title: `실기 상세 ${region.practicalDetailCount}개 · 등급 상세 ${region.gradeDetailCount}개`,
+          text: `${formatSourceDate(kusfAdmissionDetailMeta.generatedAt)} 기준 상세 탭 연결 자료입니다. 종목별 만점 기록표는 모집요강 PDF에서 추가 확인이 필요할 수 있습니다.`,
+          href: kusfAdmissionDetailMeta.sourceUrl,
+        },
+      ]
+    : [
+        {
+          label: "ADIGA 정시 전형방법",
+          title: `${region.regularAdmissionCount}개 정시 전형 · ${region.regularUnitCount}개 모집단위`,
+          text: `${adigaRegularAdmissionMeta.schoolYear}학년도 정시 예체능계열 전형방법 요약입니다. 생성 기준일은 ${formatSourceDate(adigaRegularAdmissionMeta.generatedAt)}입니다.`,
+          href: adigaRegularAdmissionMeta.sourceUrl,
+        },
+        {
+          label: "등급·입결 확인",
+          title: "공식 탭 별도 확인",
+          text: "정시 전년도 입결 세부값과 종목별 기록표는 ADIGA 평가기준·입시결과 탭과 대학별 모집요강에서 이어서 확인합니다.",
+          href: sourceLinks[1].href,
+        },
+      ];
 
   return (
     <PageShell>
@@ -226,6 +265,19 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
             <strong>확인 기준</strong>
             <p>{catalogMeta.note}</p>
           </div>
+
+          <section className={styles.trackSourceGrid} aria-label={`${region.region} ${track.label} 공식 자료 기준`}>
+            {sourceCards.map((source) => (
+              <article key={source.label}>
+                <span>{source.label}</span>
+                <h2>{source.title}</h2>
+                <p>{source.text}</p>
+                <a href={source.href} rel="noopener noreferrer" target="_blank">
+                  공식 자료 확인
+                </a>
+              </article>
+            ))}
+          </section>
 
           <section className={styles.trackSummaryPanel} aria-label={`${region.region} ${track.label} 대학 바로가기`}>
             <div className={styles.trackSummaryHead}>
