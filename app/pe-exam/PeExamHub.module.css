@@ -902,6 +902,113 @@
   color: #fff;
 }
 
+.trackSummaryPanel {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+  padding: 22px 0;
+  border-top: 1px solid #d9e1ea;
+  border-bottom: 1px solid #d9e1ea;
+}
+
+.trackSummaryHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+  gap: 18px;
+  align-items: end;
+}
+
+.trackSummaryHead h2 {
+  margin-bottom: 10px;
+  color: var(--navy);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.2;
+}
+
+.trackSummaryHead p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.trackSummaryStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.trackSummaryStats div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.trackSummaryStats dt {
+  margin-bottom: 4px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.trackSummaryStats dd {
+  margin: 0;
+  color: var(--navy);
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.universityJumpGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.universityJumpCard {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  padding: 13px;
+  border: 1px solid #d9e1ea;
+  border-left: 3px solid var(--teal-dark);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+}
+
+.universityJumpCard:hover {
+  border-color: var(--teal-dark);
+  background: #eef7f6;
+}
+
+.universityJumpCard[data-empty="true"] {
+  border-left-color: #c28032;
+}
+
+.universityJumpCard strong {
+  color: var(--navy);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.universityJumpCard span {
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.universityJumpCard em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
 .trackOnlyBody {
   min-width: 0;
   padding: 0 16px 16px;
@@ -1295,6 +1402,7 @@
   .catalogStats,
   .schoolList,
   .regionSchoolList,
+  .universityJumpGrid,
   .universityScopeGrid,
   .regionDetailGuide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1331,6 +1439,7 @@
   .trackGrid,
   .regionOverviewGrid,
   .kusfDataHead,
+  .trackSummaryHead,
   .kusfTrackGrid {
     grid-template-columns: 1fr;
   }
@@ -1386,6 +1495,8 @@
   .regionDetailStats,
   .regionDetailGuide,
   .admissionChoiceGrid,
+  .trackSummaryStats,
+  .universityJumpGrid,
   .roadmapList,
   .kusfAdmissionItem dl,
   .aiPanel > div {

@@ -36,6 +36,17 @@ function earlyAdmissionKey(admission: (typeof peExamRegionDetails)[number]["univ
   ].join("-");
 }
 
+function getSchoolDisplayName(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
+  return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
+}
+
+function getSchoolAnchorId(
+  school: (typeof peExamRegionDetails)[number]["universities"][number],
+  index: number,
+) {
+  return `school-${school.code}-${index}`;
+}
+
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.map((track) => ({
@@ -80,6 +91,10 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
     const bCount = isEarly ? b.earlyAdmissions.length : b.regularAdmissions.length;
     return bCount - aCount || a.name.localeCompare(b.name, "ko");
   });
+  const schoolsWithTrack = sortedSchools.filter((school) =>
+    isEarly ? school.earlyAdmissions.length > 0 : school.regularAdmissions.length > 0,
+  );
+  const schoolsWithoutTrack = sortedSchools.length - schoolsWithTrack.length;
 
   return (
     <PageShell>
@@ -170,17 +185,61 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
             <p>{catalogMeta.note}</p>
           </div>
 
+          <section className={styles.trackSummaryPanel} aria-label={`${region.region} ${track.label} 대학 바로가기`}>
+            <div className={styles.trackSummaryHead}>
+              <div>
+                <p className="eyebrow">UNIVERSITY INDEX</p>
+                <h2>{region.region} {track.label} 대학 바로가기</h2>
+                <p>
+                  대학 이름을 누르면 해당 대학의 {track.label} 전형 카드로 이동합니다. 공식 자료에 전형 행이 없는
+                  대학도 목록에 남겨 별도 모집요강 확인 대상으로 구분했습니다.
+                </p>
+              </div>
+              <dl className={styles.trackSummaryStats}>
+                <div>
+                  <dt>전형 행 있음</dt>
+                  <dd>{schoolsWithTrack.length}개</dd>
+                </div>
+                <div>
+                  <dt>별도 확인</dt>
+                  <dd>{schoolsWithoutTrack}개</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className={styles.universityJumpGrid}>
+              {sortedSchools.map((school, index) => {
+                const trackCount = isEarly ? school.earlyAdmissions.length : school.regularAdmissions.length;
+
+                return (
+                  <a
+                    className={styles.universityJumpCard}
+                    data-empty={trackCount === 0 ? "true" : undefined}
+                    href={`#${getSchoolAnchorId(school, index)}`}
+                    key={`${school.code}-${index}`}
+                  >
+                    <strong>{getSchoolDisplayName(school)}</strong>
+                    <span>{school.area} · {school.schoolType}</span>
+                    <em>{trackCount > 0 ? `${track.label} 전형 ${trackCount}개` : "공식 전형 행 없음"}</em>
+                  </a>
+                );
+              })}
+            </div>
+          </section>
+
           <div className={styles.kusfSchoolStack}>
             {sortedSchools.map((school, index) => {
               const trackCount = isEarly ? school.earlyAdmissions.length : school.regularAdmissions.length;
 
               return (
-                <details className={styles.kusfSchoolCard} key={school.code} open={index < 4 && trackCount > 0}>
+                <details
+                  className={styles.kusfSchoolCard}
+                  id={getSchoolAnchorId(school, index)}
+                  key={`${school.code}-${index}`}
+                  open={index < 4 && trackCount > 0}
+                >
                   <summary>
-                    <span>
-                      {school.name}
-                      {school.campus ? ` ${school.campus}` : ""}
-                    </span>
+                    <span>{getSchoolDisplayName(school)}</span>
                     <strong>
                       {school.area} · {school.schoolType} · {track.label} {trackCount}개
                     </strong>
