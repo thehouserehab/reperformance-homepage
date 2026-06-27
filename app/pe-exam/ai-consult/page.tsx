@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionCookie } from "../../../lib/rpAdminAuth";
 import { PageShell } from "../../_components/SiteChrome";
+import PeExamAiConsultClient from "./PeExamAiConsultClient";
 import styles from "./PeExamAiConsult.module.css";
 
 export const dynamic = "force-dynamic";
@@ -12,9 +13,6 @@ export const metadata: Metadata = {
   description:
     "로그인 회원이 성적, 실기 기록, 희망 대학을 정리해 향후 AI 체대입시 상담 기능 도입에 대비하는 RePERFORMANCE 제한 공개 페이지입니다.",
 };
-
-const gradeLevels = ["고1", "고2", "고3", "N수", "기타"] as const;
-const admissionTracks = ["공통", "수시", "정시"] as const;
 
 const statusMessages: Record<string, { title: string; text: string }> = {
   success: {
@@ -59,13 +57,13 @@ export default async function PeExamAiConsultPage({
             <h1>AI 체대입시 상담 준비</h1>
             <p>
               로그인 회원이 성적, 실기 기록, 희망 대학을 미리 정리하는 제한 공개 페이지입니다.
-              자동 분석 기능은 도입 예정이며, 지금은 상담 준비 자료로 안전하게 저장합니다.
+              지금은 입력값을 바탕으로 상담 준비 방향을 즉시 정리하고, 향후 AI 정밀 상담 기능으로 확장합니다.
             </p>
           </div>
 
           <aside className={styles.statusPanel} aria-label="AI 상담 도입 상태">
-            <strong>도입 예정</strong>
-            <p>현재 단계에서는 AI가 즉시 합격 가능성이나 지원 대학을 단정하지 않습니다.</p>
+            <strong>제한 공개</strong>
+            <p>현재 단계에서는 합격 가능성을 단정하지 않고, 수시·정시 준비 방향과 확인 우선순위를 정리합니다.</p>
             <p>입력 자료는 향후 AI 상담 기능과 실제 체대입시 상담의 기초 정보로 활용됩니다.</p>
           </aside>
         </div>
@@ -91,99 +89,7 @@ export default async function PeExamAiConsultPage({
             )}
 
             {session ? (
-              <form className={styles.form} action="/api/rp/pe-exam-ai-consult" method="post">
-                <div className={styles.fieldGrid}>
-                  <label>
-                    학년
-                    <select name="gradeLevel" defaultValue="고3">
-                      {gradeLevels.map((grade) => (
-                        <option key={grade} value={grade}>
-                          {grade}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label>
-                    준비 구분
-                    <select name="admissionTrack" defaultValue="공통">
-                      {admissionTracks.map((track) => (
-                        <option key={track} value={track}>
-                          {track}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <div className={styles.fieldGrid}>
-                  <label>
-                    희망 대학
-                    <input name="targetUniversity" placeholder="예: 한국체육대학교, 전북대학교" type="text" />
-                  </label>
-
-                  <label>
-                    희망 학과/계열
-                    <input name="targetDepartment" placeholder="예: 체육교육과, 스포츠과학과" type="text" />
-                  </label>
-                </div>
-
-                <label>
-                  내신 현황
-                  <textarea
-                    name="schoolGrade"
-                    placeholder="예: 주요 교과 평균 3.2등급, 체육 관련 활동, 출결 특이사항"
-                    rows={4}
-                  />
-                </label>
-
-                <label>
-                  수능/모의고사 현황
-                  <textarea
-                    name="mockExam"
-                    placeholder="예: 국어 4, 수학 5, 영어 3, 탐구 평균 4 / 최근 모의고사 기준"
-                    rows={4}
-                  />
-                </label>
-
-                <label>
-                  실기 종목별 현재 기록
-                  <textarea
-                    name="practicalRecords"
-                    placeholder="예: 제자리멀리뛰기 245cm, 10m 왕복 8.8초, 메디신볼 9.2m"
-                    rows={5}
-                  />
-                </label>
-
-                <label>
-                  운동 가능 시간과 준비 상황
-                  <textarea
-                    name="trainingContext"
-                    placeholder="예: 주 4회, 회당 90분 가능 / 학원 수업 병행 / 실기 시작 3개월차"
-                    rows={4}
-                  />
-                </label>
-
-                <label>
-                  부상·컨디션 메모
-                  <textarea
-                    name="injuryNote"
-                    placeholder="예: 발목 염좌 이력, 허리 불편, 최근 컨디션 저하 등"
-                    rows={3}
-                  />
-                </label>
-
-                <label>
-                  상담에서 가장 알고 싶은 것
-                  <textarea
-                    name="questionFocus"
-                    placeholder="예: 수시/정시 중 어디에 집중해야 하는지, 목표 대학을 낮춰야 하는지"
-                    rows={5}
-                  />
-                </label>
-
-                <button type="submit">AI 상담 사전 입력 저장</button>
-              </form>
+              <PeExamAiConsultClient />
             ) : (
               <div className={styles.loginNotice}>
                 <strong>로그인 회원만 이용할 수 있습니다.</strong>
