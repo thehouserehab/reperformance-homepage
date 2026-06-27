@@ -105,10 +105,14 @@ function getRegularStatusBadges(admission: RegularAdmission) {
 function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readonly string[]) {
   if (!tasks.length && !criteriaItems.length) return [];
   if (!tasks.length) {
-    return criteriaItems.map((item, index) => ({
-      event: index === 0 ? "실기 기준" : `실기 기준 ${index + 1}`,
-      standard: item,
-    }));
+    return criteriaItems.map((item, index) => {
+      const isRatioOnly = /^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
+
+      return {
+        event: isRatioOnly ? "실기 반영 비율" : index === 0 ? "실기 기준" : `실기 기준 ${index + 1}`,
+        standard: isRatioOnly ? `${item} · 종목별 기록 기준은 공식 모집요강 확인` : item,
+      };
+    });
   }
 
   return tasks.map((task, index) => {
@@ -285,7 +289,7 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
                     </dl>
                     {recordRows.length ? (
                       <div className={styles.practicalRecordPanel}>
-                        <strong>입시종목별 기록 기준</strong>
+                        <strong>입시종목별 기록 기준·실기 반영</strong>
                         <dl className={styles.practicalRecordGrid}>
                           {recordRows.map((row, rowIndex) => (
                             <div key={`${admission.admissionName}-${row.event}-${rowIndex}`}>
@@ -346,7 +350,7 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
                       </dl>
                       {recordRows.length ? (
                         <div className={styles.practicalRecordPanel}>
-                          <strong>입시종목별 기록 기준</strong>
+                          <strong>입시종목별 기록 기준·실기 반영</strong>
                           <dl className={styles.practicalRecordGrid}>
                             {recordRows.map((row, rowIndex) => (
                               <div key={`${admission.admissionName}-${row.event}-${rowIndex}`}>
