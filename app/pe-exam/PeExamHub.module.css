@@ -1299,6 +1299,75 @@
   line-height: 1.55;
 }
 
+.officialCheckPanel {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 20px;
+  border: 1px solid #d9e1ea;
+  border-top: 4px solid var(--teal-dark);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.officialCheckPanel h2 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.2;
+}
+
+.officialCheckPanel p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.officialCheckPanel ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 22px;
+  color: var(--navy);
+  font-weight: 850;
+  line-height: 1.55;
+}
+
+.officialCheckLinks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.officialCheckLinks a {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #d7e3e0;
+  border-radius: 8px;
+  background: #fbfefd;
+}
+
+.officialCheckLinks strong {
+  color: var(--teal-dark);
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.officialCheckLinks span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.officialCheckLinks a:hover {
+  border-color: var(--teal-dark);
+  background: #eef8f6;
+}
+
 .schoolTrackBrief {
   display: grid;
   gap: 12px;
@@ -1976,6 +2045,7 @@
   .universityIndexControls,
   .schoolTrackBriefGroup,
   .schoolDataGuide,
+  .officialCheckLinks,
   .kusfTrackGrid {
     grid-template-columns: 1fr;
   }

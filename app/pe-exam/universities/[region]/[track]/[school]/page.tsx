@@ -35,6 +35,11 @@ type RegularResultRow = {
   readonly englishGrade70: string;
   readonly note: string;
 };
+type OfficialCheckLink = {
+  readonly label: string;
+  readonly href: string;
+  readonly text: string;
+};
 
 function getSchoolDisplayName(school: RegionSchool) {
   return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
@@ -204,6 +209,16 @@ function hasResolvedPracticalStandard(row: { readonly standard: string }) {
   return !row.standard.includes("공식 모집요강") && !row.standard.includes("확인");
 }
 
+function uniqueOfficialLinks(links: readonly OfficialCheckLink[]) {
+  const seen = new Set<string>();
+
+  return links.filter((link) => {
+    if (!link.href || seen.has(link.href)) return false;
+    seen.add(link.href);
+    return true;
+  });
+}
+
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.flatMap((track) =>
@@ -285,6 +300,49 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
   const sourceCoverageText = isEarly
     ? "KUSF 대학별 전형 상세를 기준으로 수시 반영요소와 실기 기준을 연결했습니다."
     : "ADIGA 모집인원, 평가기준, 입시결과 탭을 기준으로 정시 자료를 연결했습니다.";
+  const directSourceLinks = isEarly
+    ? earlyAdmissions
+        .filter((admission) => admission.detailUrl)
+        .map((admission) => ({
+          label: `${admission.unit || admission.admissionName} 상세`,
+          href: admission.detailUrl,
+          text: "KUSF 상세 탭에서 반영요소, 실기 기준, 수능최저를 재확인합니다.",
+        }))
+    : school.regularDetailUrl
+      ? [
+          {
+            label: "ADIGA 평가기준·입시결과",
+            href: school.regularDetailUrl,
+            text: "정시 모집단위, 평가기준, 전년도 입시결과 표 원문을 확인합니다.",
+          },
+        ]
+      : [];
+  const officialCheckLinks = uniqueOfficialLinks([
+    ...directSourceLinks.slice(0, 4),
+    {
+      label: isEarly ? "KUSF 체육특기자대입포털" : "대입정보포털 어디가",
+      href: (isEarly ? sourceLinks[2] : sourceLinks[1]).href,
+      text: isEarly
+        ? "대학별 체육관련학과 수시 전형과 실기 상세를 검색합니다."
+        : "대학·학과·전형 검색에서 최신 모집요강과 정시 입결 탭을 확인합니다.",
+    },
+    {
+      label: "EBSi 대입정보",
+      href: sourceLinks[3].href,
+      text: "학년도별 시행계획, 전형 일정, 대학별 공지 변동을 교차 확인합니다.",
+    },
+  ]);
+  const officialCheckSteps = isEarly
+    ? [
+        "수시 전형명, 모집단위, 모집인원이 현재 모집요강과 같은지 확인",
+        "실기 종목별 기록표, 만점 기준, 결시·실격 기준 확인",
+        "학생부 반영 방식, 석차등급 산출, 수능최저 유무 확인",
+      ]
+    : [
+        "정시 모집군, 모집단위, 수능 반영 영역과 비율 확인",
+        "실기 반영 여부, 종목별 기록표, 배점표 확인",
+        "전년도 70% 평균백분위, 영어 등급, 환산점수와 공식 입결 표 확인",
+      ];
 
   return (
     <PageShell>
@@ -358,6 +416,30 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
               <span>공식 자료 기준</span>
               <strong>{track.sourceLabel}</strong>
               <p>{sourceCoverageText}</p>
+            </div>
+          </section>
+
+          <section className={styles.officialCheckPanel} aria-label={`${schoolName} ${track.label} 공식 확인 순서`}>
+            <div>
+              <p className="eyebrow">OFFICIAL CHECK</p>
+              <h2>공식 모집요강에서 마지막으로 확인할 항목</h2>
+              <p>
+                아래 자료는 지원 판단의 출발점입니다. 원서접수 전에는 대학 입학처와 공식 포털에서
+                모집요강, 실기 기록표, 등급·입결 표를 다시 확인합니다.
+              </p>
+            </div>
+            <ol>
+              {officialCheckSteps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+            <div className={styles.officialCheckLinks}>
+              {officialCheckLinks.map((link) => (
+                <a href={link.href} key={link.href} rel="noopener noreferrer" target="_blank">
+                  <strong>{link.label}</strong>
+                  <span>{link.text}</span>
+                </a>
+              ))}
             </div>
           </section>
 
