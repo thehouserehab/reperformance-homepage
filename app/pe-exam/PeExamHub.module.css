@@ -1064,6 +1064,77 @@
   line-height: 1.1;
 }
 
+.universityIndexTool {
+  display: grid;
+  gap: 12px;
+}
+
+.universityIndexControls {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.universitySearchLabel {
+  display: grid;
+  gap: 7px;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.universitySearchLabel input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid #cbd7df;
+  border-radius: 8px;
+  padding: 0 13px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.universitySearchLabel input:focus {
+  outline: 2px solid rgba(15, 118, 110, 0.22);
+  outline-offset: 2px;
+}
+
+.universityFilterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.universityFilterGroup button {
+  min-height: 38px;
+  border: 1px solid #d9e1ea;
+  border-radius: 999px;
+  padding: 0 13px;
+  background: #fff;
+  color: #526167;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.universityFilterGroup button[aria-pressed="true"] {
+  border-color: var(--teal-dark);
+  background: var(--teal-dark);
+  color: #fff;
+}
+
+.universityResultMeta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .universityJumpGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1151,6 +1222,27 @@
   font-weight: 750;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+.universityEmptyState {
+  display: grid;
+  gap: 6px;
+  padding: 24px;
+  border: 1px dashed #cbd7df;
+  border-radius: 8px;
+  background: #fff;
+  text-align: center;
+}
+
+.universityEmptyState strong {
+  color: var(--navy);
+  font-size: 17px;
+}
+
+.universityEmptyState span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 750;
 }
 
 .trackOnlyBody {
@@ -1840,6 +1932,7 @@
   .regionOverviewGrid,
   .kusfDataHead,
   .trackSummaryHead,
+  .universityIndexControls,
   .schoolTrackBriefGroup,
   .kusfTrackGrid {
     grid-template-columns: 1fr;
@@ -1907,10 +2000,15 @@
   .trackSourceGrid,
   .trackSummaryStats,
   .universityJumpGrid,
+  .universityMiniStats,
   .roadmapList,
   .kusfAdmissionItem dl,
   .aiPanel > div {
     grid-template-columns: 1fr;
+  }
+
+  .universityFilterGroup button {
+    flex: 1 1 calc(50% - 7px);
   }
 
   .catalogNotice,

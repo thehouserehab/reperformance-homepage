@@ -17,6 +17,7 @@ import {
   sourceLinks,
 } from "../../../peExamData";
 import styles from "../../../PeExamHub.module.css";
+import PeExamUniversityIndexClient from "./PeExamUniversityIndexClient";
 
 type TrackPageProps = {
   params: Promise<{
@@ -215,6 +216,36 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
           href: adigaRegularSelectionMeta.sourceUrl,
         },
       ];
+  const universityCards = sortedSchools.map((school) => {
+    const trackCount = isEarly ? school.earlyAdmissions.length : school.regularAdmissions.length;
+    const schoolBrief = isEarly ? getEarlySchoolBrief(school) : getRegularSchoolBrief(school);
+    const hasPracticalTarget = isEarly
+      ? school.earlyAdmissions.some(hasEarlyPracticalRequirement)
+      : school.regularAdmissions.some((admission) => hasPositivePracticalMethod(admission.method));
+    const hasResultDetail = isEarly
+      ? school.earlyAdmissions.some((admission) => admission.hasGradeDetail)
+      : Boolean(school.regularSelectionDetail?.hasResultTable);
+    const preview = schoolBrief.groups[0]?.items.slice(0, 3).join(" · ") || "";
+    const name = getSchoolDisplayName(school);
+    const meta = `${school.area} · ${school.schoolType}`;
+
+    return {
+      href: getPeExamSchoolTrackHref(region.region, track.key, school.slug),
+      name,
+      meta,
+      statusLabel: trackCount > 0 ? `${track.label} 전형 ${trackCount}개` : "공식 전형 행 없음",
+      isEmpty: trackCount === 0,
+      stats: trackCount > 0 ? schoolBrief.stats : [],
+      preview,
+      searchText: [name, meta, school.area, school.schoolType, preview].join(" "),
+      flags: {
+        active: trackCount > 0,
+        practical: hasPracticalTarget,
+        result: hasResultDetail,
+        empty: trackCount === 0,
+      },
+    };
+  });
 
   return (
     <PageShell>
@@ -339,38 +370,12 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
               </dl>
             </div>
 
-            <div className={styles.universityJumpGrid}>
-              {sortedSchools.map((school) => {
-                const trackCount = isEarly ? school.earlyAdmissions.length : school.regularAdmissions.length;
-                const schoolBrief = isEarly ? getEarlySchoolBrief(school) : getRegularSchoolBrief(school);
-
-                return (
-                  <Link
-                    className={styles.universityJumpCard}
-                    data-empty={trackCount === 0 ? "true" : undefined}
-                    href={getPeExamSchoolTrackHref(region.region, track.key, school.slug)}
-                    key={school.slug}
-                  >
-                    <strong>{getSchoolDisplayName(school)}</strong>
-                    <span>{school.area} · {school.schoolType}</span>
-                    <em>{trackCount > 0 ? `${track.label} 전형 ${trackCount}개` : "공식 전형 행 없음"}</em>
-                    {trackCount > 0 ? (
-                      <dl className={styles.universityMiniStats}>
-                        {schoolBrief.stats.map((stat) => (
-                          <div key={stat.label}>
-                            <dt>{stat.label}</dt>
-                            <dd>{stat.value}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    ) : null}
-                    {schoolBrief.groups[0]?.items.length ? (
-                      <small>{schoolBrief.groups[0].items.slice(0, 3).join(" · ")}</small>
-                    ) : null}
-                  </Link>
-                );
-              })}
-            </div>
+            <PeExamUniversityIndexClient
+              cards={universityCards}
+              regionLabel={region.region}
+              resultFilterLabel={isEarly ? "등급 기준" : "입결 있음"}
+              trackLabel={track.label}
+            />
           </section>
         </div>
       </section>
