@@ -203,6 +203,53 @@
   line-height: 1.68;
 }
 
+.profileSummaryPanel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d7e3e0;
+  border-radius: 8px;
+  background: #fbfefd;
+}
+
+.profileSummaryPanel h4 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.profileSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.profileSummaryGrid div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e0e8ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.profileSummaryGrid dt {
+  margin-bottom: 5px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.profileSummaryGrid dd {
+  margin: 0;
+  color: #4a5a67;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 .guidanceGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -431,6 +478,10 @@
   }
 
   .guidanceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileSummaryGrid {
     grid-template-columns: 1fr;
   }
 

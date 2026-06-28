@@ -24,6 +24,7 @@ export default function PeExamAiConsultClient() {
 
   const hasGuidance = useMemo(() => guidance && Array.isArray(guidance.cards) && guidance.cards.length > 0, [guidance]);
   const universityMatches = Array.isArray(guidance?.universityMatches) ? guidance.universityMatches : [];
+  const profileSummary = Array.isArray(guidance?.profileSummary) ? guidance.profileSummary : [];
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -186,6 +187,23 @@ export default function PeExamAiConsultClient() {
             <h3>{guidance.title}</h3>
             <p>{guidance.summary}</p>
           </div>
+
+          {profileSummary.length > 0 && (
+            <div className={styles.profileSummaryPanel}>
+              <div>
+                <p className="eyebrow">INPUT SUMMARY</p>
+                <h4>입력 내용 반영 요약</h4>
+              </div>
+              <dl className={styles.profileSummaryGrid}>
+                {profileSummary.map((item) => (
+                  <div key={item.label}>
+                    <dt>{item.label}</dt>
+                    <dd>{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
 
           <div className={styles.guidanceGrid}>
             {guidance.cards.map((card) => (

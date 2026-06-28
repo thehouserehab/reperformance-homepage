@@ -341,6 +341,47 @@ function getConditionDirection(request) {
   return '운동 가능 시간과 컨디션 정보가 부족합니다. 주당 훈련 가능 횟수와 통증 여부를 추가하면 계획을 더 현실적으로 잡을 수 있습니다.';
 }
 
+function summarizeInput(value, fallback, maxLength = 120) {
+  const text = cleanValue(value).replace(/\s+/g, ' ');
+  if (!text) return fallback;
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
+function buildProfileSummary(request, universityMatches = []) {
+  const target = [request.targetUniversity, request.targetDepartment].filter(Boolean).join(' · ');
+  const gradeContext = [request.schoolGrade, request.mockExam].filter(Boolean).join(' / ');
+  const trainingContext = [request.trainingContext, request.injuryNote].filter(Boolean).join(' / ');
+
+  return [
+    {
+      label: '준비 구분',
+      value: `${request.gradeLevel || '학년 미입력'} · ${request.admissionTrack || '공통'}`,
+    },
+    {
+      label: '희망 대학',
+      value: summarizeInput(target, '희망 대학 미입력'),
+    },
+    {
+      label: '성적 입력',
+      value: summarizeInput(gradeContext, '내신 또는 모의고사 입력 필요'),
+    },
+    {
+      label: '실기 기록',
+      value: summarizeInput(request.practicalRecords, '종목별 현재 기록 입력 필요'),
+    },
+    {
+      label: '훈련 조건',
+      value: summarizeInput(trainingContext, '운동 가능 시간과 컨디션 입력 필요'),
+    },
+    {
+      label: '연결 자료',
+      value: universityMatches.length
+        ? `희망 대학 상세 자료 ${universityMatches.length}개 연결`
+        : '희망 대학명과 학과를 더 구체화하면 대학 상세 자료를 연결합니다.',
+    },
+  ];
+}
+
 function buildDirectionGuide(request) {
   const trackLabel = request.admissionTrack && request.admissionTrack !== '공통' ? request.admissionTrack : '수시·정시';
   const universityMatches = buildUniversityMatches(request);
@@ -371,6 +412,7 @@ function buildDirectionGuide(request) {
         text: getConditionDirection(request),
       },
     ],
+    profileSummary: buildProfileSummary(request, universityMatches),
     universityMatches,
     nextSteps: [
       universityMatches.length
