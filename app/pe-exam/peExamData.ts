@@ -524,28 +524,52 @@ const practicalTaskPatterns = [
   /기본차기/gi,
   /표적차기/gi,
   /품새/gi,
+  /골프\s*실기/gi,
+  /골프실기\([^)]{1,80}\)/gi,
+  /Driver\s*Shot/gi,
+  /Iron\s*Shot/gi,
+  /Approach\s*Shot/gi,
+  /드라이버샷/gi,
+  /아이언샷/gi,
+  /어프로치/gi,
+  /우드샷/gi,
+  /퍼트/gi,
+  /타겟\s*겨루기/gi,
+  /표적\s*겨루기/gi,
 ] as const;
 
 function cleanPracticalItem(value: string) {
   return value
     .replace(/[.…]+$/g, "")
     .replace(/^[\s([{\uFF08]+/g, "")
-    .replace(/^[\s•·ㆍ\-–]+/, "")
+    .replace(/^.*?\)\s*○/g, "")
+    .replace(/^[\s•·ㆍ\-–○]+/, "")
     .replace(/^(실기\s*)?(고사\s*)?(종목|과제|유형 및 과제|출제형식)\s*[:：-]?\s*/g, "")
+    .replace(/\s*측정방법$/g, "")
+    .replace(/(\d+)\s*M\b/g, "$1m")
     .replace(/[\s.]+$/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function isPracticalTaskItem(item: string) {
+  if (/실시|채택|파울|무효|처리|허용|변경|나갈 경우|기록된다|준비된 자세|타격을|성공 횟수|원칙으로|몸통|바라보고|선 자세|던짐/.test(item)) {
+    return false;
+  }
+  if (/^(?:\d+회|남자|여자|남\s|여\s)/.test(item)) return false;
+  if (/실기고사/.test(item) && item.length > 26) return false;
+  return true;
 }
 
 function compactPracticalItems(items: readonly string[]) {
   return items.filter((item, index, list) => {
     if (list.indexOf(item) !== index) return false;
 
-    const compactItem = item.replace(/\s+/g, "");
+    const compactItem = item.replace(/\s+/g, "").toLowerCase();
     return !list.some((other, otherIndex) => {
       if (otherIndex === index) return false;
 
-      const compactOther = other.replace(/\s+/g, "");
+      const compactOther = other.replace(/\s+/g, "").toLowerCase();
       return compactOther.length > compactItem.length + 2 && compactOther.includes(compactItem);
     });
   });
@@ -557,6 +581,25 @@ function normalizePracticalRatio(item: string) {
   return `실기:${ratioMatch[1]}%`;
 }
 
+function extractKusfPracticalRatio(normalized: string) {
+  const ratioMatch = normalized.match(/실기\s*반영비\s*내용\s*\/\s*(\d+(?:\.\d+)?)/);
+  if (!ratioMatch?.[1]) return [];
+  return [`실기 반영:${Number(ratioMatch[1]).toString()}%`];
+}
+
+function extractMetricSnippets(normalized: string) {
+  const genderMetrics = [...normalized.matchAll(
+    /(?:남자|남)\s*\d+(?:\.\d+)?\s*(?:m|cm|kg|초|회|점)(?:[^,\]/]{0,24})?(?:,\s*(?:여자|여)\s*\d+(?:\.\d+)?\s*(?:m|cm|kg|초|회|점)(?:[^/\]]{0,24})?)?/gi,
+  )].map((match) => match[0]);
+  const unitMetrics = [...normalized.matchAll(
+    /(?:\d+(?:\.\d+)?\s*(?:m|cm|kg|초|회|점)(?:\s*[~\-]\s*\d+(?:\.\d+)?\s*(?:m|cm|kg|초|회|점)?)?(?:\s*(?:이상|이내|단위|반영|실시|상위|만점))?)/gi,
+  )].map((match) => match[0]);
+
+  return uniqueItems([...genderMetrics, ...unitMetrics])
+    .map(cleanPracticalItem)
+    .filter((item) => item.length >= 3 && item.length <= 86);
+}
+
 function hasRegularPracticalMethod(method: string) {
   const practicalMatch = method.match(/실기\s*:\s*(\d+)/);
   if (practicalMatch?.[1]) return Number(practicalMatch[1]) > 0;
@@ -566,16 +609,16 @@ function hasRegularPracticalMethod(method: string) {
 function extractPracticalTasksFromTexts(texts: readonly string[], fallbackTasks: readonly string[] = []) {
   const joined = texts.join(" / ");
   const explicitSections = [...joined.matchAll(/(?:실기고사\s*)?(?:종목|과제)\s*[:：]\s*([^/\]]{1,140})/g)]
-    .flatMap((match) => match[1].split(/[,，·ㆍ]/g));
+    .flatMap((match) => [match[1], ...match[1].split(/[,，·ㆍ]/g)]);
   const patternMatches = practicalTaskPatterns.flatMap((pattern) => joined.match(pattern) || []);
   const cleaned = [...fallbackTasks, ...explicitSections, ...patternMatches]
     .map(cleanPracticalItem)
-    .filter((item) => item.length >= 2 && item.length <= 34 && !item.includes("반영"));
+    .filter((item) => item.length >= 2 && item.length <= 56 && !item.includes("반영") && isPracticalTaskItem(item));
 
   return compactPracticalItems(uniqueItems(cleaned)).slice(0, 10);
 }
 
-function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 4) {
+function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 6) {
   const normalized = texts
     .join(" / ")
     .replace(/^KUSF 상세 기준:\s*/g, "")
@@ -586,14 +629,16 @@ function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 4) {
   if (!normalized || normalized.includes("항목 없음") || normalized.includes("반영 없음")) return [];
 
   const explicitItems = [...normalized.matchAll(/(?:실기고사\s*)?(?:종목|과제)\s*[:：]\s*([^/\]]{1,120})/g)]
-    .flatMap((match) => match[1].split(/[,，·ㆍ]/g))
+    .flatMap((match) => [match[1], ...match[1].split(/[,，·ㆍ]/g)])
     .map(cleanPracticalItem)
-    .filter((item) => item.length >= 2 && item.length <= 34);
+    .filter((item) => item.length >= 2 && item.length <= 56);
   const ratioItems = uniqueItems((normalized.match(/실기\s*:?\s*\d+(?:\.\d+)?%?/g) || []).map(normalizePracticalRatio));
-  const practicalIndex = normalized.search(/실기|기록|종목|과제|왕복|달리기|멀리뛰기|높이뛰기|던지기|배근력|품새|차기/);
+  const kusfRatioItems = extractKusfPracticalRatio(normalized);
+  const metricItems = extractMetricSnippets(normalized);
+  const practicalIndex = normalized.search(/실기|기록|종목|과제|왕복|달리기|멀리뛰기|높이뛰기|던지기|배근력|품새|차기|골프|Driver|Shot/);
   const focused = practicalIndex >= 0 ? normalized.slice(practicalIndex) : normalized;
   const candidates = focused
-    .split(/\s*\/\s*|[;；]|[•⦁]/g)
+    .split(/\s*\/\s*|[;；]|[•⦁]|(?=\s*○)/g)
     .map(cleanPracticalItem)
     .filter((item) => {
       if (item.length < 4 || item.length > 82 || item === "실기 유형 및 과제 출제형식") return false;
@@ -601,14 +646,14 @@ function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 4) {
       if (/생활기록부|학교생활기록부/.test(item)) return false;
       if (/전형방법|지원자격|선발|모집 인원|모집인원/.test(item) && item.length > 45) return false;
       if (/^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item)) return false;
-      if (/종목|과제|기초체력|체력고사|왕복|달리기|멀리뛰기|높이뛰기|던지기|배근력|품새|차기|농구|배구|축구|윗몸|악력|좌전굴|체전굴|턱걸이|팔굽혀|매달리기|사이드|골밑슛|블라디테스트/.test(item)) {
+      if (/종목|과제|기초체력|체력고사|왕복|달리기|멀리뛰기|높이뛰기|던지기|배근력|품새|차기|농구|배구|축구|윗몸|악력|좌전굴|체전굴|턱걸이|팔굽혀|매달리기|사이드|골밑슛|블라디테스트|골프|Driver|Iron|Approach|Shot|드라이버|아이언|어프로치|우드|퍼트|겨루기/.test(item)) {
         return true;
       }
       return /\d+\s*(초|회|m)/i.test(item);
     })
     .map((item) => (item.length > 115 ? `${item.slice(0, 112)}...` : item));
 
-  const items = compactPracticalItems(uniqueItems([...ratioItems, ...explicitItems, ...candidates]));
+  const items = compactPracticalItems(uniqueItems([...ratioItems, ...kusfRatioItems, ...explicitItems, ...metricItems, ...candidates]));
   if (items.length) return items.slice(0, maxItems);
   if (focused.includes("실기") && focused.length <= 82) return [focused];
   return [];
@@ -748,7 +793,7 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
           earlyAdmissions: school.admissions.map((admission) => {
             const detail = kusfAdmissionDetailsByKey.get(createKusfDetailKey(school, admission));
             const practicalSummary = summarizePracticalDetail(detail, admission.elementSummary);
-            const practicalTasks = detail?.practicalTasks || [];
+            const practicalTasks = extractPracticalTasksFromTexts([practicalSummary], detail?.practicalTasks || []);
 
             return {
               ...admission,

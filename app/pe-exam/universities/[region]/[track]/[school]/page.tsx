@@ -102,14 +102,36 @@ function getRegularStatusBadges(admission: RegularAdmission) {
   ] as const;
 }
 
+function splitTaskInlineStandard(task: string) {
+  const colonMatch = task.match(/^(.{2,44}?)\s*[:：]\s*(.+(?:점|초|m|cm|kg).*)$/i);
+  if (colonMatch?.[1] && colonMatch[2]) {
+    return {
+      event: colonMatch[1].trim(),
+      standard: colonMatch[2].trim(),
+    };
+  }
+
+  const bracketStandards = [...task.matchAll(/\(([^)]*(?:점|초|m|cm|kg)[^)]*)\)/gi)]
+    .map((match) => match[1].trim())
+    .filter(Boolean);
+
+  if (!bracketStandards.length) return { event: task, standard: "" };
+
+  return {
+    event: task.replace(/\([^)]*(?:점|초|m|cm|kg)[^)]*\)/gi, "").replace(/\s+/g, " ").trim() || task,
+    standard: bracketStandards.join(" · "),
+  };
+}
+
 function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readonly string[]) {
   const isPracticalRatioItem = (item: string) => /^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
-  const ratioItem = criteriaItems.find(isPracticalRatioItem);
+  const isPracticalShareItem = (item: string) => /^실기\s*반영\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
+  const ratioItem = criteriaItems.find((item) => isPracticalRatioItem(item) || isPracticalShareItem(item));
 
   if (!tasks.length && !criteriaItems.length) return [];
   if (!tasks.length) {
     return criteriaItems.map((item, index) => {
-      const isRatioOnly = isPracticalRatioItem(item);
+      const isRatioOnly = isPracticalRatioItem(item) || isPracticalShareItem(item);
 
       return {
         event: isRatioOnly ? "실기 반영 비율" : index === 0 ? "실기 기준" : `실기 기준 ${index + 1}`,
@@ -119,14 +141,19 @@ function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readon
   }
 
   return tasks.map((task, index) => {
+    const taskStandard = splitTaskInlineStandard(task);
     const related =
-      criteriaItems.find((item) => !isPracticalRatioItem(item) && item.includes(task) && item !== task) ||
-      criteriaItems.find((item) => !isPracticalRatioItem(item) && item !== task && item.length > task.length) ||
+      criteriaItems.find((item) => !isPracticalRatioItem(item) && !isPracticalShareItem(item) && item.includes(taskStandard.event) && item !== task) ||
+      criteriaItems.find((item) => !isPracticalRatioItem(item) && !isPracticalShareItem(item) && item !== task && /\d+\s*(?:회|초|m|cm|kg|점)|실시|반영|이상|이내/i.test(item)) ||
+      criteriaItems.find((item) => !isPracticalRatioItem(item) && !isPracticalShareItem(item) && item !== task && item.length > task.length) ||
       "";
 
     return {
-      event: task,
-      standard: related || (ratioItem ? `${ratioItem} · 종목별 기록 기준은 공식 모집요강 확인` : "공식 모집요강 기록표 확인"),
+      event: taskStandard.event,
+      standard:
+        taskStandard.standard ||
+        related ||
+        (ratioItem ? `${ratioItem} · 종목별 기록 기준은 공식 모집요강 확인` : "공식 모집요강 기록표 확인"),
     };
   });
 }
