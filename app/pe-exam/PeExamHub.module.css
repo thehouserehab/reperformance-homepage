@@ -535,6 +535,64 @@
   justify-content: flex-end;
 }
 
+.coverageGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.coverageGrid article {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.coverageGrid span {
+  display: block;
+  margin-bottom: 9px;
+  color: #c28032;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.coverageGrid strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--navy);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.coverageGrid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.coverageGrid .coverageCaution {
+  border-color: #e0c39f;
+  background: #fffaf4;
+}
+
+.coverageFootnotes {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid #d9e1ea;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.coverageFootnotes li {
+  margin-left: 18px;
+}
+
 .kusfRegionStack,
 .kusfSchoolStack {
   display: grid;
@@ -2005,6 +2063,7 @@
   .schoolList,
   .regionSchoolList,
   .universityJumpGrid,
+  .coverageGrid,
   .universityScopeGrid,
   .regionDetailGuide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2104,6 +2163,7 @@
   .sourceGrid,
   .schoolList,
   .regionSchoolList,
+  .coverageGrid,
   .universityScopeGrid,
   .regionOverviewStats,
   .regionDetailStats,
@@ -2160,6 +2220,7 @@
   .regionOverviewCard,
   .admissionChoiceCard,
   .catalogStats article,
+  .coverageGrid article,
   .regionBlock,
   .regionDetailGuide article,
   .regionDetailStats div,

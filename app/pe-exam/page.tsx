@@ -4,6 +4,7 @@ import { PageShell } from "../_components/SiteChrome";
 import {
   admissionTimeline2026,
   adigaRegularAdmissionMeta,
+  adigaRegularSelectionMeta,
   catalogMeta,
   faqItems,
   kusfAdmissionDetailMeta,
@@ -256,6 +257,44 @@ export default function PeExamPage() {
                 </a>
               </div>
             </div>
+
+            <div className={styles.coverageGrid} aria-label="체대입시 공식자료 연결 범위">
+              <article>
+                <span>전국 목록</span>
+                <strong>{catalogMeta.count}개 대학</strong>
+                <p>권역별 대학 수를 먼저 보고, 지역 페이지에서 수시·정시 준비 경로를 선택합니다.</p>
+              </article>
+              <article>
+                <span>수시 자료</span>
+                <strong>{kusfAdmissionMeta.admissionCount}개 전형</strong>
+                <p>
+                  {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 일반전형과 실기 상세{" "}
+                  {kusfAdmissionDetailMeta.practicalDetailCount}개를 연결했습니다.
+                </p>
+              </article>
+              <article>
+                <span>정시 자료</span>
+                <strong>{adigaRegularAdmissionMeta.admissionCount}개 전형방법</strong>
+                <p>
+                  {adigaRegularAdmissionMeta.unitCount}개 모집단위와 {adigaRegularSelectionMeta.resultYear}학년도
+                  입시결과 {adigaRegularSelectionMeta.resultRowCount}개 행을 함께 확인합니다.
+                </p>
+              </article>
+              <article className={styles.coverageCaution}>
+                <span>별도 확인</span>
+                <strong>수시 평균등급·등급컷</strong>
+                <p>
+                  KUSF 상세 자료는 학생부 반영방법과 최저 기준 중심입니다. 모든 대학의 숫자형 평균등급·등급컷은
+                  대학별 상세 페이지에서 공식 모집요강 확인 항목으로 분리했습니다.
+                </p>
+              </article>
+            </div>
+
+            <ul className={styles.coverageFootnotes} aria-label="하위 페이지 확인 방식">
+              <li>수시생은 지역 선택 후 수시 페이지에서 실기 종목, 학생부 기준, 모집단위별 확인 링크를 봅니다.</li>
+              <li>정시생은 지역 선택 후 정시 페이지에서 전형방법, 모집단위, ADIGA 평가기준·입시결과를 봅니다.</li>
+              <li>기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시결과표가 최종 기준입니다.</li>
+            </ul>
           </div>
 
           <div className={styles.universityScopeGrid} aria-label="지역별 대학 섹션에서 볼 수 있는 정보">
