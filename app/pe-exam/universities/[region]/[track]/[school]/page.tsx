@@ -200,6 +200,10 @@ function getRegularGradeRows(rows: readonly RegularResultRow[]) {
   return rows.filter((row) => row.note || row.percentileAverage70 || row.englishGrade70 || row.convertedScore70);
 }
 
+function hasResolvedPracticalStandard(row: { readonly standard: string }) {
+  return !row.standard.includes("공식 모집요강") && !row.standard.includes("확인");
+}
+
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.flatMap((track) =>
@@ -250,6 +254,37 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
     ? earlyAdmissions.filter((admission) => admission.hasGradeDetail).length
     : school.regularSelectionDetail?.resultRows.length || 0;
   const regularResultRows = getRegularGradeRows(school.regularSelectionDetail?.resultRows || []);
+  const practicalRecordRows = isEarly
+    ? earlyAdmissions.flatMap((admission) => makePracticalRecordRows(admission.practicalTasks, admission.practicalCriteriaItems))
+    : regularAdmissions.flatMap((admission) => makePracticalRecordRows(admission.practicalTasks, admission.practicalCriteriaItems));
+  const resolvedPracticalRecordCount = practicalRecordRows.filter(hasResolvedPracticalStandard).length;
+  const practicalCoverageTitle =
+    resolvedPracticalRecordCount > 0
+      ? `기록 기준 ${resolvedPracticalRecordCount}개 표시`
+      : practicalTaskCount > 0
+        ? `실기 종목 ${practicalTaskCount}개 확인`
+        : "실기 반영 확인 필요";
+  const practicalCoverageText =
+    resolvedPracticalRecordCount > 0
+      ? "종목별 기록 기준 또는 실시 기준을 전형 카드 안에서 바로 확인합니다."
+      : practicalTaskCount > 0
+        ? "종목명은 연결되어 있으며, 세부 기록표는 공식 모집요강에서 최종 확인합니다."
+        : "현재 연결 자료에는 실기 종목 상세가 없어 대학 모집요강 확인이 필요합니다.";
+  const gradeCoverageTitle = isEarly
+    ? gradeOrResultCount > 0
+      ? `등급 산출 기준 ${gradeOrResultCount}개`
+      : "수시 평균등급 공개값 없음"
+    : regularResultRows.length > 0
+      ? `입결 ${regularResultRows.length}건 표시`
+      : "정시 입결 공개값 없음";
+  const gradeCoverageText = isEarly
+    ? "수시 평균등급·등급컷 수치는 현재 KUSF 원천 데이터에 없어, 학생부 반영·석차등급 산출 기준을 대신 표시합니다."
+    : regularResultRows.length > 0
+      ? "ADIGA 평가기준·입시결과 탭의 70% 평균백분위, 영어 등급, 환산점수를 표시합니다."
+      : "ADIGA 입시결과 표가 연결되지 않은 대학은 공식 입학처와 모집요강을 우선 확인합니다.";
+  const sourceCoverageText = isEarly
+    ? "KUSF 대학별 전형 상세를 기준으로 수시 반영요소와 실기 기준을 연결했습니다."
+    : "ADIGA 모집인원, 평가기준, 입시결과 탭을 기준으로 정시 자료를 연결했습니다.";
 
   return (
     <PageShell>
@@ -307,6 +342,24 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
               공식 자료 확인
             </a>
           </div>
+
+          <section className={styles.schoolDataGuide} aria-label={`${schoolName} ${track.label} 자료 확인 요약`}>
+            <div>
+              <span>실기 기록 기준</span>
+              <strong>{practicalCoverageTitle}</strong>
+              <p>{practicalCoverageText}</p>
+            </div>
+            <div>
+              <span>등급컷·평균등급</span>
+              <strong>{gradeCoverageTitle}</strong>
+              <p>{gradeCoverageText}</p>
+            </div>
+            <div>
+              <span>공식 자료 기준</span>
+              <strong>{track.sourceLabel}</strong>
+              <p>{sourceCoverageText}</p>
+            </div>
+          </section>
 
           {trackCount === 0 ? (
             <div className={styles.catalogNotice}>
@@ -477,7 +530,15 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
                     ))}
                   </div>
                 </section>
-              ) : null}
+              ) : (
+                <div className={styles.catalogNotice}>
+                  <strong>정시 등급컷·입결 공식 표 확인 필요</strong>
+                  <p>
+                    현재 연결된 ADIGA 평가기준·입시결과 자료에는 {schoolName} {track.label} 70% 평균백분위 또는
+                    환산점수 행이 없습니다. 대학 입학처와 ADIGA 공식 탭에서 최신 입시결과를 다시 확인합니다.
+                  </p>
+                </div>
+              )}
 
               {school.regularDetailUrl ? (
                 <a className={styles.kusfInlineLink} href={school.regularDetailUrl} rel="noopener noreferrer" target="_blank">
