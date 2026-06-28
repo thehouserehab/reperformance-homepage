@@ -23,6 +23,7 @@ export default function PeExamAiConsultClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hasGuidance = useMemo(() => guidance && Array.isArray(guidance.cards) && guidance.cards.length > 0, [guidance]);
+  const universityMatches = Array.isArray(guidance?.universityMatches) ? guidance.universityMatches : [];
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -195,6 +196,43 @@ export default function PeExamAiConsultClient() {
               </article>
             ))}
           </div>
+
+          {universityMatches.length > 0 && (
+            <div className={styles.matchPanel}>
+              <div className={styles.matchHead}>
+                <p className="eyebrow">MATCHED UNIVERSITY DATA</p>
+                <h4>희망 대학 상세 자료</h4>
+              </div>
+
+              <div className={styles.matchGrid}>
+                {universityMatches.map((match) => (
+                  <article className={styles.matchCard} key={`${match.href}-${match.trackKey}`}>
+                    <span className={styles.matchMeta}>
+                      {match.region} · {match.trackLabel}
+                    </span>
+                    <strong>{match.schoolName}</strong>
+                    <p>{match.summary}</p>
+
+                    {Array.isArray(match.practicalItems) && match.practicalItems.length > 0 && (
+                      <dl>
+                        <dt>실기 기준</dt>
+                        <dd>{match.practicalItems.join(" / ")}</dd>
+                      </dl>
+                    )}
+
+                    {Array.isArray(match.resultItems) && match.resultItems.length > 0 && (
+                      <dl>
+                        <dt>{match.resultLabel || "등급·입결"}</dt>
+                        <dd>{match.resultItems.join(" / ")}</dd>
+                      </dl>
+                    )}
+
+                    <a href={match.href}>대학 상세 보기</a>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
 
           {Array.isArray(guidance.nextSteps) && guidance.nextSteps.length > 0 && (
             <ol className={styles.nextStepList}>

@@ -5,6 +5,11 @@ import {
   isDatabaseConfigured,
   savePeExamAiConsultRequest,
 } from '../../../../lib/rpDatabase';
+import {
+  getPeExamSchoolTrackHref,
+  peExamAdmissionTracks,
+  peExamRegionDetails,
+} from '../../../pe-exam/peExamData';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +50,193 @@ function firstNumber(value) {
 function includesAny(value, words) {
   const text = String(value || '').toLowerCase();
   return words.some((word) => text.includes(word.toLowerCase()));
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[()[\]{}<>.,;:|\/\\'"`~!@#$%^&*_+=?-]/g, '')
+    .replace(/대학교|대학|캠퍼스|본교|분교|학교/g, '');
+}
+
+function uniqueItems(items, limit = 5) {
+  const seen = new Set();
+  const results = [];
+
+  for (const item of items) {
+    const text = cleanValue(item).replace(/\s+/g, ' ');
+    const key = text.toLowerCase();
+
+    if (!text || seen.has(key)) continue;
+
+    seen.add(key);
+    results.push(text);
+
+    if (results.length >= limit) break;
+  }
+
+  return results;
+}
+
+function splitTargetTerms(value) {
+  const text = cleanValue(value);
+  if (!text) return [];
+
+  return uniqueItems([text, ...text.split(/[\s,，;；/|·ㆍ]+/)], 12)
+    .map((item) => normalizeSearchText(item))
+    .filter((item) => item.length >= 2);
+}
+
+function getSchoolDisplayName(school) {
+  return `${school.name}${school.campus ? ` ${school.campus}` : ''}`;
+}
+
+function getSchoolSearchTokens(school) {
+  const names = [school.name, getSchoolDisplayName(school)];
+
+  if (school.name.endsWith('대학교')) names.push(school.name.replace(/대학교$/, '대'));
+  if (school.name.endsWith('대학')) names.push(school.name.replace(/대학$/, '대'));
+  if (school.name.includes('체육대학교')) names.push(school.name.replace('체육대학교', '체대'));
+
+  return uniqueItems(names, 8)
+    .map((item) => normalizeSearchText(item))
+    .filter((item) => item.length >= 2);
+}
+
+function schoolMatchesTarget(school, targetTerms) {
+  if (!targetTerms.length) return false;
+
+  const schoolTokens = getSchoolSearchTokens(school);
+  return targetTerms.some((term) =>
+    schoolTokens.some((token) => token.includes(term) || term.includes(token)),
+  );
+}
+
+function departmentMatchesTarget(school, targetTerms) {
+  if (!targetTerms.length) return false;
+
+  const admissions = [...(school.earlyAdmissions || []), ...(school.regularAdmissions || [])];
+  const admissionTexts = admissions.flatMap((admission) => [
+    admission.admissionName,
+    admission.unitSummary,
+    ...(admission.units || []),
+  ]);
+
+  return admissionTexts.some((text) => {
+    const normalized = normalizeSearchText(text);
+    return normalized && targetTerms.some((term) => normalized.includes(term) || term.includes(normalized));
+  });
+}
+
+function getTrackKeysForRequest(track) {
+  if (track === '수시') return ['early'];
+  if (track === '정시') return ['regular'];
+  return peExamAdmissionTracks.map((item) => item.key);
+}
+
+function getTrackLabel(trackKey) {
+  return peExamAdmissionTracks.find((item) => item.key === trackKey)?.label || trackKey;
+}
+
+function getTrackAdmissions(school, trackKey) {
+  return trackKey === 'early' ? school.earlyAdmissions || [] : school.regularAdmissions || [];
+}
+
+function formatRegularResultRow(row) {
+  const unit = cleanValue(row.unit || row.title || row.group || '모집단위');
+  const metrics = [];
+
+  if (row.percentileAverage70) metrics.push(`70% 평균백분위 ${row.percentileAverage70}`);
+  if (row.englishGrade70) metrics.push(`영어 ${row.englishGrade70}등급`);
+  if (row.convertedScore70) metrics.push(`환산점수 ${row.convertedScore70}`);
+  if (row.note) metrics.push(row.note);
+
+  return metrics.length ? `${unit}: ${metrics.join(', ')}` : '';
+}
+
+function summarizeUniversityTrack(school, trackKey) {
+  const admissions = getTrackAdmissions(school, trackKey);
+  const practicalItems = uniqueItems(
+    admissions.flatMap((admission) => [
+      ...(admission.practicalTasks || []),
+      ...(admission.practicalCriteriaItems || []),
+    ]),
+    4,
+  );
+
+  if (trackKey === 'regular') {
+    const resultItems = uniqueItems(
+      (school.regularSelectionDetail?.resultRows || []).map(formatRegularResultRow),
+      3,
+    );
+
+    return {
+      admissionCount: admissions.length,
+      practicalItems,
+      resultItems,
+      resultLabel: '정시 입결',
+      summary:
+        admissions.length > 0
+          ? `정시 전형 ${admissions.length}건과 ADIGA 입결 ${resultItems.length}건을 연결했습니다.`
+          : '정시 전형 행은 아직 연결되지 않았습니다. 대학 입학처 모집요강 확인이 필요합니다.',
+    };
+  }
+
+  const resultItems = uniqueItems(
+    admissions.flatMap((admission) => [
+      admission.gradeSummary,
+      admission.minimumCriteriaSummary,
+    ]),
+    3,
+  );
+
+  return {
+    admissionCount: admissions.length,
+    practicalItems,
+    resultItems,
+    resultLabel: '수시 등급·최저',
+    summary:
+      admissions.length > 0
+        ? `수시 전형 ${admissions.length}건에서 학생부·최저·실기 확인 항목을 추렸습니다.`
+        : '수시 전형 행은 아직 연결되지 않았습니다. KUSF 또는 대학 모집요강 확인이 필요합니다.',
+  };
+}
+
+function buildUniversityMatches(request) {
+  const universityTerms = splitTargetTerms(request.targetUniversity);
+  const departmentTerms = splitTargetTerms(request.targetDepartment);
+  const trackKeys = getTrackKeysForRequest(request.admissionTrack);
+  const matches = [];
+
+  if (!universityTerms.length && !departmentTerms.length) return matches;
+
+  for (const region of peExamRegionDetails) {
+    for (const school of region.universities) {
+      const matchesSchool = schoolMatchesTarget(school, universityTerms);
+      const matchesDepartment = !universityTerms.length && departmentMatchesTarget(school, departmentTerms);
+
+      if (!matchesSchool && !matchesDepartment) continue;
+
+      for (const trackKey of trackKeys) {
+        const trackSummary = summarizeUniversityTrack(school, trackKey);
+
+        matches.push({
+          schoolName: getSchoolDisplayName(school),
+          region: region.region,
+          trackKey,
+          trackLabel: getTrackLabel(trackKey),
+          href: getPeExamSchoolTrackHref(region.region, trackKey, school.slug),
+          ...trackSummary,
+        });
+
+        if (matches.length >= 8) return matches;
+      }
+    }
+  }
+
+  return matches;
 }
 
 function getGradeDirection(request) {
@@ -124,12 +316,16 @@ function getPracticalDirection(request) {
   return '실기 기록은 입력되었습니다. 대학별 상세 페이지의 종목 기준표와 비교해 강점 종목, 보완 종목, 위험 종목으로 나누어 봅니다.';
 }
 
-function getTargetDirection(request) {
+function getTargetDirection(request, universityMatches = []) {
   if (!request.targetUniversity && !request.targetDepartment) {
     return '희망 대학이 비어 있습니다. 지역별 대학 목록에서 수시/정시 후보군을 3단계로 나누어 적어두면 상담 정확도가 올라갑니다.';
   }
 
   const target = [request.targetUniversity, request.targetDepartment].filter(Boolean).join(' ');
+  if (universityMatches.length) {
+    return `${target} 기준으로 연결 가능한 대학 상세 자료를 찾았습니다. 아래 카드에서 수시·정시별 실기 종목과 입결 요약을 먼저 비교합니다.`;
+  }
+
   return `${target} 기준으로 전형방법, 실기 종목, 전년도 입결을 먼저 확인합니다. 같은 대학도 수시와 정시의 판단 기준이 다르므로 상세 페이지를 각각 비교합니다.`;
 }
 
@@ -147,6 +343,7 @@ function getConditionDirection(request) {
 
 function buildDirectionGuide(request) {
   const trackLabel = request.admissionTrack && request.admissionTrack !== '공통' ? request.admissionTrack : '수시·정시';
+  const universityMatches = buildUniversityMatches(request);
 
   return {
     title: `${trackLabel} 준비 방향 가이드`,
@@ -166,7 +363,7 @@ function buildDirectionGuide(request) {
       {
         label: '03',
         title: '희망 대학 확인',
-        text: getTargetDirection(request),
+        text: getTargetDirection(request, universityMatches),
       },
       {
         label: '04',
@@ -174,8 +371,11 @@ function buildDirectionGuide(request) {
         text: getConditionDirection(request),
       },
     ],
+    universityMatches,
     nextSteps: [
-      '희망 대학을 1순위·대안·안전 후보로 나누어 다시 입력합니다.',
+      universityMatches.length
+        ? '아래 연결된 대학 상세 페이지에서 같은 대학의 수시·정시 기준을 각각 확인합니다.'
+        : '희망 대학을 1순위·대안·안전 후보로 나누어 다시 입력합니다.',
       '대학별 상세 페이지에서 같은 전형의 실기 종목과 입결 행을 확인합니다.',
       '현재 기록과 기준 기록의 차이가 큰 종목을 우선 보완합니다.',
       '상담 신청 시 이 입력 내용을 기준으로 최종 지원 방향을 점검합니다.',
