@@ -674,8 +674,12 @@ function createKusfDetailKey(
 }
 
 function getRegularPracticalSummary(method: string) {
-  const practicalMatch = method.match(/실기\s*:\s*\d+/);
-  if (practicalMatch) return `ADIGA 정시 전형방법 기준 ${practicalMatch[0]} 반영`;
+  const practicalMatch = method.match(/실기\s*:\s*(\d+(?:\.\d+)?)/);
+  if (practicalMatch?.[1]) {
+    const practicalShare = Number(practicalMatch[1]);
+    if (practicalShare <= 0) return "ADIGA 정시 전형방법 기준 실기 반영 없음";
+    return `ADIGA 정시 전형방법 기준 실기:${practicalShare}% 반영`;
+  }
   if (method.includes("실기")) return `실기 반영 포함: ${method}`;
   return "ADIGA 정시 전형방법 기준 실기 반영 항목 없음";
 }

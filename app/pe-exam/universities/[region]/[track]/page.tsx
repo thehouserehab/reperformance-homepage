@@ -63,8 +63,30 @@ function hasPositivePracticalMethod(method: string) {
   return method.includes("실기");
 }
 
+function hasEarlyPracticalRequirement(admission: RegionSchool["earlyAdmissions"][number]) {
+  const elementPracticalMatch = admission.elementSummary.match(/실기\s*:\s*(\d+(?:\.\d+)?)/);
+  if (elementPracticalMatch?.[1]) return Number(elementPracticalMatch[1]) > 0;
+  if (admission.practicalSummary.includes("실기 반영 항목 없음")) return false;
+
+  return (
+    admission.elementSummary.includes("실기") ||
+    admission.hasPracticalDetail ||
+    admission.practicalTasks.length > 0 ||
+    admission.practicalCriteriaItems.length > 0
+  );
+}
+
+function hasEarlyPracticalRecordDetail(admission: RegionSchool["earlyAdmissions"][number]) {
+  return (
+    hasEarlyPracticalRequirement(admission) &&
+    (admission.hasPracticalDetail || admission.practicalTasks.length > 0 || admission.practicalCriteriaItems.length > 0)
+  );
+}
+
 function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
   const admissions = school.earlyAdmissions;
+  const practicalAdmissions = admissions.filter(hasEarlyPracticalRequirement);
+  const practicalResolvedCount = practicalAdmissions.filter(hasEarlyPracticalRecordDetail).length;
   const practicalTasks = uniqueBriefItems(admissions.flatMap((admission) => admission.practicalTasks)).slice(0, 8);
   const practicalCriteriaItems = uniqueBriefItems(
     admissions.flatMap((admission) => admission.practicalCriteriaItems),
@@ -76,7 +98,8 @@ function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
   return {
     stats: [
       { label: "수시 전형", value: `${admissions.length}개` },
-      { label: "실기 상세", value: `${admissions.filter((admission) => admission.hasPracticalDetail).length}개` },
+      { label: "실기 대상", value: `${practicalAdmissions.length}개` },
+      { label: "실기 기준", value: practicalAdmissions.length ? `${practicalResolvedCount}/${practicalAdmissions.length}` : "해당 없음" },
       { label: "등급 상세", value: `${admissions.filter((admission) => admission.hasGradeDetail).length}개` },
     ],
     groups: [
@@ -103,7 +126,7 @@ function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
     stats: [
       { label: "정시 전형", value: `${admissions.length}개` },
       { label: "모집단위", value: `${admissions.reduce((sum, admission) => sum + admission.units.length, 0)}개` },
-      { label: "실기 반영", value: `${admissions.filter((admission) => hasPositivePracticalMethod(admission.method)).length}개` },
+      { label: "실기 대상", value: `${admissions.filter((admission) => hasPositivePracticalMethod(admission.method)).length}개` },
       { label: "입결 행", value: selectionDetail?.hasResultTable ? `${selectionDetail.resultRows.length}건` : "확인 필요" },
     ],
     groups: [
@@ -331,6 +354,16 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
                     <strong>{getSchoolDisplayName(school)}</strong>
                     <span>{school.area} · {school.schoolType}</span>
                     <em>{trackCount > 0 ? `${track.label} 전형 ${trackCount}개` : "공식 전형 행 없음"}</em>
+                    {trackCount > 0 ? (
+                      <dl className={styles.universityMiniStats}>
+                        {schoolBrief.stats.map((stat) => (
+                          <div key={stat.label}>
+                            <dt>{stat.label}</dt>
+                            <dd>{stat.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : null}
                     {schoolBrief.groups[0]?.items.length ? (
                       <small>{schoolBrief.groups[0].items.slice(0, 3).join(" · ")}</small>
                     ) : null}

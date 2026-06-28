@@ -60,16 +60,52 @@ function hasPositivePracticalMethod(method: string) {
   return method.includes("실기");
 }
 
+function hasEarlyPracticalRequirement(admission: EarlyAdmission) {
+  const elementPracticalMatch = admission.elementSummary.match(/실기\s*:\s*(\d+(?:\.\d+)?)/);
+  if (elementPracticalMatch?.[1]) return Number(elementPracticalMatch[1]) > 0;
+  if (admission.practicalSummary.includes("실기 반영 항목 없음")) return false;
+
+  return (
+    admission.elementSummary.includes("실기") ||
+    admission.hasPracticalDetail ||
+    admission.practicalTasks.length > 0 ||
+    admission.practicalCriteriaItems.length > 0
+  );
+}
+
+function hasEarlyPracticalRecordDetail(admission: EarlyAdmission) {
+  return (
+    hasEarlyPracticalRequirement(admission) &&
+    (admission.hasPracticalDetail || admission.practicalTasks.length > 0 || admission.practicalCriteriaItems.length > 0)
+  );
+}
+
 function getEarlyStatusBadges(admission: EarlyAdmission) {
+  const practicalRequired = hasEarlyPracticalRequirement(admission);
+  const practicalBadges = practicalRequired
+    ? [
+        {
+          label: admission.practicalTasks.length ? `실기 종목 ${admission.practicalTasks.length}개` : "실기 종목 확인 필요",
+          tone: admission.practicalTasks.length ? "good" : "warn",
+        },
+        {
+          label: hasEarlyPracticalRecordDetail(admission) ? "기록 기준 상세" : "기록 기준 확인 필요",
+          tone: hasEarlyPracticalRecordDetail(admission) ? "good" : "warn",
+        },
+      ]
+    : [
+        {
+          label: "실기 반영 없음",
+          tone: "muted",
+        },
+        {
+          label: "기록 기준 해당 없음",
+          tone: "muted",
+        },
+      ];
+
   return [
-    {
-      label: admission.practicalTasks.length ? `실기 종목 ${admission.practicalTasks.length}개` : "실기 종목 확인 필요",
-      tone: admission.practicalTasks.length ? "good" : "warn",
-    },
-    {
-      label: admission.hasPracticalDetail ? "기록 기준 상세" : "기록 기준 확인 필요",
-      tone: admission.hasPracticalDetail ? "good" : "warn",
-    },
+    ...practicalBadges,
     {
       label: admission.hasGradeDetail ? "등급 산출 상세" : "등급·입결 확인 필요",
       tone: admission.hasGradeDetail ? "good" : "warn",
@@ -82,6 +118,8 @@ function getEarlyStatusBadges(admission: EarlyAdmission) {
 }
 
 function getRegularStatusBadges(admission: RegularAdmission) {
+  const practicalRequired = hasPositivePracticalMethod(admission.method);
+
   return [
     {
       label: admission.units.length ? `모집단위 ${admission.units.length}개` : "모집단위 확인 필요",
@@ -90,10 +128,10 @@ function getRegularStatusBadges(admission: RegularAdmission) {
     {
       label: admission.practicalTasks.length
         ? `실기 종목 ${admission.practicalTasks.length}개`
-        : admission.method.includes("실기")
+        : practicalRequired
           ? "실기 반영 확인"
           : "실기 반영 없음",
-      tone: admission.practicalTasks.length || admission.method.includes("실기") ? "neutral" : "muted",
+      tone: admission.practicalTasks.length || practicalRequired ? "neutral" : "muted",
     },
     {
       label: admission.hasResultDetail ? "입결 표 연결" : "등급·입결 별도 확인",

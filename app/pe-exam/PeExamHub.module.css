@@ -1112,6 +1112,37 @@
   line-height: 1.35;
 }
 
+.universityMiniStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 2px 0 0;
+}
+
+.universityMiniStats div {
+  min-width: 0;
+  padding: 7px 8px;
+  border-radius: 7px;
+  background: #f4f8f8;
+}
+
+.universityMiniStats dt {
+  margin-bottom: 2px;
+  color: #587076;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.universityMiniStats dd {
+  margin: 0;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 950;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
 .universityJumpCard small {
   display: block;
   min-width: 0;
