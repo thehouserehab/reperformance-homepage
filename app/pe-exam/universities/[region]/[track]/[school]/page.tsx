@@ -103,10 +103,13 @@ function getRegularStatusBadges(admission: RegularAdmission) {
 }
 
 function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readonly string[]) {
+  const isPracticalRatioItem = (item: string) => /^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
+  const ratioItem = criteriaItems.find(isPracticalRatioItem);
+
   if (!tasks.length && !criteriaItems.length) return [];
   if (!tasks.length) {
     return criteriaItems.map((item, index) => {
-      const isRatioOnly = /^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
+      const isRatioOnly = isPracticalRatioItem(item);
 
       return {
         event: isRatioOnly ? "실기 반영 비율" : index === 0 ? "실기 기준" : `실기 기준 ${index + 1}`,
@@ -116,11 +119,14 @@ function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readon
   }
 
   return tasks.map((task, index) => {
-    const related = criteriaItems.find((item) => item.includes(task)) || criteriaItems[index] || "";
+    const related =
+      criteriaItems.find((item) => !isPracticalRatioItem(item) && item.includes(task) && item !== task) ||
+      criteriaItems.find((item) => !isPracticalRatioItem(item) && item !== task && item.length > task.length) ||
+      "";
 
     return {
       event: task,
-      standard: related || "공식 모집요강 기록표 확인",
+      standard: related || (ratioItem ? `${ratioItem} · 종목별 기록 기준은 공식 모집요강 확인` : "공식 모집요강 기록표 확인"),
     };
   });
 }

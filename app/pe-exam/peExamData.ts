@@ -489,20 +489,37 @@ const practicalTaskPatterns = [
   /10m\s*왕복달리기/gi,
   /20m\s*왕복달리기/gi,
   /25m\s*왕복달리기/gi,
+  /\d{1,3}\s*미터\s*왕복달리기/gi,
+  /왕복달리기/gi,
+  /\d{1,3}\s*m\s*달리기/gi,
+  /지그재그\s*달리기/gi,
+  /십자\s*달리기/gi,
+  /z-?\s*런/gi,
   /제자리\s*멀리뛰기/gi,
   /제자리\s*높이뛰기/gi,
+  /수직\s*뛰기/gi,
   /서전트\s*점프/gi,
   /메디신볼\s*던지기/gi,
+  /메디신볼던지기/gi,
   /핸드볼공\s*던지기/gi,
+  /핸드볼\s*공\s*던지기/gi,
   /배근력/gi,
   /악력/gi,
   /좌전굴/gi,
   /체전굴/gi,
+  /윗몸\s*앞으로\s*굽히기/gi,
+  /앉아\s*윗몸\s*앞으로\s*굽히기/gi,
+  /서서\s*윗몸\s*앞으로\s*굽히기/gi,
   /윗몸\s*일으키기/gi,
   /팔굽혀\s*펴기/gi,
   /턱걸이/gi,
+  /오래\s*매달리기/gi,
+  /사이드\s*스텝/gi,
   /농구/gi,
+  /농구\s*레이업슛/gi,
+  /골밑슛/gi,
   /배구/gi,
+  /배구\s*블라디테스트/gi,
   /축구/gi,
   /기본차기/gi,
   /표적차기/gi,
@@ -512,11 +529,32 @@ const practicalTaskPatterns = [
 function cleanPracticalItem(value: string) {
   return value
     .replace(/[.…]+$/g, "")
+    .replace(/^[\s([{\uFF08]+/g, "")
     .replace(/^[\s•·ㆍ\-–]+/, "")
     .replace(/^(실기\s*)?(고사\s*)?(종목|과제|유형 및 과제|출제형식)\s*[:：-]?\s*/g, "")
     .replace(/[\s.]+$/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function compactPracticalItems(items: readonly string[]) {
+  return items.filter((item, index, list) => {
+    if (list.indexOf(item) !== index) return false;
+
+    const compactItem = item.replace(/\s+/g, "");
+    return !list.some((other, otherIndex) => {
+      if (otherIndex === index) return false;
+
+      const compactOther = other.replace(/\s+/g, "");
+      return compactOther.length > compactItem.length + 2 && compactOther.includes(compactItem);
+    });
+  });
+}
+
+function normalizePracticalRatio(item: string) {
+  const ratioMatch = item.match(/실기\s*:?\s*(\d+(?:\.\d+)?)\s*%?/i);
+  if (!ratioMatch?.[1]) return item;
+  return `실기:${ratioMatch[1]}%`;
 }
 
 function hasRegularPracticalMethod(method: string) {
@@ -534,7 +572,7 @@ function extractPracticalTasksFromTexts(texts: readonly string[], fallbackTasks:
     .map(cleanPracticalItem)
     .filter((item) => item.length >= 2 && item.length <= 34 && !item.includes("반영"));
 
-  return uniqueItems(cleaned).slice(0, 10);
+  return compactPracticalItems(uniqueItems(cleaned)).slice(0, 10);
 }
 
 function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 4) {
@@ -551,25 +589,28 @@ function extractPracticalCriteriaItems(texts: readonly string[], maxItems = 4) {
     .flatMap((match) => match[1].split(/[,，·ㆍ]/g))
     .map(cleanPracticalItem)
     .filter((item) => item.length >= 2 && item.length <= 34);
-  const ratioItems = uniqueItems(normalized.match(/실기\s*:?\s*\d+(?:\.\d+)?%?/g) || []);
-  const practicalIndex = normalized.search(/실기|기록|종목|과제|왕복|멀리뛰기|던지기|배근력|품새|차기/);
+  const ratioItems = uniqueItems((normalized.match(/실기\s*:?\s*\d+(?:\.\d+)?%?/g) || []).map(normalizePracticalRatio));
+  const practicalIndex = normalized.search(/실기|기록|종목|과제|왕복|달리기|멀리뛰기|높이뛰기|던지기|배근력|품새|차기/);
   const focused = practicalIndex >= 0 ? normalized.slice(practicalIndex) : normalized;
   const candidates = focused
-    .split(/\s*\/\s*|[;；]/g)
+    .split(/\s*\/\s*|[;；]|[•⦁]/g)
     .map(cleanPracticalItem)
     .filter((item) => {
-      if (item.length < 4 || item === "실기 유형 및 과제 출제형식") return false;
+      if (item.length < 4 || item.length > 82 || item === "실기 유형 및 과제 출제형식") return false;
       if (/영어|탐구|백분위|국어|수학|한국사|변환표준점수|성적 발표|미응시영역/.test(item)) return false;
-      if (/실기|기록|종목|과제|왕복|멀리뛰기|높이뛰기|던지기|배근력|품새|차기|농구|배구|축구|윗몸|악력|좌전굴|체전굴|턱걸이|팔굽혀/.test(item)) {
+      if (/생활기록부|학교생활기록부/.test(item)) return false;
+      if (/전형방법|지원자격|선발|모집 인원|모집인원/.test(item) && item.length > 45) return false;
+      if (/^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item)) return false;
+      if (/종목|과제|기초체력|체력고사|왕복|달리기|멀리뛰기|높이뛰기|던지기|배근력|품새|차기|농구|배구|축구|윗몸|악력|좌전굴|체전굴|턱걸이|팔굽혀|매달리기|사이드|골밑슛|블라디테스트/.test(item)) {
         return true;
       }
       return /\d+\s*(초|회|m)/i.test(item);
     })
     .map((item) => (item.length > 115 ? `${item.slice(0, 112)}...` : item));
 
-  const items = uniqueItems([...ratioItems, ...explicitItems, ...candidates]);
+  const items = compactPracticalItems(uniqueItems([...ratioItems, ...explicitItems, ...candidates]));
   if (items.length) return items.slice(0, maxItems);
-  if (focused.includes("실기")) return [focused.length > 115 ? `${focused.slice(0, 112)}...` : focused];
+  if (focused.includes("실기") && focused.length <= 82) return [focused];
   return [];
 }
 
@@ -731,7 +772,7 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
               unitSummary: getUnitSummary(admission.units),
               practicalSummary: getRegularPracticalSummary(admission.method),
               practicalTasks: hasPractical ? extractPracticalTasksFromTexts(practicalTexts) : [],
-              practicalCriteriaItems: hasPractical ? extractPracticalCriteriaItems([admission.method]) : [],
+              practicalCriteriaItems: hasPractical ? extractPracticalCriteriaItems(practicalTexts) : [],
               gradeSummary: getRegularGradeSummary(admission.method, regularSelection),
               hasResultDetail: Boolean(regularSelection?.hasResultTable),
               hasCriteriaDetail: Boolean(regularSelection?.hasCriteria),
