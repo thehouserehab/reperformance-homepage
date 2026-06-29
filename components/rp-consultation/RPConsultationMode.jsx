@@ -88,6 +88,24 @@ function formatList(value, fallback = '기록 없음') {
   return Array.isArray(value) && value.length ? value.join(', ') : fallback;
 }
 
+function formatClientContact(client) {
+  return client.phone || client.email || client.kakaoId || '미입력';
+}
+
+function formatClientProfile(client) {
+  return [client.memberType, client.birth, client.gender].filter(Boolean).join(' · ') || '회원 정보 미입력';
+}
+
+function formatSessionCount(client) {
+  const remaining = Number(client.remainingSessions) || 0;
+  const total = Number(client.totalSessions) || 0;
+  return total ? `${remaining}/${total}회` : `${remaining}회`;
+}
+
+function formatCoachName(client, record) {
+  return record.coachName || client.coachName || client.coach || '담당 코치 미입력';
+}
+
 function needsAttention(client, record) {
   if (!client) return false;
   if (Array.isArray(client.parqYesItems) && client.parqYesItems.length) return true;
@@ -312,10 +330,14 @@ function CoachInputView({
               <span className={styles.statusPill}>{record.consultationStatus}</span>
             </div>
             <div className={styles.summaryGrid}>
+              <div><strong>연락처</strong><span>{formatClientContact(client)}</span></div>
+              <div><strong>회원 정보</strong><span>{formatClientProfile(client)}</span></div>
+              <div><strong>유입 경로</strong><span>{client.route || '미입력'}</span></div>
+              <div><strong>담당/회차</strong><span>{formatCoachName(client, record)} · {formatSessionCount(client)}</span></div>
               <div><strong>기존 목표</strong><span>{client.goal || '미입력'}</span></div>
               <div><strong>방문 목적</strong><span>{formatList(client.purpose)}</span></div>
               <div><strong>불편 부위</strong><span>{formatList(client.painAreas, '특이사항 없음')}</span></div>
-              <div><strong>잔여회차</strong><span>{Number(client.remainingSessions) || 0}회</span></div>
+              <div><strong>주의 정보</strong><span>{attentionRequired ? '추가 확인 필요' : '일반 상담 가능'} · 통증 {Number(record.painScore || client.painScore) || 0}/10</span></div>
             </div>
           </div>
 

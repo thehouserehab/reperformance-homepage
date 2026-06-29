@@ -10,7 +10,9 @@ export async function fetchRpClients() {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || payload?.ok === false) {
-    const message = payload?.error || `고객 데이터를 불러오지 못했습니다. (${response.status})`;
+    const message = payload?.setupRequired
+      ? 'Postgres 또는 Google Drive 고객 데이터 연결이 필요합니다. 샘플 고객을 표시합니다.'
+      : payload?.error || `고객 데이터를 불러오지 못했습니다. (${response.status})`;
     throw new Error(message);
   }
 

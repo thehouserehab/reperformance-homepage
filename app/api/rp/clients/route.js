@@ -462,7 +462,15 @@ export async function GET() {
     const data = await listClientsFromPreferredStore();
     return NextResponse.json({ ok: true, source: data.source, action: data.action, method: data.method, clients: data.clients, count: data.clients.length });
   } catch (error) {
-    return NextResponse.json({ ok: false, error: error?.message || '고객 목록 조회 중 오류가 발생했습니다.', clients: [] }, { status: 500 });
+    const message = error?.message || '고객 목록 조회 중 오류가 발생했습니다.';
+    const setupRequired = !isDatabaseConfigured() && (
+      message.includes('RP_SHEETS_WEBAPP_URL') ||
+      message.includes('회원 데이터를 찾지 못했습니다')
+    );
+    return NextResponse.json(
+      { ok: false, setupRequired, source: setupRequired ? 'setup-required' : 'error', error: message, clients: [] },
+      { status: setupRequired ? 200 : 500 },
+    );
   }
 }
 
