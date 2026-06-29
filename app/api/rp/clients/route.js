@@ -391,22 +391,48 @@ async function listClientsFromPreferredStore() {
   if (isDatabaseConfigured()) {
     try {
       const clients = await listDatabaseClients();
-      if (clients.length || isDatabaseOnlyMode()) {
-        return { ok: true, source: 'database', action: 'listDatabaseClients', method: 'SQL', clients };
-      }
+      return { ok: true, source: 'database', backupSource: 'google-drive', action: 'listDatabaseClients', method: 'SQL', clients };
     } catch (error) {
       if (isDatabaseOnlyMode()) throw error;
+
+      const fallback = await listClientsWithFallbacks();
+      return {
+        ...fallback,
+        source: 'google-drive-backup',
+        primarySource: 'database',
+        primaryError: error?.message || 'Database read failed.',
+      };
     }
   }
 
   return listClientsWithFallbacks();
 }
 
+async function backupClientToGoogleDrive(record) {
+  try {
+    const backupRecord = normalizeManualClient(record);
+    const data = await addClientWithAttempts(backupRecord);
+    return { ok: true, source: data.source, action: data.action, method: data.method || 'POST' };
+  } catch (error) {
+    return { ok: false, error: error?.message || 'Google Drive backup failed.' };
+  }
+}
+
+async function backupConsultationToGoogleDrive(record) {
+  try {
+    const data = await callSheetsApi({ action: 'saveConsultation', record });
+    return { ok: true, source: 'apps-script', action: 'saveConsultation', ...data };
+  } catch (error) {
+    return { ok: false, error: error?.message || 'Google Drive backup failed.' };
+  }
+}
+
 async function addClientToPreferredStore(input) {
   if (isDatabaseConfigured()) {
     try {
       const result = await saveDatabaseClient(input);
-      return { source: 'database', method: 'SQL', ...result };
+      const backup = await backupClientToGoogleDrive(result.record || input);
+      return { source: 'database', backupSource: 'google-drive', method: 'SQL', backup, ...result };
     } catch (error) {
       if (isDatabaseOnlyMode()) throw error;
     }
@@ -420,7 +446,8 @@ async function saveConsultationToPreferredStore(record) {
   if (isDatabaseConfigured()) {
     try {
       const result = await saveDatabaseConsultation(record);
-      return { source: 'database', method: 'SQL', ...result };
+      const backup = await backupConsultationToGoogleDrive(record);
+      return { source: 'database', backupSource: 'google-drive', method: 'SQL', backup, ...result };
     } catch (error) {
       if (isDatabaseOnlyMode()) throw error;
     }

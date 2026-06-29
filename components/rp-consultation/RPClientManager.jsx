@@ -108,7 +108,7 @@ export default function RPClientManager() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('전체');
   const [isLoading, setIsLoading] = useState(true);
-  const [connectionStatus, setConnectionStatus] = useState('Google Sheets 연결 확인 중...');
+  const [connectionStatus, setConnectionStatus] = useState('Postgres 고객 데이터 확인 중...');
   const [connectionError, setConnectionError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [newClient, setNewClient] = useState(DIRECT_CLIENT_INITIAL_STATE);
@@ -123,25 +123,25 @@ export default function RPClientManager() {
       try {
         setIsLoading(true);
         setConnectionError('');
-        setConnectionStatus('Google Sheets 연결 확인 중...');
-        const sheetClients = await fetchRpClients();
+        setConnectionStatus('Postgres 고객 데이터 확인 중...');
+        const loadedClients = await fetchRpClients();
 
         if (cancelled) return;
 
-        if (sheetClients.length) {
-          setClients(sheetClients);
-          setSelectedId((current) => (sheetClients.some((client) => client.id === current) ? current : sheetClients[0].id));
-          setConnectionStatus(`Google Sheets 연결 성공 · ${sheetClients.length}명`);
+        if (loadedClients.length) {
+          setClients(loadedClients);
+          setSelectedId((current) => (loadedClients.some((client) => client.id === current) ? current : loadedClients[0].id));
+          setConnectionStatus(`Postgres 고객 데이터 로드 · ${loadedClients.length}명`);
         } else {
           setClients([]);
           setSelectedId('');
-          setConnectionStatus('Google Sheets 연결 성공 · 표시할 고객 없음');
+          setConnectionStatus('Postgres 고객 데이터 로드 · 표시할 고객 없음');
         }
       } catch (error) {
         if (cancelled) return;
         setClients(SAMPLE_CLIENTS);
         setSelectedId(SAMPLE_CLIENTS[0]?.id || '');
-        setConnectionStatus('Google Sheets 연결 실패 · 샘플 고객 표시 중');
+        setConnectionStatus('고객 데이터 연결 실패 · 샘플 고객 표시 중');
         setConnectionError(error?.message || '알 수 없는 연결 오류');
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -252,7 +252,7 @@ export default function RPClientManager() {
       <header className={styles.topbar}>
         <div>
           <div className={styles.logoText}><span>Re</span>PERFORMANCE</div>
-          <p className={styles.subtle}>Client Management · Google Sheets 기반 고객관리</p>
+          <p className={styles.subtle}>Client Management · Postgres 기반 고객관리 · Google Drive 백업</p>
         </div>
         <div className={styles.actions}>
           <button className={styles.primaryButton} type="button" onClick={() => setShowAddForm((current) => !current)}>

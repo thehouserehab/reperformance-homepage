@@ -554,7 +554,7 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
   const [requestedClientId, setRequestedClientId] = useState('');
   const [clients, setClients] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients : SAMPLE_CLIENTS));
   const [clientId, setClientId] = useState(() => (Array.isArray(initialClients) && initialClients.length ? initialClients[0]?.id : ''));
-  const [connectionStatus, setConnectionStatus] = useState('Google Sheets 연결 확인 중...');
+  const [connectionStatus, setConnectionStatus] = useState('Postgres 고객 데이터 확인 중...');
   const [connectionError, setConnectionError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
@@ -577,7 +577,7 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadClientsFromSheets() {
+    async function loadClientsFromPreferredStore() {
       if (Array.isArray(initialClients) && initialClients.length) {
         setClients(initialClients);
         setClientId((current) => current || initialClients[0]?.id || '');
@@ -586,31 +586,31 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
       }
 
       try {
-        setConnectionStatus('Google Sheets 연결 확인 중...');
+        setConnectionStatus('Postgres 고객 데이터 확인 중...');
         setConnectionError('');
-        const sheetClients = await fetchRpClients();
+        const loadedClients = await fetchRpClients();
 
         if (cancelled) return;
 
-        if (sheetClients.length) {
-          setClients(sheetClients);
-          setClientId((current) => current || sheetClients[0].id);
-          setConnectionStatus(`Google Sheets 연결 성공 · ${sheetClients.length}명 불러옴`);
+        if (loadedClients.length) {
+          setClients(loadedClients);
+          setClientId((current) => current || loadedClients[0].id);
+          setConnectionStatus(`Postgres 고객 데이터 로드 · ${loadedClients.length}명`);
         } else {
           setClients([]);
           setClientId('');
-          setConnectionStatus('Google Sheets 연결 성공 · 표시할 회원 없음');
+          setConnectionStatus('Postgres 고객 데이터 로드 · 표시할 회원 없음');
         }
       } catch (error) {
         if (cancelled) return;
         setClients(SAMPLE_CLIENTS);
         setClientId((current) => current || SAMPLE_CLIENTS[0]?.id || '');
-        setConnectionStatus('Google Sheets 연결 실패 · 샘플 고객 표시 중');
+        setConnectionStatus('고객 데이터 연결 실패 · 샘플 고객 표시 중');
         setConnectionError(error?.message || '알 수 없는 연결 오류');
       }
     }
 
-    loadClientsFromSheets();
+    loadClientsFromPreferredStore();
 
     return () => {
       cancelled = true;
@@ -772,9 +772,9 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
       setIsSaving(true);
       await saveRpConsultation(payload);
       if (typeof onSave === 'function') onSave(payload);
-      alert('상담 기록이 Google Sheets에 저장되었습니다.');
+      alert('상담 기록이 Postgres에 저장되고 Google Drive 백업이 시도되었습니다.');
     } catch (error) {
-      alert([`Google Sheets 저장 실패: ${error?.message || '알 수 없는 오류'}`, '', '브라우저 localStorage에는 임시 저장되었습니다.'].join(NL));
+      alert([`고객 데이터 저장 실패: ${error?.message || '알 수 없는 오류'}`, '', '브라우저 localStorage에는 임시 저장되었습니다.'].join(NL));
     } finally {
       setIsSaving(false);
     }

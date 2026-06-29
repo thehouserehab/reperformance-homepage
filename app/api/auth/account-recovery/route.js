@@ -13,6 +13,27 @@ function normalizePhone(value) {
   return cleanValue(value).replace(/\D/g, '');
 }
 
+function normalizeVerificationMethod(value) {
+  const method = cleanValue(value).toLowerCase().replace(/[\s_-]+/g, '');
+  if (method === 'email') return 'email';
+  if (method === 'kakao' || method === 'kakaotalk' || method === '카카오' || method === '카카오톡') return 'kakao';
+  return 'phone';
+}
+
+function normalizeVerificationContact(method, value) {
+  const normalizedMethod = normalizeVerificationMethod(method);
+  if (normalizedMethod === 'phone') return normalizePhone(value);
+  if (normalizedMethod === 'email') return cleanValue(value).toLowerCase();
+  return cleanValue(value);
+}
+
+function getVerificationLabel(method) {
+  const normalizedMethod = normalizeVerificationMethod(method);
+  if (normalizedMethod === 'email') return '이메일';
+  if (normalizedMethod === 'kakao') return '카카오톡';
+  return '전화번호';
+}
+
 function getRecoverySecret() {
   return cleanValue(
     process.env.RP_ACCOUNT_RECOVERY_SECRET ||
@@ -21,7 +42,10 @@ function getRecoverySecret() {
   );
 }
 
-function getSmsWebhookUrl() {
+function getRecoveryWebhookUrl(method) {
+  const normalizedMethod = normalizeVerificationMethod(method);
+  if (normalizedMethod === 'email') return cleanValue(process.env.RP_EMAIL_WEBHOOK_URL || process.env.EMAIL_WEBHOOK_URL);
+  if (normalizedMethod === 'kakao') return cleanValue(process.env.RP_KAKAO_WEBHOOK_URL || process.env.KAKAO_WEBHOOK_URL);
   return cleanValue(process.env.RP_SMS_WEBHOOK_URL || process.env.SMS_WEBHOOK_URL);
 }
 
@@ -96,8 +120,11 @@ async function readPayload(request) {
   return Object.fromEntries(formData.entries());
 }
 
-async function sendRecoverySms({ phone, code, purpose }) {
-  const webhookUrl = getSmsWebhookUrl();
+async function sendRecoverySms({ method = 'phone', phone, contact, code, purpose }) {
+  const normalizedMethod = normalizeVerificationMethod(method);
+  const normalizedContact = normalizeVerificationContact(normalizedMethod, contact || phone);
+  const label = getVerificationLabel(normalizedMethod);
+  const webhookUrl = getRecoveryWebhookUrl(normalizedMethod);
   const message = `[RePERFORMANCE] 계정 ${purpose === 'reset-password' ? '비밀번호 재설정' : '아이디 찾기'} 인증번호는 ${code}입니다. ${Math.floor(CODE_TTL_SECONDS / 60)}분 안에 입력해주세요.`;
 
   if (!webhookUrl) {
@@ -112,12 +139,17 @@ async function sendRecoverySms({ phone, code, purpose }) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      phone,
-      to: phone,
+      method: normalizedMethod,
+      channel: normalizedMethod,
+      contact: normalizedContact,
+      phone: normalizedMethod === 'phone' ? normalizedContact : undefined,
+      email: normalizedMethod === 'email' ? normalizedContact : undefined,
+      kakaoId: normalizedMethod === 'kakao' ? normalizedContact : undefined,
+      to: normalizedContact,
       code,
       purpose,
       message,
-      secret: cleanValue(process.env.RP_SMS_WEBHOOK_SECRET || process.env.RP_API_SECRET),
+      secret: cleanValue(process.env.RP_IDENTITY_WEBHOOK_SECRET || process.env.RP_SMS_WEBHOOK_SECRET || process.env.RP_API_SECRET),
       source: 'reperformance-account-recovery',
     }),
   });
@@ -135,15 +167,26 @@ async function sendRecoverySms({ phone, code, purpose }) {
 
 async function handleRequestCode(payload) {
   const name = cleanValue(payload.name);
-  const phone = cleanValue(payload.phone);
-  const normalizedPhone = normalizePhone(phone);
+  const verificationMethod = normalizeVerificationMethod(payload.verificationMethod || payload.method);
+  const contact = cleanValue(
+    payload.contact ||
+    payload.verificationContact ||
+    (verificationMethod === 'email' ? payload.email : '') ||
+    (verificationMethod === 'kakao' ? payload.kakaoId || payload.kakaoTalkId : '') ||
+    payload.phone,
+  );
+  const normalizedContact = normalizeVerificationContact(verificationMethod, contact);
   const purpose = payload.purpose === 'reset-password' ? 'reset-password' : 'find-id';
 
-  if (!name || !normalizedPhone) {
-    return Response.json({ ok: false, error: '이름과 전화번호를 입력해주세요.' }, { status: 400 });
+  if (!name || !normalizedContact) {
+    return Response.json({ ok: false, error: `이름과 ${getVerificationLabel(verificationMethod)} 정보를 입력해주세요.` }, { status: 400 });
   }
 
-  const { account, source, passwordResetSupported } = await findAuthAccountByIdentityFromStores(name, phone);
+  const { account, source, passwordResetSupported } = await findAuthAccountByIdentityFromStores(
+    name,
+    normalizedContact,
+    verificationMethod,
+  );
   if (!account) {
     return Response.json({ ok: false, error: '입력한 정보와 일치하는 승인 계정을 찾지 못했습니다.' }, { status: 404 });
   }
@@ -154,7 +197,8 @@ async function handleRequestCode(payload) {
   const verificationToken = await createToken({
     username: account.username,
     name: account.name,
-    phone: normalizedPhone,
+    contact: normalizedContact,
+    verificationMethod,
     purpose,
     source,
     passwordResetSupported,
@@ -162,7 +206,7 @@ async function handleRequestCode(payload) {
     codeHash,
     exp: Date.now() + CODE_TTL_SECONDS * 1000,
   });
-  const sms = await sendRecoverySms({ phone: normalizedPhone, code, purpose });
+  const sms = await sendRecoverySms({ method: verificationMethod, contact: normalizedContact, code, purpose });
 
   return Response.json({
     ok: true,

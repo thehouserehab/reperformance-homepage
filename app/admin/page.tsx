@@ -10,7 +10,7 @@ const dashboardCards = [
   {
     label: "고객관리",
     value: "고객 DB",
-    note: "Google Sheets에서 불러온 회원 정보를 검색하고 상태를 확인합니다.",
+    note: "Postgres 고객 DB에서 회원 정보를 검색하고 상태를 확인합니다.",
   },
   {
     label: "운영자료",
@@ -75,7 +75,7 @@ const flows = [
   "고객 목록에서 상담 대상 선택",
   "상담 화면에서 고객 안내와 코치 기록 동시 진행",
   "AI 요약으로 내부 판단 정리",
-  "Google Sheets 저장 후 다음 액션 확인",
+  "Postgres 저장 및 Google Drive 백업 상태 확인",
 ];
 
 export default function AdminPage() {
@@ -117,7 +117,7 @@ export default function AdminPage() {
             <p className="eyebrow">QUICK ACCESS</p>
             <h2>상담과 고객관리를 먼저 열고, 나머지 운영 문서는 필요할 때 연결합니다.</h2>
             <p>
-              지금은 추가 비용 없이 Google Sheets와 Drive를 중심으로 운영합니다. 상담 화면과 고객관리 화면은 홈페이지 안에서 바로 열고,
+              고객 데이터는 Postgres를 중심으로 운영하고 Google Drive를 백업 저장소로 함께 사용합니다. 상담 화면과 고객관리 화면은 홈페이지 안에서 바로 열고,
               매출과 문서 DB는 기존 Workspace 링크로 이어집니다.
             </p>
           </div>
@@ -166,7 +166,7 @@ export default function AdminPage() {
               ))}
             </ul>
             <div className="notice">
-              고객관리 화면에서 회원을 선택하면 상담 화면으로 바로 이동할 수 있습니다. 상담 저장은 Google Sheets 저장과 브라우저 임시 저장을 함께 사용합니다.
+              고객관리 화면에서 회원을 선택하면 상담 화면으로 바로 이동할 수 있습니다. 상담 저장은 Postgres 저장과 Google Drive 백업을 함께 사용합니다.
             </div>
           </div>
         </div>

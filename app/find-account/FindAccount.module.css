@@ -138,7 +138,8 @@
   font-weight: 950;
 }
 
-.findAccountCard input {
+.findAccountCard input,
+.findAccountCard select {
   min-width: 0;
   min-height: 48px;
   padding: 0 14px;

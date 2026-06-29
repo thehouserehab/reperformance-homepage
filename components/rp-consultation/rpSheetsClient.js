@@ -10,7 +10,7 @@ export async function fetchRpClients() {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || payload?.ok === false) {
-    const message = payload?.error || `Google Sheets 고객 목록을 불러오지 못했습니다. (${response.status})`;
+    const message = payload?.error || `고객 데이터를 불러오지 못했습니다. (${response.status})`;
     throw new Error(message);
   }
 
@@ -33,7 +33,7 @@ export async function addRpClient(client) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || payload?.ok === false) {
-    const message = payload?.error || `고객을 Google Sheets에 추가하지 못했습니다. (${response.status})`;
+    const message = payload?.error || `고객을 저장하지 못했습니다. (${response.status})`;
     throw new Error(message);
   }
 
@@ -56,7 +56,7 @@ export async function saveRpConsultation(record) {
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok || payload?.ok === false) {
-    const message = payload?.error || `상담 기록을 Google Sheets에 저장하지 못했습니다. (${response.status})`;
+    const message = payload?.error || `상담 기록을 저장하지 못했습니다. (${response.status})`;
     throw new Error(message);
   }
 

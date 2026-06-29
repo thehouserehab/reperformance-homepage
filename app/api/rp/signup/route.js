@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME, createAdminSession, getAdminCookieOptions } from '../../../../lib/rpAdminAuth';
-import { getSheetRoleLabel, normalizeSheetRole, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
+import {
+  getIdentityContactFromPayload,
+  verifyIdentityToken,
+} from '../../../../lib/rpIdentityVerification';
+import { getSheetRoleLabel, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
 import { isDatabaseConfigured, isDatabaseOnlyMode, saveDatabaseAuthSignup } from '../../../../lib/rpDatabase';
 
 export const dynamic = 'force-dynamic';
@@ -24,6 +28,11 @@ async function readPayload(request) {
       name: payload.name,
       username: payload.username || payload.email,
       phone: payload.phone,
+      email: payload.email,
+      kakaoId: payload.kakaoId || payload.kakaoTalkId,
+      verificationMethod: payload.verificationMethod || payload.method,
+      verificationContact: payload.verificationContact || payload.contact,
+      identityToken: payload.identityToken,
       password: payload.password,
       passwordConfirm: payload.passwordConfirm || payload.confirmPassword,
       requestedRole: payload.requestedRole || payload.role,
@@ -36,6 +45,11 @@ async function readPayload(request) {
     name: formData.get('name'),
     username: formData.get('username') || formData.get('email'),
     phone: formData.get('phone'),
+    email: formData.get('email'),
+    kakaoId: formData.get('kakaoId') || formData.get('kakaoTalkId'),
+    verificationMethod: formData.get('verificationMethod') || formData.get('method'),
+    verificationContact: formData.get('verificationContact') || formData.get('contact'),
+    identityToken: formData.get('identityToken'),
     password: formData.get('password'),
     passwordConfirm: formData.get('passwordConfirm') || formData.get('confirmPassword'),
     requestedRole: formData.get('requestedRole') || formData.get('role'),
@@ -62,13 +76,22 @@ function buildSafeRecord(record) {
 async function saveAuthSignup(record) {
   if (isDatabaseConfigured()) {
     try {
-      return await saveDatabaseAuthSignup(record);
+      const result = await saveDatabaseAuthSignup(record);
+      let backup = { ok: false, skipped: true, reason: 'Google Drive backup is not configured.' };
+
+      try {
+        backup = await saveSheetAuthSignup(record);
+      } catch (error) {
+        backup = { ok: false, error: error?.message || 'Google Drive backup failed.' };
+      }
+
+      return { ...result, primary: 'database', backup };
     } catch (error) {
       if (isDatabaseOnlyMode()) throw error;
     }
   }
 
-  return saveSheetAuthSignup(record);
+  return { ...(await saveSheetAuthSignup(record)), primary: 'google-drive-backup' };
 }
 
 function getFailureStatus(error) {
@@ -95,10 +118,19 @@ async function buildSessionResponse(request, account) {
 export async function POST(request) {
   const wantsJson = (request.headers.get('content-type') || '').includes('application/json');
   const payload = await readPayload(request);
-  const role = normalizeSheetRole(payload.requestedRole);
+  const role = 'member';
   const roleLabel = getSheetRoleLabel(role);
   const now = new Date().toISOString();
   const isMember = role === 'member';
+  const identity = await verifyIdentityToken(payload.identityToken, 'signup').catch(() => null);
+  const { method: verificationMethod, contact: verificationContact } = getIdentityContactFromPayload(payload);
+  const verifiedContact = identity?.contact || '';
+  const identityMatches = Boolean(
+    identity &&
+    identity.method === verificationMethod &&
+    verifiedContact &&
+    verifiedContact === verificationContact,
+  );
   const record = {
     id: `SIGNUP-${Date.now()}`,
     requestedAt: now,
@@ -107,7 +139,12 @@ export async function POST(request) {
     accountStatus: isMember ? 'active' : 'pending_approval',
     name: cleanEnvValue(payload.name),
     username: cleanEnvValue(payload.username),
-    phone: cleanEnvValue(payload.phone),
+    phone: verificationMethod === 'phone' ? verifiedContact : cleanEnvValue(payload.phone),
+    email: verificationMethod === 'email' ? verifiedContact : cleanEnvValue(payload.email),
+    kakaoId: verificationMethod === 'kakao' ? verifiedContact : cleanEnvValue(payload.kakaoId),
+    verificationMethod,
+    verificationContact,
+    verifiedContact,
     password: cleanEnvValue(payload.password),
     passwordConfirm: cleanEnvValue(payload.passwordConfirm),
     requestedRole: role,
@@ -119,7 +156,12 @@ export async function POST(request) {
     approvalRequired: !isMember,
   };
 
-  if (!record.name || !record.username || !record.phone || !record.password) {
+  if (!identityMatches) {
+    if (wantsJson) return jsonResponse({ ok: false, error: '본인 인증을 먼저 완료해주세요.' }, 400);
+    return buildRedirect(request, 'invalid', role);
+  }
+
+  if (!record.name || !record.username || !record.verifiedContact || !record.password) {
     if (wantsJson) return jsonResponse({ ok: false, error: '이름, 아이디, 연락처, 비밀번호는 필수입니다.' }, 400);
     return buildRedirect(request, 'invalid', role);
   }

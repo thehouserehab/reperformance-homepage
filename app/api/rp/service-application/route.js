@@ -41,6 +41,78 @@ function getSslConfig(databaseUrl) {
   return { rejectUnauthorized: false };
 }
 
+function getBackupWebAppUrl() {
+  return cleanValue(process.env.RP_SHEETS_WEBAPP_URL || process.env.RP_SIGNUP_WEBAPP_URL || process.env.RP_AUTH_WEBAPP_URL);
+}
+
+async function callGoogleDriveBackup(action, payload) {
+  const webAppUrl = getBackupWebAppUrl();
+  const apiSecret = cleanValue(process.env.RP_API_SECRET);
+
+  if (!webAppUrl) throw new Error('Google Drive backup web app URL is not configured.');
+
+  const url = new URL(webAppUrl);
+  url.searchParams.set('action', action);
+  if (apiSecret) {
+    url.searchParams.set('secret', apiSecret);
+    url.searchParams.set('apiSecret', apiSecret);
+    url.searchParams.set('token', apiSecret);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    cache: 'no-store',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...payload, secret: apiSecret, apiSecret, token: apiSecret }),
+  });
+  const text = await response.text();
+  let data = {};
+
+  try {
+    data = JSON.parse(text);
+  } catch (_) {
+    data = { raw: text.slice(0, 250) };
+  }
+
+  if (!response.ok || data?.ok === false) {
+    throw new Error(data?.error || `Google Drive backup failed: ${response.status}`);
+  }
+
+  return data;
+}
+
+async function backupServiceApplication(application, client) {
+  const payload = {
+    application,
+    client,
+    record: {
+      recordType: 'serviceApplication',
+      clientId: application.clientId,
+      clientName: application.name,
+      phone: application.phone,
+      selectedService: application.selectedService,
+      serviceLabel: application.serviceLabel,
+      memberType: application.memberType,
+      application,
+      client,
+    },
+  };
+  const attempts = ['saveServiceApplication', 'saveApplication', 'saveConsultation'];
+  const errors = [];
+
+  for (const action of attempts) {
+    try {
+      const data = await callGoogleDriveBackup(action, payload);
+      return { ok: true, source: 'google-drive', action, data };
+    } catch (error) {
+      errors.push(`${action}: ${error?.message || 'unknown error'}`);
+    }
+  }
+
+  return { ok: false, error: errors.slice(0, 3).join(' / ') || 'Google Drive backup failed.' };
+}
+
 function cleanValue(value) {
   return String(value || '').trim();
 }
@@ -288,7 +360,9 @@ async function saveServiceApplication(application) {
     ],
   );
 
-  return { ok: true, action: 'database', application, client: clientResult.client };
+  const backup = await backupServiceApplication(application, clientResult.client);
+
+  return { ok: true, action: 'database', backupSource: 'google-drive', backup, application, client: clientResult.client };
 }
 
 export async function POST(request) {

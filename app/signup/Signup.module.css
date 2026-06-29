@@ -106,6 +106,54 @@
   line-height: 1.6;
 }
 
+.verificationBox {
+  display: grid;
+  grid-template-columns: minmax(120px, .7fr) minmax(0, 1fr) minmax(120px, .7fr);
+  gap: 10px;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+
+.verificationBox button {
+  min-height: 50px;
+}
+
+.verificationStatus {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.verificationStatus[data-tone="good"] {
+  border-color: rgba(8, 123, 114, .24);
+  background: #eff8f6;
+  color: #355a56;
+}
+
+.verificationStatus[data-tone="warn"] {
+  border-color: rgba(183, 127, 31, .28);
+  background: #fff6e7;
+  color: #76511c;
+}
+
+.verificationStatus[data-tone="error"] {
+  border-color: rgba(150, 55, 36, .22);
+  background: #fff0eb;
+  color: #963724;
+}
+
+.verificationStatus span {
+  color: inherit;
+  font-size: 13px;
+  font-weight: 850;
+}
+
 .checkLabel {
   grid-template-columns: 20px minmax(0, 1fr);
   align-items: start;
@@ -144,6 +192,12 @@
   font: inherit;
   font-weight: 950;
   text-decoration: none;
+}
+
+.form button:disabled {
+  background: #cfd6d3;
+  color: #69706d;
+  cursor: not-allowed;
 }
 
 .success,
@@ -222,6 +276,7 @@
 @media (max-width: 900px) {
   .layout,
   .formGrid,
+  .verificationBox,
   .actions {
     grid-template-columns: 1fr;
   }

@@ -3,13 +3,24 @@
 import { useState } from 'react';
 import styles from './FindAccount.module.css';
 
+const verificationOptions = [
+  { value: 'phone', label: '전화번호', placeholder: '01012345678', type: 'tel' },
+  { value: 'email', label: '이메일', placeholder: 'member@example.com', type: 'email' },
+  { value: 'kakao', label: '카카오톡', placeholder: '카카오톡 ID 또는 연결 연락처', type: 'text' },
+];
+
 const initialForm = {
   name: '',
-  phone: '',
+  verificationMethod: 'phone',
+  verificationContact: '',
   code: '',
   newPassword: '',
   passwordConfirm: '',
 };
+
+function getCurrentOption(method) {
+  return verificationOptions.find((option) => option.value === method) || verificationOptions[0];
+}
 
 export default function FindAccountClient() {
   const [mode, setMode] = useState('find-id');
@@ -18,10 +29,20 @@ export default function FindAccountClient() {
   const [status, setStatus] = useState(null);
   const [result, setResult] = useState(null);
   const [pending, setPending] = useState(false);
+  const currentOption = getCurrentOption(form.verificationMethod);
 
   function updateField(event) {
     const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === 'verificationMethod' || name === 'verificationContact' ? { code: '' } : {}),
+    }));
+    if (name === 'verificationMethod' || name === 'verificationContact') {
+      setVerificationToken('');
+      setStatus(null);
+      setResult(null);
+    }
   }
 
   function switchMode(nextMode) {
@@ -46,7 +67,8 @@ export default function FindAccountClient() {
           action: 'request-code',
           purpose: mode,
           name: form.name,
-          phone: form.phone,
+          verificationMethod: form.verificationMethod,
+          verificationContact: form.verificationContact,
         }),
       });
       const data = await response.json();
@@ -58,7 +80,7 @@ export default function FindAccountClient() {
       setVerificationToken(data.verificationToken);
       setStatus({
         tone: data.sms?.setupRequired ? 'warn' : 'good',
-        text: data.sms?.message || '인증번호를 발송했습니다.',
+        text: data.sms?.message || '인증번호를 보냈습니다.',
         debugCode: data.debugCode,
       });
     } catch (error) {
@@ -106,18 +128,10 @@ export default function FindAccountClient() {
     <div className="container">
       <div className={styles.findAccountPanel}>
         <div className={styles.findAccountTabs} aria-label="계정 찾기 선택">
-          <button
-            aria-pressed={mode === 'find-id'}
-            onClick={() => switchMode('find-id')}
-            type="button"
-          >
+          <button aria-pressed={mode === 'find-id'} onClick={() => switchMode('find-id')} type="button">
             아이디 찾기
           </button>
-          <button
-            aria-pressed={mode === 'reset-password'}
-            onClick={() => switchMode('reset-password')}
-            type="button"
-          >
+          <button aria-pressed={mode === 'reset-password'} onClick={() => switchMode('reset-password')} type="button">
             비밀번호 재설정
           </button>
         </div>
@@ -125,23 +139,32 @@ export default function FindAccountClient() {
         <div className={styles.findAccountGrid}>
           <form className={styles.findAccountCard} onSubmit={requestCode}>
             <p className="eyebrow">{mode === 'find-id' ? 'FIND ID' : 'RESET PASSWORD'}</p>
-            <h2>전화번호 인증</h2>
-            <p>가입 시 등록한 이름과 전화번호를 입력하면 인증번호를 발송합니다.</p>
+            <h2>본인 인증</h2>
+            <p>가입할 때 사용한 이름과 인증 수단을 입력하면 6자리 인증번호를 보냅니다.</p>
 
             <label>
               이름
               <input name="name" onChange={updateField} required type="text" value={form.name} />
             </label>
             <label>
-              전화번호
+              인증 수단
+              <select name="verificationMethod" onChange={updateField} value={form.verificationMethod}>
+                {verificationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {currentOption.label}
               <input
-                inputMode="tel"
-                name="phone"
+                name="verificationContact"
                 onChange={updateField}
-                placeholder="01012345678"
+                placeholder={currentOption.placeholder}
                 required
-                type="tel"
-                value={form.phone}
+                type={currentOption.type}
+                value={form.verificationContact}
               />
             </label>
             <button disabled={pending} type="submit">
@@ -152,7 +175,7 @@ export default function FindAccountClient() {
           <form className={styles.findAccountCard} onSubmit={verifyCode}>
             <p className="eyebrow">VERIFY</p>
             <h2>{mode === 'find-id' ? '아이디 확인' : '새 비밀번호 설정'}</h2>
-            <p>문자로 받은 6자리 인증번호를 입력합니다.</p>
+            <p>받은 6자리 인증번호를 입력하면 아이디 확인 또는 비밀번호 변경을 진행합니다.</p>
 
             <label>
               인증번호
