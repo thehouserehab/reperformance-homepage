@@ -40,3 +40,10 @@ Vercel Output Directory는 비워두세요.
 - 실제 민감정보는 홈페이지에 노출하지 않고 Google Workspace 권한으로 관리하는 방식
 
 현재 `/admin`의 주요 버튼은 Google Drive 운영문서 폴더로 연결됩니다. 추후 Google Sheets 직접 링크를 받으면 버튼별로 개별 파일/시트 링크로 교체하면 됩니다.
+
+## 운영 문서
+
+- 고객 데이터와 로그인/회원가입 운영 모델: `docs/RP_CUSTOMER_DATA_AUTH_MODEL.md`
+- PostgreSQL 전환 가이드: `docs/RP_MANAGED_POSTGRES_SETUP.md`
+- 계정/권한 설정: `docs/RP_ADMIN_AUTH_SETUP.md`
+- 상담 신청 저장 설정: `docs/RP_SERVICE_APPLICATION_SETUP.md`
