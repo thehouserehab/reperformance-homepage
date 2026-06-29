@@ -1348,6 +1348,16 @@
   overflow-wrap: anywhere;
 }
 
+.universityDetailCue {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 4px;
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
 .universityEmptyState {
   display: grid;
   gap: 6px;

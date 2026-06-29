@@ -91,6 +91,9 @@ export default function PeExamUniversityIndexClient({
                 </dl>
               ) : null}
               {card.preview ? <small>{card.preview}</small> : null}
+              <b className={styles.universityDetailCue}>
+                {card.isEmpty ? "모집요강 확인 대상 보기" : "대학 상세 보기"}
+              </b>
             </Link>
           ))}
         </div>

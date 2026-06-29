@@ -101,7 +101,7 @@ function getEarlySchoolBrief(school: RegionSchool): SchoolTrackBrief {
       { label: "수시 전형", value: `${admissions.length}개` },
       { label: "실기 대상", value: `${practicalAdmissions.length}개` },
       { label: "실기 기준", value: practicalAdmissions.length ? `${practicalResolvedCount}/${practicalAdmissions.length}` : "해당 없음" },
-      { label: "등급 상세", value: `${admissions.filter((admission) => admission.hasGradeDetail).length}개` },
+      { label: "등급컷·평균등급", value: `${admissions.filter((admission) => admission.hasGradeDetail).length}개` },
     ],
     groups: [
       { label: "실기 종목", items: practicalTasks },
@@ -128,7 +128,7 @@ function getRegularSchoolBrief(school: RegionSchool): SchoolTrackBrief {
       { label: "정시 전형", value: `${admissions.length}개` },
       { label: "모집단위", value: `${admissions.reduce((sum, admission) => sum + admission.units.length, 0)}개` },
       { label: "실기 대상", value: `${admissions.filter((admission) => hasPositivePracticalMethod(admission.method)).length}개` },
-      { label: "입결 행", value: selectionDetail?.hasResultTable ? `${selectionDetail.resultRows.length}건` : "확인 필요" },
+      { label: "등급컷·평균등급", value: selectionDetail?.hasResultTable ? `${selectionDetail.resultRows.length}건` : "확인 필요" },
     ],
     groups: [
       { label: "모집단위", items: units },
@@ -177,7 +177,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
   const sourceLink = isEarly ? sourceLinks[2] : sourceLinks[1];
   const admissionCount = isEarly ? region.earlyAdmissionCount : region.regularAdmissionCount;
   const detailCount = isEarly ? region.practicalDetailCount : region.regularUnitCount;
-  const detailLabel = isEarly ? "실기 상세" : "모집단위";
+  const detailLabel = isEarly ? "실기 기록 기준" : "모집단위";
   const sortedSchools = [...region.universities].sort((a, b) => {
     const aCount = isEarly ? a.earlyAdmissions.length : a.regularAdmissions.length;
     const bCount = isEarly ? b.earlyAdmissions.length : b.regularAdmissions.length;
@@ -196,9 +196,9 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
           href: kusfAdmissionMeta.sourceUrl,
         },
         {
-          label: "KUSF 실기·등급 상세",
-          title: `실기 상세 ${region.practicalDetailCount}개 · 등급 상세 ${region.gradeDetailCount}개`,
-          text: `${formatSourceDate(kusfAdmissionDetailMeta.generatedAt)} 기준 상세 탭 연결 자료입니다. 대학별 상세 페이지에서 전형별 실기·등급 확인 지점을 봅니다.`,
+          label: "KUSF 실기 기록·등급 기준",
+          title: `실기 기록 기준 ${region.practicalDetailCount}개 · 등급컷·평균등급 확인 ${region.gradeDetailCount}개`,
+          text: `${formatSourceDate(kusfAdmissionDetailMeta.generatedAt)} 기준 상세 탭 연결 자료입니다. 대학별 상세 페이지에서 전형별 실기 기록 기준과 등급 확인 지점을 봅니다.`,
           href: kusfAdmissionDetailMeta.sourceUrl,
         },
       ]
@@ -211,7 +211,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
         },
         {
           label: "ADIGA 평가기준·입시결과",
-          title: `${adigaRegularSelectionMeta.universitiesWithResults}개 대학 · ${adigaRegularSelectionMeta.resultRowCount}개 입결 행`,
+          title: `${adigaRegularSelectionMeta.universitiesWithResults}개 대학 · ${adigaRegularSelectionMeta.resultRowCount}개 등급컷·평균등급 행`,
           text: `${adigaRegularSelectionMeta.resultYear}학년도 전형 결과 표와 ${adigaRegularSelectionMeta.universitiesWithCriteria}개 대학의 정시 평가기준 요약을 연결했습니다.`,
           href: adigaRegularSelectionMeta.sourceUrl,
         },
