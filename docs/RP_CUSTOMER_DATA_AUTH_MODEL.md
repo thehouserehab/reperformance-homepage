@@ -115,6 +115,7 @@ RP_KAKAO_WEBHOOK_URL=https://...
 
 ## 6. 운영 점검 체크리스트
 
+- 관리자 또는 트레이너로 로그인한 뒤 `/api/rp/system-status`에서 PostgreSQL, Google Drive/Sheets 백업, 인증번호 발송 웹훅, 세션 설정이 `configured: true`인지 확인합니다.
 - 신규 상담 신청이 `rp_service_applications`와 `rp_clients`에 저장되는지 확인합니다.
 - 고객 직접 추가가 PostgreSQL에 저장되고 Google Drive/Sheets 백업 결과가 반환되는지 확인합니다.
 - 상담 저장이 `rp_consultations`에 기록되는지 확인합니다.
