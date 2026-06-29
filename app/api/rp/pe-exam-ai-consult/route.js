@@ -114,15 +114,39 @@ function schoolMatchesTarget(school, targetTerms) {
   );
 }
 
+function getUnitSearchTexts(unit) {
+  if (!unit) return [];
+  if (typeof unit === 'string') return [unit];
+
+  if (typeof unit === 'object') {
+    return Object.values(unit).flatMap((value) => {
+      if (Array.isArray(value)) return value.map(cleanValue);
+      return [cleanValue(value)];
+    });
+  }
+
+  return [cleanValue(unit)];
+}
+
+function getAdmissionSearchTexts(admission) {
+  return uniqueItems(
+    [
+      admission.admissionName,
+      admission.admissionType,
+      admission.unit,
+      admission.unitSummary,
+      admission.gradeSummary,
+      ...(admission.units || []).flatMap(getUnitSearchTexts),
+    ],
+    24,
+  );
+}
+
 function departmentMatchesTarget(school, targetTerms) {
   if (!targetTerms.length) return false;
 
   const admissions = [...(school.earlyAdmissions || []), ...(school.regularAdmissions || [])];
-  const admissionTexts = admissions.flatMap((admission) => [
-    admission.admissionName,
-    admission.unitSummary,
-    ...(admission.units || []),
-  ]);
+  const admissionTexts = admissions.flatMap(getAdmissionSearchTexts);
 
   return admissionTexts.some((text) => {
     const normalized = normalizeSearchText(text);
@@ -176,10 +200,10 @@ function summarizeUniversityTrack(school, trackKey) {
       admissionCount: admissions.length,
       practicalItems,
       resultItems,
-      resultLabel: '정시 입결',
+      resultLabel: '정시 등급컷·평균등급',
       summary:
         admissions.length > 0
-          ? `정시 전형 ${admissions.length}건과 ADIGA 입결 ${resultItems.length}건을 연결했습니다.`
+          ? `정시 전형 ${admissions.length}건과 ADIGA 등급컷·평균등급 ${resultItems.length}건을 연결했습니다.`
           : '정시 전형 행은 아직 연결되지 않았습니다. 대학 입학처 모집요강 확인이 필요합니다.',
     };
   }
@@ -196,10 +220,10 @@ function summarizeUniversityTrack(school, trackKey) {
     admissionCount: admissions.length,
     practicalItems,
     resultItems,
-    resultLabel: '수시 등급·최저',
+    resultLabel: '수시 등급컷·평균등급 확인',
     summary:
       admissions.length > 0
-        ? `수시 전형 ${admissions.length}건에서 학생부·최저·실기 확인 항목을 추렸습니다.`
+        ? `수시 전형 ${admissions.length}건에서 학생부·최저·실기와 등급 확인 항목을 추렸습니다.`
         : '수시 전형 행은 아직 연결되지 않았습니다. KUSF 또는 대학 모집요강 확인이 필요합니다.',
   };
 }
@@ -323,10 +347,10 @@ function getTargetDirection(request, universityMatches = []) {
 
   const target = [request.targetUniversity, request.targetDepartment].filter(Boolean).join(' ');
   if (universityMatches.length) {
-    return `${target} 기준으로 연결 가능한 대학 상세 자료를 찾았습니다. 아래 카드에서 수시·정시별 실기 종목과 입결 요약을 먼저 비교합니다.`;
+    return `${target} 기준으로 연결 가능한 대학 상세 자료를 찾았습니다. 아래 카드에서 수시·정시별 실기 종목과 등급컷·평균등급 확인 항목을 먼저 비교합니다.`;
   }
 
-  return `${target} 기준으로 전형방법, 실기 종목, 전년도 입결을 먼저 확인합니다. 같은 대학도 수시와 정시의 판단 기준이 다르므로 상세 페이지를 각각 비교합니다.`;
+  return `${target} 기준으로 전형방법, 실기 종목, 등급컷·평균등급 또는 전년도 입결을 먼저 확인합니다. 같은 대학도 수시와 정시의 판단 기준이 다르므로 상세 페이지를 각각 비교합니다.`;
 }
 
 function getConditionDirection(request) {
@@ -418,7 +442,7 @@ function buildDirectionGuide(request) {
       universityMatches.length
         ? '아래 연결된 대학 상세 페이지에서 같은 대학의 수시·정시 기준을 각각 확인합니다.'
         : '희망 대학을 1순위·대안·안전 후보로 나누어 다시 입력합니다.',
-      '대학별 상세 페이지에서 같은 전형의 실기 종목과 입결 행을 확인합니다.',
+      '대학별 상세 페이지에서 같은 전형의 실기 종목과 등급컷·평균등급 확인 항목을 확인합니다.',
       '현재 기록과 기준 기록의 차이가 큰 종목을 우선 보완합니다.',
       '상담 신청 시 이 입력 내용을 기준으로 최종 지원 방향을 점검합니다.',
     ],

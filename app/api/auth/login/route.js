@@ -27,13 +27,32 @@ async function readLoginPayload(request) {
   };
 }
 
-function sanitizeNext(value, account) {
+function getSafeRelativeNext(value) {
   const next = String(value || '').trim();
+
+  if (!next.startsWith('/') || next.startsWith('//')) return '';
+
+  try {
+    const url = new URL(next, 'https://reperformance.local');
+    if (url.origin !== 'https://reperformance.local') return '';
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch (_) {
+    return '';
+  }
+}
+
+function isSamePathOrChildQuery(next, pathname) {
+  return next === pathname || next.startsWith(`${pathname}?`) || next.startsWith(`${pathname}#`);
+}
+
+function sanitizeNext(value, account) {
+  const next = getSafeRelativeNext(value);
 
   if (next.startsWith('/admin') && hasStaffRole(account?.role)) return next;
   if (next.startsWith('/account')) return next;
-  if (next === '/pe-exam/faq') return next;
-  if (next === '/pe-exam/ai-consult') return next;
+  if (isSamePathOrChildQuery(next, '/pe-exam/faq')) return next;
+  if (isSamePathOrChildQuery(next, '/pe-exam/ai-consult')) return next;
 
   return hasStaffRole(account?.role) ? '/admin' : '/account';
 }
