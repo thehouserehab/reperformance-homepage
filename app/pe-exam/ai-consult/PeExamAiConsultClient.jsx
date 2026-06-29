@@ -17,7 +17,11 @@ function readForm(form) {
   return Object.fromEntries([...data.entries()].map(([key, value]) => [key, String(value || "").trim()]));
 }
 
-export default function PeExamAiConsultClient() {
+function isIncluded(values, value, fallback) {
+  return values.includes(value) ? value : fallback;
+}
+
+export default function PeExamAiConsultClient({ initialValues = {} }) {
   const [status, setStatus] = useState(emptyStatus);
   const [guidance, setGuidance] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +29,11 @@ export default function PeExamAiConsultClient() {
   const hasGuidance = useMemo(() => guidance && Array.isArray(guidance.cards) && guidance.cards.length > 0, [guidance]);
   const universityMatches = Array.isArray(guidance?.universityMatches) ? guidance.universityMatches : [];
   const profileSummary = Array.isArray(guidance?.profileSummary) ? guidance.profileSummary : [];
+  const initialAdmissionTrack = isIncluded(admissionTracks, initialValues.admissionTrack, "공통");
+  const initialGradeLevel = isIncluded(gradeLevels, initialValues.gradeLevel, "고3");
+  const hasInitialContext = Boolean(
+    initialValues.targetUniversity || initialValues.targetDepartment || initialAdmissionTrack !== "공통",
+  );
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -88,11 +97,18 @@ export default function PeExamAiConsultClient() {
         </div>
       )}
 
+      {hasInitialContext && (
+        <div className={styles.prefillNotice}>
+          <strong>대학 상세 페이지에서 가져온 정보가 입력되어 있습니다.</strong>
+          <span>성적과 실기 기록을 추가하면 이 대학 기준의 상담 방향을 바로 정리할 수 있습니다.</span>
+        </div>
+      )}
+
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.fieldGrid}>
           <label>
             학년
-            <select name="gradeLevel" defaultValue="고3">
+            <select name="gradeLevel" defaultValue={initialGradeLevel}>
               {gradeLevels.map((grade) => (
                 <option key={grade} value={grade}>
                   {grade}
@@ -103,7 +119,7 @@ export default function PeExamAiConsultClient() {
 
           <label>
             준비 구분
-            <select name="admissionTrack" defaultValue="공통">
+            <select name="admissionTrack" defaultValue={initialAdmissionTrack}>
               {admissionTracks.map((track) => (
                 <option key={track} value={track}>
                   {track}
@@ -116,12 +132,22 @@ export default function PeExamAiConsultClient() {
         <div className={styles.fieldGrid}>
           <label>
             희망 대학
-            <input name="targetUniversity" placeholder="예: 한국체육대학교, 전북대학교" type="text" />
+            <input
+              defaultValue={initialValues.targetUniversity || ""}
+              name="targetUniversity"
+              placeholder="예: 한국체육대학교, 전북대학교"
+              type="text"
+            />
           </label>
 
           <label>
             희망 학과/계열
-            <input name="targetDepartment" placeholder="예: 체육교육과, 스포츠과학과" type="text" />
+            <input
+              defaultValue={initialValues.targetDepartment || ""}
+              name="targetDepartment"
+              placeholder="예: 체육교육과, 스포츠과학과"
+              type="text"
+            />
           </label>
         </div>
 

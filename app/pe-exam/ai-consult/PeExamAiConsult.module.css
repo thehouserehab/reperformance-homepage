@@ -148,7 +148,8 @@
 }
 
 .statusBox,
-.loginNotice {
+.loginNotice,
+.prefillNotice {
   display: grid;
   gap: 8px;
   margin-bottom: 18px;
@@ -159,13 +160,15 @@
 }
 
 .statusBox strong,
-.loginNotice strong {
+.loginNotice strong,
+.prefillNotice strong {
   color: #8b4b0c;
   font-size: 18px;
 }
 
 .statusBox span,
-.loginNotice span {
+.loginNotice span,
+.prefillNotice span {
   color: #72553a;
   line-height: 1.62;
 }

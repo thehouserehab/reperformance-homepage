@@ -59,6 +59,22 @@ function formatResultMetric(value: string, suffix = "") {
   return value ? `${value}${suffix}` : "공개값 없음";
 }
 
+function getFirstEarlyUnit(admissions: readonly EarlyAdmission[]) {
+  for (const admission of admissions) {
+    if (admission.unit) return admission.unit;
+  }
+
+  return "";
+}
+
+function getFirstRegularUnitSummary(admissions: readonly RegularAdmission[]) {
+  for (const admission of admissions) {
+    if (admission.unitSummary) return admission.unitSummary;
+  }
+
+  return "";
+}
+
 function hasPositivePracticalMethod(method: string) {
   const practicalMatch = method.match(/실기\s*:\s*(\d+)/);
   if (practicalMatch?.[1]) return Number(practicalMatch[1]) > 0;
@@ -262,6 +278,17 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
   const earlyAdmissions = school.earlyAdmissions;
   const regularAdmissions = school.regularAdmissions;
   const trackCount = isEarly ? earlyAdmissions.length : regularAdmissions.length;
+  const consultDepartment = isEarly
+    ? getFirstEarlyUnit(earlyAdmissions)
+    : getFirstRegularUnitSummary(regularAdmissions);
+  const aiConsultParams = new URLSearchParams({
+    target: schoolName,
+    track: track.label,
+  });
+
+  if (consultDepartment) aiConsultParams.set("department", consultDepartment);
+
+  const aiConsultHref = `/pe-exam/ai-consult?${aiConsultParams.toString()}`;
   const practicalTaskCount = isEarly
     ? earlyAdmissions.reduce((sum, admission) => sum + admission.practicalTasks.length, 0)
     : regularAdmissions.reduce((sum, admission) => sum + admission.practicalTasks.length, 0);
@@ -396,6 +423,7 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
             <Link href={getPeExamSchoolTrackHref(region.region, alternateTrack.key, school.slug)}>
               {alternateTrack.label} 상세로 전환
             </Link>
+            <Link href={aiConsultHref}>AI 상담 준비</Link>
             <a href={(isEarly ? sourceLinks[2] : sourceLinks[1]).href} rel="noopener noreferrer" target="_blank">
               공식 자료 확인
             </a>

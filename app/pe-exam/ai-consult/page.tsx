@@ -35,7 +35,37 @@ const statusMessages: Record<string, { title: string; text: string }> = {
 
 type AiConsultSearchParams = {
   request?: string;
+  target?: string;
+  university?: string;
+  track?: string;
+  department?: string;
 };
+
+function cleanSearchValue(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0]?.trim() || "" : value?.trim() || "";
+}
+
+function normalizeInitialTrack(value: string) {
+  if (value === "early" || value === "수시") return "수시";
+  if (value === "regular" || value === "정시") return "정시";
+  return "공통";
+}
+
+function buildInitialQuery(initialValues: {
+  targetUniversity: string;
+  targetDepartment: string;
+  admissionTrack: string;
+}) {
+  const params = new URLSearchParams();
+
+  if (initialValues.targetUniversity) params.set("target", initialValues.targetUniversity);
+  if (initialValues.targetDepartment) params.set("department", initialValues.targetDepartment);
+  if (initialValues.admissionTrack && initialValues.admissionTrack !== "공통") {
+    params.set("track", initialValues.admissionTrack);
+  }
+
+  return params.toString();
+}
 
 export default async function PeExamAiConsultPage({
   searchParams,
@@ -47,6 +77,14 @@ export default async function PeExamAiConsultPage({
   const resolvedSearchParams = await searchParams;
   const status = resolvedSearchParams?.request || "";
   const statusMessage = statusMessages[status];
+  const initialValues = {
+    targetUniversity:
+      cleanSearchValue(resolvedSearchParams?.target) || cleanSearchValue(resolvedSearchParams?.university),
+    targetDepartment: cleanSearchValue(resolvedSearchParams?.department),
+    admissionTrack: normalizeInitialTrack(cleanSearchValue(resolvedSearchParams?.track)),
+  };
+  const initialQuery = buildInitialQuery(initialValues);
+  const nextPath = initialQuery ? `/pe-exam/ai-consult?${initialQuery}` : "/pe-exam/ai-consult";
 
   return (
     <PageShell>
@@ -89,12 +127,12 @@ export default async function PeExamAiConsultPage({
             )}
 
             {session ? (
-              <PeExamAiConsultClient />
+              <PeExamAiConsultClient initialValues={initialValues} />
             ) : (
               <div className={styles.loginNotice}>
                 <strong>로그인 회원만 이용할 수 있습니다.</strong>
                 <span>개인 성적과 운동 기록을 다루는 페이지라 로그인 후 사전 입력을 받을 수 있습니다.</span>
-                <Link className="button primary" href="/login?next=/pe-exam/ai-consult">
+                <Link className="button primary" href={`/login?next=${encodeURIComponent(nextPath)}`}>
                   로그인 후 입력하기
                 </Link>
               </div>
