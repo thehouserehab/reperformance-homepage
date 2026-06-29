@@ -24,6 +24,29 @@ function getRegionDetail(slug: string) {
   return peExamRegionDetails.find((region) => region.region === regionName);
 }
 
+const detailPreviewCards = [
+  {
+    label: "전형 구조",
+    title: "대학별 전형 비교",
+    description: "수시와 정시를 먼저 나눈 뒤 대학별 모집단위, 전형유형, 반영요소를 한 흐름으로 정리합니다.",
+  },
+  {
+    label: "실기 기준",
+    title: "실기 종목·기록 기준",
+    description: "제자리멀리뛰기, 왕복달리기처럼 대학이 공개한 실기 종목과 기록 기준 확인 지점을 함께 표시합니다.",
+  },
+  {
+    label: "입결 참고",
+    title: "등급컷·평균등급",
+    description: "수시는 학생부 등급 확인 지점, 정시는 ADIGA 입결 행과 평균등급 참고 정보를 구분해 봅니다.",
+  },
+  {
+    label: "상담 연결",
+    title: "AI 상담 준비",
+    description: "대학 상세에서 희망 대학과 전형을 넘겨 로그인 회원용 AI 입시 상담 입력으로 이어갈 수 있습니다.",
+  },
+] as const;
+
 export function generateStaticParams() {
   return peExamRegionDetails.map((region) => ({
     region: region.slug,
@@ -117,14 +140,34 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
             </article>
           </div>
 
+          <section className={styles.regionChoicePreview} aria-label="전형 선택 후 볼 수 있는 정보">
+            <div className={styles.regionChoicePreviewHead}>
+              <p className="eyebrow">AFTER TRACK SELECT</p>
+              <h2>전형 선택 후 볼 수 있는 정보</h2>
+              <p>
+                이 화면은 지역 전체와 수시·정시 갈래를 고르는 입구입니다. 구체적인 대학별 전형, 실기 기록 기준,
+                등급컷·평균등급은 아래에서 전형을 선택한 뒤 하위 페이지와 대학 상세 페이지에서 쭉 이어서 봅니다.
+              </p>
+            </div>
+            <div className={styles.regionChoicePreviewGrid}>
+              {detailPreviewCards.map((card) => (
+                <article key={card.title}>
+                  <span>{card.label}</span>
+                  <strong>{card.title}</strong>
+                  <p>{card.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
           <div className={styles.admissionChoiceGrid} aria-label="수시 정시 전형 선택">
             {peExamAdmissionTracks.map((track) => {
               const isEarly = track.key === "early";
               const admissionCount = isEarly ? region.earlyAdmissionCount : region.regularAdmissionCount;
               const detailCount = isEarly ? region.practicalDetailCount : region.regularUnitCount;
-              const detailLabel = isEarly ? "실기 상세" : "모집단위";
+              const detailLabel = isEarly ? "실기 기록 기준" : "모집단위";
               const evidenceCount = isEarly ? region.gradeDetailCount : region.regularResultRowCount;
-              const evidenceLabel = isEarly ? "등급 상세" : "입결 행";
+              const evidenceLabel = isEarly ? "등급컷·평균등급" : "입결·평균등급";
 
               return (
                 <article className={styles.admissionChoiceCard} key={track.key}>
@@ -133,8 +176,8 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
                     <h2>{track.studentLabel} 페이지</h2>
                     <p>
                       {isEarly
-                        ? "학생부·실기·수능최저를 함께 확인해야 하는 수시 준비생용 페이지입니다. 같은 대학 안에서도 수시 전형만 따로 모아 봅니다."
-                        : "수능 반영 방식과 실기 반영 여부, 모집군 흐름을 확인해야 하는 정시 준비생용 페이지입니다. 정시 전형만 따로 모아 봅니다."}
+                        ? "학생부·실기·수능최저를 함께 확인해야 하는 수시 준비생용 페이지입니다. 같은 대학 안에서도 수시 전형만 따로 모아 대학 상세로 이동합니다."
+                        : "수능 반영 방식과 실기 반영 여부, 모집군 흐름을 확인해야 하는 정시 준비생용 페이지입니다. 정시 전형만 따로 모아 대학 상세로 이동합니다."}
                     </p>
                   </div>
                   <dl className={styles.admissionChoiceStats}>
