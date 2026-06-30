@@ -57,7 +57,72 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  align-items: center;
   margin-top: 28px;
+}
+
+.hubPillNav {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex: 1 1 420px;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  scroll-padding-inline: 2px;
+  scrollbar-width: none;
+}
+
+.hubPillNav::-webkit-scrollbar {
+  display: none;
+}
+
+.hubPillLink {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+  padding: 0 21px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.hubPillLink:hover {
+  border-color: #fff;
+  background: #fff;
+  color: #10141d;
+  transform: translateY(-1px);
+}
+
+.hubPillPrimary {
+  border-color: #ffb15f;
+  background: #ffb15f;
+  color: #10141d;
+  box-shadow: 0 12px 24px rgba(255, 138, 31, 0.22);
+}
+
+.hubPillPrimary:hover {
+  border-color: #fff;
+  background: #fff;
+  color: #10141d;
+}
+
+.heroHubNav {
+  flex: 1 1 470px;
 }
 
 .heroStats {
@@ -242,6 +307,18 @@
   width: fit-content;
 }
 
+.resourceHubNav {
+  flex: 0 1 auto;
+}
+
+.resourceHubNav .hubPillLink {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.resourceHubNav .hubPillPrimary {
+  border-color: #ffb15f;
+}
+
 .consultStepList {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -385,6 +462,47 @@
   line-height: 1.72;
 }
 
+.ctaActionCluster {
+  display: flex;
+  min-width: 0;
+  max-width: min(720px, 100%);
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.finalHubNav {
+  flex: 1 1 420px;
+  justify-content: flex-end;
+}
+
+.finalHubNav .hubPillLink {
+  border-color: #bac9c8;
+  background: #fff;
+  color: #172033;
+  box-shadow: none;
+}
+
+.finalHubNav .hubPillLink:hover {
+  border-color: #172033;
+  background: #172033;
+  color: #fff;
+}
+
+.finalHubNav .hubPillPrimary {
+  border-color: #172033;
+  background: #172033;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(23, 32, 51, 0.14);
+}
+
+.finalHubNav .hubPillPrimary:hover {
+  border-color: #ff8a1f;
+  background: #ff8a1f;
+  color: #10141d;
+}
+
 @media (max-width: 1020px) {
   .publicHeroInner,
   .infoResourceLayout,
@@ -399,6 +517,14 @@
 
   .finalCtaInner :global(.button) {
     width: fit-content;
+  }
+
+  .ctaActionCluster {
+    justify-content: flex-start;
+  }
+
+  .finalHubNav {
+    justify-content: flex-start;
   }
 }
 
@@ -455,6 +581,24 @@
   .finalCtaInner :global(.button),
   .heroActions :global(.button) {
     width: 100%;
+  }
+
+  .heroActions,
+  .ctaActionCluster {
+    width: 100%;
+  }
+
+  .hubPillNav {
+    width: 100%;
+    flex: 0 0 auto;
+    margin-right: -16px;
+    padding-right: 16px;
+  }
+
+  .hubPillLink {
+    min-height: 54px;
+    padding: 0 22px;
+    font-size: 16px;
   }
 }
 

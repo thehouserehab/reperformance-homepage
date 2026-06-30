@@ -56,8 +56,37 @@ const noreCareItems = [
   },
 ] as const;
 
+const hubPillLinks = [
+  { href: "/pe-exam", label: "입시정보 허브", primary: true },
+  { href: "/pe-exam#university-search", label: "대학검색", primary: false },
+  { href: "/pe-exam#universities", label: "지역별 대학", primary: false },
+  { href: "/pe-exam/faq", label: "FAQ", primary: false },
+] as const;
+
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
+}
+
+function HubPillNav({
+  className,
+  label = "입시 정보 허브 바로가기",
+}: {
+  className?: string;
+  label?: string;
+}) {
+  return (
+    <nav className={cx(publicStyles.hubPillNav, className)} aria-label={label}>
+      {hubPillLinks.map((link) => (
+        <Link
+          className={cx(publicStyles.hubPillLink, link.primary && publicStyles.hubPillPrimary)}
+          href={link.href}
+          key={link.href}
+        >
+          {link.label}
+        </Link>
+      ))}
+    </nav>
+  );
 }
 
 export default function PeExamServicePage() {
@@ -100,6 +129,7 @@ export default function PeExamServicePage() {
               <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
                 체대입시 상담 신청
               </Link>
+              <HubPillNav className={publicStyles.heroHubNav} />
             </div>
           </div>
 
@@ -147,9 +177,10 @@ export default function PeExamServicePage() {
                 공개 정보는 별도 허브에 모아두고, 이 페이지는 상담과 관리 흐름을 안내하는
                 역할에 집중합니다.
               </span>
-              <Link className="button pe-hero-secondary" href="/pe-exam">
-                입시 정보 허브 보기
-              </Link>
+              <HubPillNav
+                className={publicStyles.resourceHubNav}
+                label="입시 자료 허브 주요 링크"
+              />
             </aside>
           </div>
         </div>
@@ -217,9 +248,15 @@ export default function PeExamServicePage() {
               정리해 안내합니다.
             </p>
           </div>
-          <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
-            체대입시 상담 신청
-          </Link>
+          <div className={publicStyles.ctaActionCluster}>
+            <Link className="button pe-hero-primary" href="/apply?service=pe-exam">
+              체대입시 상담 신청
+            </Link>
+            <HubPillNav
+              className={publicStyles.finalHubNav}
+              label="상담 신청 옆 입시 정보 허브 바로가기"
+            />
+          </div>
         </div>
       </section>
 
