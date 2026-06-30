@@ -237,6 +237,26 @@
   letter-spacing: 0;
 }
 
+.panelHeaderInline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.panelHeaderInline > div {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.cardText {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .summaryGrid,
 .formGrid,
 .customerGrid {
@@ -340,6 +360,104 @@
 .pillActive {
   background: #17191d;
   color: #fff;
+}
+
+.aiConsultList {
+  display: grid;
+  gap: 10px;
+}
+
+.aiConsultCard {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  background: #fbfbfa;
+}
+
+.aiConsultCardHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.aiConsultCardHead > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.aiConsultCardHead span,
+.aiConsultCardHead em {
+  color: #087b72;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.aiConsultCardHead strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #17191d;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.aiConsultCard p {
+  margin: 0;
+  color: #4a4f55;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.aiConsultMiniGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+}
+
+.aiConsultMiniGrid div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.aiConsultMiniGrid strong {
+  color: #087b72;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.aiConsultMiniGrid span {
+  min-width: 0;
+  color: #4a4f55;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.aiConsultBullets {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: #4a4f55;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.aiConsultNext {
+  padding-top: 8px;
+  border-top: 1px solid #e2e4df;
+  color: #087b72 !important;
+  font-weight: 850;
 }
 
 .aiBox {
@@ -894,6 +1012,7 @@
   .formGrid,
   .customerGrid,
   .customerGridTwo,
+  .aiConsultMiniGrid,
   .monitorGrid,
   .clientSignalPanel,
   .compactRows,

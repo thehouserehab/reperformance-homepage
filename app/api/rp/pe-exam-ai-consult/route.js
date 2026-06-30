@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME, verifyAdminSessionCookie } from '../../../../lib/rpAdminAuth';
 import {
   isDatabaseConfigured,
+  listPeExamAiConsultRequests,
   savePeExamAiConsultRequest,
 } from '../../../../lib/rpDatabase';
 import {
@@ -33,6 +34,71 @@ function redirectToLogin(request) {
   const url = new URL('/login', request.url);
   url.searchParams.set('next', '/pe-exam/ai-consult');
   return NextResponse.redirect(url, 303);
+}
+
+function getBackupWebAppUrl() {
+  return cleanValue(process.env.RP_SHEETS_WEBAPP_URL || process.env.RP_SIGNUP_WEBAPP_URL || process.env.RP_AUTH_WEBAPP_URL);
+}
+
+async function callGoogleDriveBackup(action, payload) {
+  const webAppUrl = getBackupWebAppUrl();
+  const apiSecret = cleanValue(process.env.RP_API_SECRET);
+
+  if (!webAppUrl) throw new Error('Google Drive backup web app URL is not configured.');
+
+  const url = new URL(webAppUrl);
+  url.searchParams.set('action', action);
+  if (apiSecret) {
+    url.searchParams.set('secret', apiSecret);
+    url.searchParams.set('apiSecret', apiSecret);
+    url.searchParams.set('token', apiSecret);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    cache: 'no-store',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...payload, secret: apiSecret, apiSecret, token: apiSecret }),
+  });
+  const text = await response.text();
+  let data = {};
+
+  try {
+    data = JSON.parse(text);
+  } catch (_) {
+    data = { raw: text.slice(0, 250) };
+  }
+
+  if (!response.ok || data?.ok === false) {
+    throw new Error(data?.error || `Google Drive backup failed: ${response.status}`);
+  }
+
+  return data;
+}
+
+async function backupPeExamAiConsultToGoogleDrive(record) {
+  if (!getBackupWebAppUrl()) {
+    return { ok: false, skipped: true, reason: 'Google Drive backup is not configured.' };
+  }
+
+  const attempts = ['savePeExamAiConsult', 'savePeExamAiConsultation', 'saveConsultation'];
+  const errors = [];
+
+  for (const action of attempts) {
+    try {
+      const data = await callGoogleDriveBackup(action, {
+        recordType: 'peExamAiConsult',
+        record,
+        peExamAiConsult: record,
+      });
+      return { ok: true, source: 'google-drive', action, data };
+    } catch (error) {
+      errors.push(`${action}: ${error?.message || 'unknown error'}`);
+    }
+  }
+
+  return { ok: false, error: errors.slice(0, 3).join(' / ') || 'Google Drive backup failed.' };
 }
 
 function extractNumbers(value) {
@@ -93,8 +159,17 @@ function getSchoolDisplayName(school) {
   return `${school.name}${school.campus ? ` ${school.campus}` : ''}`;
 }
 
+function getSchoolOptionId(region, school) {
+  return `${region.slug}:${school.slug}`;
+}
+
 function getSchoolSearchTokens(school) {
-  const names = [school.name, getSchoolDisplayName(school)];
+  const names = [
+    school.name,
+    getSchoolDisplayName(school),
+    school.campus,
+    ...(Array.isArray(school.searchKeywords) ? school.searchKeywords : []),
+  ];
 
   if (school.name.endsWith('대학교')) names.push(school.name.replace(/대학교$/, '대'));
   if (school.name.endsWith('대학')) names.push(school.name.replace(/대학$/, '대'));
@@ -103,6 +178,60 @@ function getSchoolSearchTokens(school) {
   return uniqueItems(names, 8)
     .map((item) => normalizeSearchText(item))
     .filter((item) => item.length >= 2);
+}
+
+function findSelectedSchool(selection = {}) {
+  const selectedId = cleanValue(selection.targetUniversityId || selection.id);
+  const selectedSlug = cleanValue(selection.targetUniversitySlug || selection.slug);
+  const selectedHref = cleanValue(selection.targetUniversityHref || selection.href);
+  const targetTerms = splitTargetTerms(selection.targetUniversity || selection.displayName || selection.name);
+
+  for (const region of peExamRegionDetails) {
+    for (const school of region.universities) {
+      const optionId = getSchoolOptionId(region, school);
+
+      if (selectedId && selectedId === optionId) return { region, school, optionId };
+      if (selectedSlug && selectedSlug === school.slug) return { region, school, optionId };
+      if (selectedHref && selectedHref.includes(`/${school.slug}`)) return { region, school, optionId };
+      if (!selectedId && !selectedSlug && schoolMatchesTarget(school, targetTerms)) return { region, school, optionId };
+    }
+  }
+
+  return null;
+}
+
+function buildSelectedUniversity(selection = {}) {
+  const selected = findSelectedSchool(selection);
+  if (!selected) {
+    const targetUniversity = cleanValue(selection.targetUniversity);
+    if (!targetUniversity) return null;
+
+    return {
+      id: cleanValue(selection.targetUniversityId),
+      code: cleanValue(selection.targetUniversityCode),
+      displayName: targetUniversity,
+      region: cleanValue(selection.targetUniversityRegion),
+      area: cleanValue(selection.targetUniversityArea),
+      schoolType: cleanValue(selection.targetUniversitySchoolType),
+      slug: cleanValue(selection.targetUniversitySlug),
+      href: cleanValue(selection.targetUniversityHref),
+      source: 'manual-input',
+    };
+  }
+
+  return {
+    id: selected.optionId,
+    code: selected.school.code,
+    displayName: getSchoolDisplayName(selected.school),
+    region: selected.region.region,
+    area: selected.school.area,
+    schoolType: selected.school.schoolType,
+    slug: selected.school.slug,
+    href: getPeExamSchoolTrackHref(selected.region.region, 'early', selected.school.slug),
+    earlyHref: getPeExamSchoolTrackHref(selected.region.region, 'early', selected.school.slug),
+    regularHref: getPeExamSchoolTrackHref(selected.region.region, 'regular', selected.school.slug),
+    source: selected.school.source,
+  };
 }
 
 function schoolMatchesTarget(school, targetTerms) {
@@ -233,6 +362,24 @@ function buildUniversityMatches(request) {
   const departmentTerms = splitTargetTerms(request.targetDepartment);
   const trackKeys = getTrackKeysForRequest(request.admissionTrack);
   const matches = [];
+  const selected = findSelectedSchool(request);
+
+  if (selected) {
+    for (const trackKey of trackKeys) {
+      const trackSummary = summarizeUniversityTrack(selected.school, trackKey);
+
+      matches.push({
+        schoolName: getSchoolDisplayName(selected.school),
+        region: selected.region.region,
+        trackKey,
+        trackLabel: getTrackLabel(trackKey),
+        href: getPeExamSchoolTrackHref(selected.region.region, trackKey, selected.school.slug),
+        ...trackSummary,
+      });
+    }
+
+    return matches;
+  }
 
   if (!universityTerms.length && !departmentTerms.length) return matches;
 
@@ -449,6 +596,78 @@ function buildDirectionGuide(request) {
   };
 }
 
+function buildConsultationSummary(request, guidance) {
+  return {
+    title: guidance.title,
+    summary: guidance.summary,
+    target: {
+      university: request.targetUniversity,
+      department: request.targetDepartment,
+      admissionTrack: request.admissionTrack,
+      selectedUniversity: request.selectedUniversity,
+    },
+    profileSummary: guidance.profileSummary || [],
+    cards: guidance.cards || [],
+    universityMatches: guidance.universityMatches || [],
+    nextSteps: guidance.nextSteps || [],
+    aiStatus: request.aiStatus,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+function buildConversationRecord(request, guidance) {
+  return {
+    recordType: 'peExamAiConsult',
+    source: request.source,
+    futureAiReady: true,
+    student: {
+      username: request.username,
+      memberName: request.memberName,
+      role: request.role,
+      gradeLevel: request.gradeLevel,
+    },
+    target: {
+      admissionTrack: request.admissionTrack,
+      university: request.targetUniversity,
+      department: request.targetDepartment,
+      selectedUniversity: request.selectedUniversity,
+    },
+    academic: {
+      schoolGrade: request.schoolGrade,
+      mockExam: request.mockExam,
+    },
+    performance: {
+      practicalRecords: request.practicalRecords,
+      trainingContext: request.trainingContext,
+      injuryNote: request.injuryNote,
+    },
+    questionFocus: request.questionFocus,
+    conversationTurns: [
+      {
+        role: 'student',
+        label: '사전 입력',
+        content: [
+          request.questionFocus && `상담 목표: ${request.questionFocus}`,
+          request.schoolGrade && `내신: ${request.schoolGrade}`,
+          request.mockExam && `모의고사/수능: ${request.mockExam}`,
+          request.practicalRecords && `실기 기록: ${request.practicalRecords}`,
+          request.trainingContext && `운동 조건: ${request.trainingContext}`,
+          request.injuryNote && `부상/컨디션: ${request.injuryNote}`,
+        ].filter(Boolean).join('\n'),
+      },
+      {
+        role: 'assistant',
+        label: '방향 가이드',
+        content: [guidance.summary, ...(guidance.cards || []).map((card) => `${card.title}: ${card.text}`)]
+          .filter(Boolean)
+          .join('\n'),
+      },
+    ],
+    guidance,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 async function readPayload(request) {
   const contentType = request.headers.get('content-type') || '';
 
@@ -467,7 +686,8 @@ async function readPayload(request) {
 }
 
 function buildRequest(payload = {}, session) {
-  const targetUniversity = cleanValue(payload.targetUniversity);
+  const selectedUniversity = buildSelectedUniversity(payload);
+  const targetUniversity = cleanValue(payload.targetUniversity) || selectedUniversity?.displayName || '';
   const practicalRecords = cleanValue(payload.practicalRecords);
   const questionFocus = cleanValue(payload.questionFocus);
 
@@ -484,6 +704,14 @@ function buildRequest(payload = {}, session) {
     gradeLevel: cleanValue(payload.gradeLevel),
     admissionTrack: cleanValue(payload.admissionTrack) || '공통',
     targetUniversity,
+    targetUniversityId: selectedUniversity?.id || cleanValue(payload.targetUniversityId),
+    targetUniversityCode: selectedUniversity?.code || cleanValue(payload.targetUniversityCode),
+    targetUniversityRegion: selectedUniversity?.region || cleanValue(payload.targetUniversityRegion),
+    targetUniversityArea: selectedUniversity?.area || cleanValue(payload.targetUniversityArea),
+    targetUniversitySchoolType: selectedUniversity?.schoolType || cleanValue(payload.targetUniversitySchoolType),
+    targetUniversitySlug: selectedUniversity?.slug || cleanValue(payload.targetUniversitySlug),
+    targetUniversityHref: selectedUniversity?.href || cleanValue(payload.targetUniversityHref),
+    selectedUniversity,
     targetDepartment: cleanValue(payload.targetDepartment),
     schoolGrade: cleanValue(payload.schoolGrade),
     mockExam: cleanValue(payload.mockExam),
@@ -510,6 +738,8 @@ export async function POST(request) {
     const payload = await readPayload(request);
     const consultRequest = buildRequest(payload, session);
     const guidance = buildDirectionGuide(consultRequest);
+    const consultationSummary = buildConsultationSummary(consultRequest, guidance);
+    const conversationRecord = buildConversationRecord(consultRequest, guidance);
 
     if (!isDatabaseConfigured()) {
       if (jsonMode) {
@@ -526,9 +756,23 @@ export async function POST(request) {
       return redirectTo(request, 'setup');
     }
 
-    const result = await savePeExamAiConsultRequest({ ...consultRequest, guidance });
+    const result = await savePeExamAiConsultRequest({
+      ...consultRequest,
+      guidance,
+      consultationSummary,
+      conversationRecord,
+    });
+    const backup = await backupPeExamAiConsultToGoogleDrive({
+      ...consultRequest,
+      id: result.request?.id || result.record?.id,
+      guidance,
+      consultationSummary,
+      conversationRecord,
+      databaseAction: result.action,
+      savedAt: new Date().toISOString(),
+    });
 
-    if (jsonMode) return NextResponse.json({ ok: true, guidance, ...result });
+    if (jsonMode) return NextResponse.json({ ok: true, guidance, backup, ...result });
 
     return redirectTo(request, 'success');
   } catch (error) {
@@ -540,5 +784,37 @@ export async function POST(request) {
     }
 
     return redirectTo(request, error?.status === 400 ? 'invalid' : 'error');
+  }
+}
+
+export async function GET(request) {
+  const cookieStore = await cookies();
+  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+
+  if (!session) return NextResponse.json({ ok: false, error: '로그인이 필요합니다.' }, { status: 401 });
+
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json({
+      ok: false,
+      setupRequired: true,
+      error: 'DATABASE_URL 또는 RP_DATABASE_URL 환경변수가 필요합니다.',
+      requests: [],
+    });
+  }
+
+  try {
+    const url = new URL(request.url);
+    const limit = Number(url.searchParams.get('limit') || 30);
+    const staffRoles = new Set(['owner', 'admin', 'trainer']);
+    const requestedUsername = cleanValue(url.searchParams.get('username'));
+    const username = staffRoles.has(session.role) ? requestedUsername : session.sub;
+    const requests = await listPeExamAiConsultRequests({ limit, username });
+
+    return NextResponse.json({ ok: true, requests, count: requests.length });
+  } catch (error) {
+    return NextResponse.json(
+      { ok: false, error: error?.message || 'AI 상담 준비 내역 조회 중 오류가 발생했습니다.', requests: [] },
+      { status: 500 },
+    );
   }
 }

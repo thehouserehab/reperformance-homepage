@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./PeExamAiConsult.module.css";
 
 const gradeLevels = ["고1", "고2", "고3", "N수", "기타"];
@@ -21,11 +21,81 @@ function isIncluded(values, value, fallback) {
   return values.includes(value) ? value : fallback;
 }
 
-export default function PeExamAiConsultClient({ initialValues = {} }) {
+function normalizeSearchText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()[\]{}<>.,;:|/\\'"`~!@#$%^&*_+=?-]/g, "")
+    .replace(/대학교|대학|캠퍼스|본교|분교|학교/g, "");
+}
+
+function findInitialUniversity(universityOptions, initialTarget) {
+  const target = normalizeSearchText(initialTarget);
+  if (!target) return null;
+
+  return (
+    universityOptions.find((option) => normalizeSearchText(option.displayName) === target) ||
+    universityOptions.find((option) =>
+      [option.displayName, option.name, ...(option.searchKeywords || [])]
+        .map(normalizeSearchText)
+        .some((keyword) => keyword && (keyword.includes(target) || target.includes(keyword))),
+    ) ||
+    null
+  );
+}
+
+/**
+ * @param {{
+ *   initialValues?: Record<string, string>;
+ *   universityOptions?: Array<{
+ *     id: string;
+ *     code?: string;
+ *     name: string;
+ *     displayName: string;
+ *     area: string;
+ *     region: string;
+ *     schoolType: string;
+ *     slug: string;
+ *     href: string;
+ *     searchText?: string;
+ *     searchKeywords?: string[];
+ *     departmentOptions?: string[];
+ *     trackSummary?: string;
+ *   }>;
+ * }} props
+ */
+export default function PeExamAiConsultClient({ initialValues = {}, universityOptions = [] }) {
+  const initialUniversity = findInitialUniversity(universityOptions, initialValues.targetUniversity);
+  const [universityQuery, setUniversityQuery] = useState(
+    initialUniversity?.displayName || initialValues.targetUniversity || "",
+  );
+  const [selectedUniversityId, setSelectedUniversityId] = useState(initialUniversity?.id || "");
+  const [targetDepartment, setTargetDepartment] = useState(initialValues.targetDepartment || "");
   const [status, setStatus] = useState(emptyStatus);
   const [guidance, setGuidance] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const selectedUniversity = useMemo(
+    () => universityOptions.find((option) => option.id === selectedUniversityId) || null,
+    [selectedUniversityId, universityOptions],
+  );
+  const departmentOptions = selectedUniversity?.departmentOptions || [];
+  const visibleUniversityOptions = useMemo(() => {
+    const query = normalizeSearchText(universityQuery);
+    const options = Array.isArray(universityOptions) ? universityOptions : [];
+
+    if (!query) return options.slice(0, 8);
+
+    return options
+      .filter((option) => {
+        const searchText = normalizeSearchText(
+          [option.displayName, option.name, option.searchText, ...(option.searchKeywords || [])].join(" "),
+        );
+        return searchText.includes(query) || query.includes(normalizeSearchText(option.displayName));
+      })
+      .slice(0, 8);
+  }, [universityOptions, universityQuery]);
   const hasGuidance = useMemo(() => guidance && Array.isArray(guidance.cards) && guidance.cards.length > 0, [guidance]);
   const universityMatches = Array.isArray(guidance?.universityMatches) ? guidance.universityMatches : [];
   const profileSummary = Array.isArray(guidance?.profileSummary) ? guidance.profileSummary : [];
@@ -34,6 +104,18 @@ export default function PeExamAiConsultClient({ initialValues = {} }) {
   const hasInitialContext = Boolean(
     initialValues.targetUniversity || initialValues.targetDepartment || initialAdmissionTrack !== "공통",
   );
+
+  useEffect(() => {
+    if (!selectedUniversity) return;
+    if (!targetDepartment || departmentOptions.includes(targetDepartment)) return;
+    setTargetDepartment("");
+  }, [departmentOptions, selectedUniversity, targetDepartment]);
+
+  function selectUniversity(option) {
+    setSelectedUniversityId(option.id);
+    setUniversityQuery(option.displayName);
+    setTargetDepartment((current) => (option.departmentOptions || []).includes(current) ? current : "");
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -130,26 +212,80 @@ export default function PeExamAiConsultClient({ initialValues = {} }) {
         </div>
 
         <div className={styles.fieldGrid}>
-          <label>
+          <label className={styles.universityPicker}>
             희망 대학
             <input
-              defaultValue={initialValues.targetUniversity || ""}
-              name="targetUniversity"
+              autoComplete="off"
+              onChange={(event) => {
+                setUniversityQuery(event.target.value);
+                setSelectedUniversityId("");
+                setTargetDepartment("");
+              }}
               placeholder="예: 한국체육대학교, 전북대학교"
               type="text"
+              value={universityQuery}
             />
+            <input name="targetUniversity" type="hidden" value={selectedUniversity?.displayName || universityQuery} />
+            <input name="targetUniversityId" type="hidden" value={selectedUniversity?.id || ""} />
+            <input name="targetUniversityCode" type="hidden" value={selectedUniversity?.code || ""} />
+            <input name="targetUniversityRegion" type="hidden" value={selectedUniversity?.region || ""} />
+            <input name="targetUniversityArea" type="hidden" value={selectedUniversity?.area || ""} />
+            <input name="targetUniversitySchoolType" type="hidden" value={selectedUniversity?.schoolType || ""} />
+            <input name="targetUniversitySlug" type="hidden" value={selectedUniversity?.slug || ""} />
+            <input name="targetUniversityHref" type="hidden" value={selectedUniversity?.href || ""} />
+
+            {visibleUniversityOptions.length > 0 && (
+              <div className={styles.universityResults}>
+                {visibleUniversityOptions.map((option) => (
+                  <button
+                    aria-pressed={option.id === selectedUniversityId}
+                    key={option.id}
+                    onClick={() => selectUniversity(option)}
+                    type="button"
+                  >
+                    <strong>{option.displayName}</strong>
+                    <span>
+                      {option.region} · {option.area} · {option.schoolType} · {option.trackSummary}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </label>
 
           <label>
             희망 학과/계열
-            <input
-              defaultValue={initialValues.targetDepartment || ""}
+            <select
+              disabled={!selectedUniversity}
               name="targetDepartment"
-              placeholder="예: 체육교육과, 스포츠과학과"
-              type="text"
-            />
+              onChange={(event) => setTargetDepartment(event.target.value)}
+              value={targetDepartment}
+            >
+              <option value="">
+                {selectedUniversity ? "학과/계열 선택" : "먼저 희망 대학을 선택"}
+              </option>
+              {departmentOptions.map((department) => (
+                <option key={department} value={department}>
+                  {department}
+                </option>
+              ))}
+              {selectedUniversity && departmentOptions.length === 0 && (
+                <option value="공식 모집요강 확인">공식 모집요강 확인</option>
+              )}
+            </select>
           </label>
         </div>
+
+        {selectedUniversity && (
+          <div className={styles.selectedUniversityPanel}>
+            <span>선택 대학</span>
+            <strong>{selectedUniversity.displayName}</strong>
+            <p>
+              {selectedUniversity.region} · {selectedUniversity.area} · {selectedUniversity.schoolType} ·{" "}
+              {selectedUniversity.trackSummary}
+            </p>
+          </div>
+        )}
 
         <label>
           내신 현황

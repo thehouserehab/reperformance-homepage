@@ -147,6 +147,89 @@
   opacity: 0.72;
 }
 
+.universityPicker {
+  align-content: start;
+}
+
+.universityResults {
+  display: grid;
+  gap: 7px;
+  max-height: 310px;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid #d7e3e0;
+  border-radius: 8px;
+  background: #fbfefd;
+}
+
+.universityResults button {
+  display: grid;
+  min-height: 58px;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid #e0e8ef;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--navy);
+  text-align: left;
+  box-shadow: none;
+}
+
+.universityResults button[aria-pressed="true"] {
+  border-color: rgba(15, 118, 110, 0.42);
+  background: #e8f2f1;
+}
+
+.universityResults strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--navy);
+  font-size: 14px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.universityResults span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectedUniversityPanel {
+  display: grid;
+  gap: 5px;
+  padding: 14px 16px;
+  border: 1px solid #c9dfda;
+  border-radius: 8px;
+  background: #e8f2f1;
+}
+
+.selectedUniversityPanel span {
+  color: var(--teal-dark);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.selectedUniversityPanel strong {
+  color: var(--navy);
+  font-size: 18px;
+  line-height: 1.32;
+}
+
+.selectedUniversityPanel p {
+  margin: 0;
+  color: #4a5a67;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
 .statusBox,
 .loginNotice,
 .prefillNotice {

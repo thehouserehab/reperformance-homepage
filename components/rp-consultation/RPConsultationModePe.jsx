@@ -213,6 +213,109 @@ function InfoTile({ label, value, text }) {
   );
 }
 
+function formatDateTime(value) {
+  if (!value) return '저장 시간 미확인';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString('ko-KR', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function getAiConsultCards(consult) {
+  return consult?.consultationSummary?.cards || consult?.payload?.guidance?.cards || [];
+}
+
+function getAiConsultNextSteps(consult) {
+  return consult?.consultationSummary?.nextSteps || consult?.payload?.guidance?.nextSteps || [];
+}
+
+function getAiConsultSummary(consult) {
+  return consult?.consultationSummary?.summary || consult?.payload?.guidance?.summary || consult?.questionFocus || '요약 대기';
+}
+
+function isSameClientConsult(consult, client) {
+  const clientName = String(client?.name || '').trim();
+  if (!clientName) return false;
+  return [consult?.memberName, consult?.payload?.memberName, consult?.payload?.name]
+    .filter(Boolean)
+    .some((value) => String(value).trim() === clientName);
+}
+
+function PeExamAiConsultPanel({ consults, client, isLoading, error, onApply }) {
+  const sortedConsults = useMemo(() => {
+    const list = Array.isArray(consults) ? consults : [];
+    return [...list].sort((a, b) => {
+      const aMatch = isSameClientConsult(a, client) ? 1 : 0;
+      const bMatch = isSameClientConsult(b, client) ? 1 : 0;
+      if (aMatch !== bMatch) return bMatch - aMatch;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    }).slice(0, 6);
+  }, [client, consults]);
+
+  return (
+    <div className={styles.section}>
+      <div className={styles.panelHeaderInline}>
+        <div>
+          <h2 className={styles.sectionTitle}>AI 체대입시 상담 준비 내역</h2>
+          <p className={styles.cardText}>회원이 사전 입력한 대학·학과·성적·실기 기록을 상담 전에 확인합니다.</p>
+        </div>
+        <span className={styles.statusPill}>{isLoading ? '불러오는 중' : `${sortedConsults.length}건`}</span>
+      </div>
+
+      {error && <p className={styles.errorText}>{error}</p>}
+
+      {!isLoading && !sortedConsults.length && (
+        <p className={styles.cardText}>최근 AI 상담 준비 내역이 없습니다.</p>
+      )}
+
+      {sortedConsults.length > 0 && (
+        <div className={styles.aiConsultList}>
+          {sortedConsults.map((consult) => {
+            const cards = getAiConsultCards(consult);
+            const nextSteps = getAiConsultNextSteps(consult);
+
+            return (
+              <article className={styles.aiConsultCard} key={consult.id}>
+                <div className={styles.aiConsultCardHead}>
+                  <div>
+                    <span>{formatDateTime(consult.createdAt)} · {consult.memberName || consult.username || '회원'}</span>
+                    <strong>
+                      {[consult.targetUniversity, consult.targetDepartment].filter(Boolean).join(' · ') || '희망 대학 미입력'}
+                    </strong>
+                  </div>
+                  {isSameClientConsult(consult, client) && <em>선택 회원</em>}
+                </div>
+                <p>{getAiConsultSummary(consult)}</p>
+                <div className={styles.aiConsultMiniGrid}>
+                  <div><strong>준비 구분</strong><span>{consult.gradeLevel || '학년 미입력'} · {consult.admissionTrack || '공통'}</span></div>
+                  <div><strong>성적</strong><span>{[consult.schoolGrade, consult.mockExam].filter(Boolean).join(' / ') || '입력 없음'}</span></div>
+                  <div><strong>실기</strong><span>{consult.practicalRecords || '입력 없음'}</span></div>
+                  <div><strong>훈련/컨디션</strong><span>{[consult.trainingContext, consult.injuryNote].filter(Boolean).join(' / ') || '입력 없음'}</span></div>
+                </div>
+                {cards.length > 0 && (
+                  <ul className={styles.aiConsultBullets}>
+                    {cards.slice(0, 3).map((card) => (
+                      <li key={`${consult.id}-${card.title}`}>{card.title}: {card.text}</li>
+                    ))}
+                  </ul>
+                )}
+                {nextSteps.length > 0 && <p className={styles.aiConsultNext}>{nextSteps.slice(0, 2).join(' / ')}</p>}
+                <button className={styles.ghostButton} type='button' onClick={() => onApply(consult)}>
+                  상담 입력에 반영
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ClientPresentationView({ client, record, currentPhase, attentionRequired, connectionStatus, connectionError }) {
   const clientSummary = record.clientSummary || buildClientSummary(client, record, currentPhase);
   const purposes = record.purposes?.length ? record.purposes : client.purpose;
@@ -335,11 +438,15 @@ function CoachInputView({
   clientId,
   connectionStatus,
   connectionError,
+  peExamAiConsults,
+  peExamAiConsultLoading,
+  peExamAiConsultError,
   isSaving,
   isSummarizing,
   onClientChange,
   onFieldChange,
   onArrayToggle,
+  onApplyPeExamAiConsult,
   onOpenClientView,
   onGenerateSummary,
   onSave,
@@ -399,6 +506,14 @@ function CoachInputView({
               <div><strong>주의 정보</strong><span>{attentionRequired ? '추가 확인 필요' : '일반 상담 가능'} · 통증 {Number(record.painScore || client.painScore) || 0}/10</span></div>
             </div>
           </div>
+
+          <PeExamAiConsultPanel
+            client={client}
+            consults={peExamAiConsults}
+            error={peExamAiConsultError}
+            isLoading={peExamAiConsultLoading}
+            onApply={onApplyPeExamAiConsult}
+          />
 
           <div className={attentionRequired ? styles.alertSection : styles.section}>
             <h2 className={styles.sectionTitle}>PAR-Q 확인</h2>
@@ -580,6 +695,9 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
   const [connectionError, setConnectionError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
+  const [peExamAiConsults, setPeExamAiConsults] = useState([]);
+  const [peExamAiConsultLoading, setPeExamAiConsultLoading] = useState(false);
+  const [peExamAiConsultError, setPeExamAiConsultError] = useState('');
   const [livePayload, setLivePayload] = useState(null);
 
   const selectedClient = useMemo(() => clients.find((client) => client.id === clientId) || clients[0] || EMPTY_CLIENT, [clients, clientId]);
@@ -638,6 +756,41 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
       cancelled = true;
     };
   }, [initialClients]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPeExamAiConsults() {
+      try {
+        setPeExamAiConsultLoading(true);
+        setPeExamAiConsultError('');
+        const response = await fetch('/api/rp/pe-exam-ai-consult?limit=24', {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (cancelled) return;
+        if (!response.ok || payload?.ok === false) {
+          throw new Error(payload?.error || 'AI 상담 준비 내역을 불러오지 못했습니다.');
+        }
+
+        setPeExamAiConsults(Array.isArray(payload.requests) ? payload.requests : []);
+      } catch (error) {
+        if (cancelled) return;
+        setPeExamAiConsults([]);
+        setPeExamAiConsultError(error?.message || 'AI 상담 준비 내역 조회 실패');
+      } finally {
+        if (!cancelled) setPeExamAiConsultLoading(false);
+      }
+    }
+
+    loadPeExamAiConsults();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!requestedClientId || !clients.length) return;
@@ -729,6 +882,35 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
         [key]: current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
       };
     });
+  }
+
+  function applyPeExamAiConsult(consult) {
+    const cards = getAiConsultCards(consult);
+    const nextSteps = getAiConsultNextSteps(consult);
+    const academicStatus = [consult.schoolGrade, consult.mockExam].filter(Boolean).join(NL);
+    const targetText = [consult.targetUniversity, consult.targetDepartment].filter(Boolean).join(' · ');
+    const guidanceLines = cards.map((card) => `${card.title}: ${card.text}`);
+
+    setRecord((prev) => ({
+      ...prev,
+      memberGoal: prev.memberGoal || (targetText ? `체대입시 ${targetText} 상담` : prev.memberGoal),
+      purposes: prev.purposes?.includes('체대입시') ? prev.purposes : [...(prev.purposes || []), '체대입시'],
+      peExamTargetUniversities: consult.targetUniversity || prev.peExamTargetUniversities,
+      peExamTargetDepartment: consult.targetDepartment || prev.peExamTargetDepartment,
+      peExamAcademicStatus: academicStatus || prev.peExamAcademicStatus,
+      peExamRecordStatus: consult.practicalRecords || prev.peExamRecordStatus,
+      peExamTrainingFocus: [consult.trainingContext, consult.injuryNote].filter(Boolean).join(NL) || prev.peExamTrainingFocus,
+      peExamApplicationStrategy: [...guidanceLines, ...nextSteps].filter(Boolean).join(NL) || prev.peExamApplicationStrategy,
+      peExamConsultingTopics: prev.peExamConsultingTopics?.length
+        ? prev.peExamConsultingTopics
+        : ['지원 대학 비교', '실기 기록 보완', '수시/정시 전략'].filter(Boolean),
+      aiSummary: [
+        getAiConsultSummary(consult),
+        '',
+        ...guidanceLines,
+        ...(nextSteps.length ? ['', '다음 확인', ...nextSteps.map((step) => `- ${step}`)] : []),
+      ].filter(Boolean).join(NL),
+    }));
   }
 
   function openClientView() {
@@ -836,11 +1018,15 @@ export default function RPConsultationMode({ clients: initialClients, onSave }) 
       clientId={clientId}
       connectionStatus={connectionStatus}
       connectionError={connectionError}
+      peExamAiConsults={peExamAiConsults}
+      peExamAiConsultLoading={peExamAiConsultLoading}
+      peExamAiConsultError={peExamAiConsultError}
       isSaving={isSaving}
       isSummarizing={isSummarizing}
       onClientChange={setClientId}
       onFieldChange={updateField}
       onArrayToggle={toggleArrayValue}
+      onApplyPeExamAiConsult={applyPeExamAiConsult}
       onOpenClientView={openClientView}
       onGenerateSummary={generateSummary}
       onSave={saveRecord}

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { ADMIN_COOKIE_NAME, verifyAdminSessionCookie } from "../../../lib/rpAdminAuth";
 import { PageShell } from "../../_components/SiteChrome";
+import { getPeExamSchoolTrackHref, peExamRegionDetails } from "../peExamData";
 import PeExamAiConsultClient from "./PeExamAiConsultClient";
 import styles from "./PeExamAiConsult.module.css";
 
@@ -51,6 +52,106 @@ function normalizeInitialTrack(value: string) {
   return "공통";
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[()[\]{}<>.,;:|/\\'"`~!@#$%^&*_+=?-]/g, "")
+    .replace(/대학교|대학|캠퍼스|본교|분교|학교/g, "");
+}
+
+function uniqueTexts(values: readonly string[], limit = 40) {
+  const seen = new Set<string>();
+  const results: string[] = [];
+
+  for (const value of values) {
+    const text = value.trim().replace(/\s+/g, " ");
+    const key = text.toLowerCase();
+
+    if (!text || seen.has(key)) continue;
+
+    seen.add(key);
+    results.push(text);
+
+    if (results.length >= limit) break;
+  }
+
+  return results;
+}
+
+function cleanDepartmentOption(value: string) {
+  return value
+    .replace(/\s+/g, " ")
+    .replace(/\s*[·-]\s*모집인원.*$/g, "")
+    .replace(/\s*공식 모집요강 확인.*$/g, "")
+    .replace(/\s*\d+\s*명.*$/g, "")
+    .replace(/\s*외\s+\d+개$/g, "")
+    .trim();
+}
+
+function splitDepartmentSummary(value: string) {
+  return value
+    .split(/[,;/|]/)
+    .map(cleanDepartmentOption)
+    .filter((item) => item && !item.includes("모집단위는 ADIGA"));
+}
+
+function getSchoolDisplayName(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
+  return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
+}
+
+function getDepartmentOptions(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
+  const values = [
+    ...(school.earlyAdmissions || []).map((admission) => admission.unit || ""),
+    ...(school.regularAdmissions || []).flatMap((admission) => [
+      ...(admission.units || []).map((unit) => unit.name || ""),
+      admission.unitSummary || "",
+    ]),
+  ];
+
+  return uniqueTexts(values.flatMap(splitDepartmentSummary), 80);
+}
+
+function buildUniversityOptions() {
+  return peExamRegionDetails.flatMap((region) =>
+    region.universities.map((school) => {
+      const displayName = getSchoolDisplayName(school);
+      const departmentOptions = getDepartmentOptions(school);
+      const earlyHref = getPeExamSchoolTrackHref(region.region, "early", school.slug);
+      const regularHref = getPeExamSchoolTrackHref(region.region, "regular", school.slug);
+      const searchKeywords = uniqueTexts([
+        school.name,
+        displayName,
+        school.campus || "",
+        school.area,
+        school.region,
+        school.schoolType,
+        ...("searchKeywords" in school && Array.isArray(school.searchKeywords) ? school.searchKeywords : []),
+        ...departmentOptions,
+      ]);
+
+      return {
+        id: `${region.slug}:${school.slug}`,
+        code: school.code,
+        name: school.name,
+        displayName,
+        area: school.area,
+        region: region.region,
+        schoolType: school.schoolType,
+        slug: school.slug,
+        href: earlyHref,
+        earlyHref,
+        regularHref,
+        searchKeywords,
+        searchText: uniqueTexts([...searchKeywords, ...searchKeywords.map(normalizeSearchText)]).join(" "),
+        departmentOptions,
+        trackSummary: `수시 ${school.earlyAdmissions.length}건 · 정시 ${school.regularAdmissions.length}건`,
+      };
+    }),
+  );
+}
+
 function buildInitialQuery(initialValues: {
   targetUniversity: string;
   targetDepartment: string;
@@ -85,6 +186,7 @@ export default async function PeExamAiConsultPage({
   };
   const initialQuery = buildInitialQuery(initialValues);
   const nextPath = initialQuery ? `/pe-exam/ai-consult?${initialQuery}` : "/pe-exam/ai-consult";
+  const universityOptions = buildUniversityOptions();
 
   return (
     <PageShell>
@@ -127,7 +229,7 @@ export default async function PeExamAiConsultPage({
             )}
 
             {session ? (
-              <PeExamAiConsultClient initialValues={initialValues} />
+              <PeExamAiConsultClient initialValues={initialValues} universityOptions={universityOptions} />
             ) : (
               <div className={styles.loginNotice}>
                 <strong>로그인 회원만 이용할 수 있습니다.</strong>
