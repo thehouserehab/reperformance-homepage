@@ -11,6 +11,7 @@ const PHONE_REQUEST_LIMIT = 5;
 const IP_REQUEST_LIMIT = 20;
 const VERIFY_WINDOW_MS = 5 * 60 * 1000;
 const VERIFY_ATTEMPT_LIMIT = 8;
+const MIN_PASSWORD_LENGTH = 8;
 
 function cleanValue(value) {
   return String(value || '').trim();
@@ -318,8 +319,8 @@ async function handleVerifyCode(payload, request) {
 
   const newPassword = cleanValue(payload.newPassword);
   const passwordConfirm = cleanValue(payload.passwordConfirm || payload.confirmPassword);
-  if (newPassword.length < 6) {
-    return Response.json({ ok: false, error: '새 비밀번호는 6자 이상이어야 합니다.' }, { status: 400 });
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return Response.json({ ok: false, error: `새 비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.` }, { status: 400 });
   }
   if (passwordConfirm && newPassword !== passwordConfirm) {
     return Response.json({ ok: false, error: '새 비밀번호 확인이 일치하지 않습니다.' }, { status: 400 });

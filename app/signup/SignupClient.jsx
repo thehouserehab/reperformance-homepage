@@ -185,11 +185,11 @@ export default function SignupClient({ status, message }) {
             </label>
             <label>
               <span>비밀번호</span>
-              <input name="password" type="password" autoComplete="new-password" minLength={6} required />
+              <input name="password" type="password" autoComplete="new-password" minLength={8} required />
             </label>
             <label>
               <span>비밀번호 확인</span>
-              <input name="passwordConfirm" type="password" autoComplete="new-password" minLength={6} required />
+              <input name="passwordConfirm" type="password" autoComplete="new-password" minLength={8} required />
             </label>
           </div>
           <p className={styles.helperText}>

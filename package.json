@@ -7,13 +7,18 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "node -e \"console.error('ESLint is not configured for this Next.js 15 project. Run npm run build and npm run typecheck for current validation until ESLint config is added.'); process.exit(1)\""
+    "lint": "node -e \"console.error('ESLint is not configured for this Next.js 15 project. Run npm run build and npm run typecheck for current validation until ESLint config is added.'); process.exit(1)\"",
+    "pe-exam:data:audit": "node scripts/audit-pe-exam-university-coverage.mjs",
+    "pe-exam:data:refresh": "node scripts/fetch-kusf-pe-exam-data.mjs && node scripts/fetch-kusf-pe-exam-detail-data.mjs && node scripts/fetch-adiga-pe-exam-regular-data.mjs && node scripts/fetch-adiga-pe-exam-selection-data.mjs && npm run pe-exam:data:audit"
   },
   "dependencies": {
     "next": "15.5.19",
     "pg": "8.21.0",
     "react": "19.2.7",
     "react-dom": "19.2.7"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   },
   "devDependencies": {
     "@types/node": "25.9.1",

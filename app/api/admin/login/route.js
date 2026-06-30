@@ -7,6 +7,11 @@ import {
   sanitizeAdminNext,
 } from '../../../../lib/rpAdminAuth';
 import { findAuthAccountFromStores } from '../../../../lib/rpAuthStores';
+import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
+
+const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const ADMIN_LOGIN_ATTEMPT_LIMIT = 10;
+const ADMIN_LOGIN_IP_LIMIT = 30;
 
 async function readLoginPayload(request) {
   const contentType = request.headers.get('content-type') || '';
@@ -35,9 +40,29 @@ function redirectToLogin(request, next, error = 'invalid') {
   return NextResponse.redirect(loginUrl, { status: 303 });
 }
 
+function wantsJson(request) {
+  const accept = request.headers.get('accept') || '';
+  const contentType = request.headers.get('content-type') || '';
+  return accept.includes('application/json') || contentType.includes('application/json');
+}
+
 export async function POST(request) {
   const payload = await readLoginPayload(request);
   const nextPath = sanitizeAdminNext(payload.next);
+  const retryAfterSeconds = checkRequestRateLimit({
+    request,
+    scope: 'admin-login',
+    identifier: payload.username,
+    limit: ADMIN_LOGIN_ATTEMPT_LIMIT,
+    ipLimit: ADMIN_LOGIN_IP_LIMIT,
+    windowMs: ADMIN_LOGIN_WINDOW_MS,
+  });
+
+  if (retryAfterSeconds) {
+    if (wantsJson(request)) return buildRateLimitResponse(retryAfterSeconds);
+    return redirectToLogin(request, nextPath, 'rate-limited');
+  }
+
   const account = await findAuthAccountFromStores(payload.username, payload.password);
 
   if (!account) return redirectToLogin(request, nextPath, 'invalid');

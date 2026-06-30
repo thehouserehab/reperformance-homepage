@@ -6,6 +6,7 @@ const errorMessages = {
   invalid: '아이디 또는 비밀번호가 올바르지 않습니다.',
   forbidden: '관리자 또는 트레이너 권한이 있는 계정만 접속할 수 있습니다.',
   config: '운영 로그인 환경변수가 설정되지 않았습니다. Vercel 환경변수를 확인해 주세요.',
+  'rate-limited': '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.',
 };
 
 export default async function AdminLoginPage({ searchParams }) {

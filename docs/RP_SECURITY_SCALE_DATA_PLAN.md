@@ -1,0 +1,87 @@
+# RePERFORMANCE 보안, 데이터, 확장 운영 대책
+
+Last updated: 2026-06-30
+
+이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
+
+## 1. 고객 데이터 보안 강화
+
+현재 기본 방향은 PostgreSQL을 1차 저장소로 두고, Google Drive/Sheets는 전환기 백업 경로로만 사용하는 것입니다.
+
+- Production은 `DATABASE_URL` 또는 `RP_DATABASE_URL`과 `RP_DATA_SOURCE=database`를 기준으로 운영합니다.
+- Google Drive/Sheets 백업은 필요한 기간에만 켜고, `RP_BACKUP_SECRET_IN_QUERY=false`를 유지합니다.
+- `rp_service_applications.payload`처럼 넓은 JSON payload는 운영 안정화 후 필수 컬럼 중심으로 축소합니다.
+- 운영 계정은 `owner`, `admin`, `trainer`, `member` 역할을 분리하고, 고객관리/상담 API는 staff 권한에서만 접근합니다.
+- 신규 고객 신청, 체대입시 AI 상담 준비, 계정 찾기 기록은 모두 길이 제한과 공개 응답 축소를 유지합니다.
+- 정기 운영 작업: 월 1회 백업 접근자 점검, 분기 1회 오래된 상담 원본 payload 삭제 또는 익명화 정책 확정.
+
+## 2. 회원가입 / 로그인 보안 강화
+
+적용된 1차 방어는 앱 인스턴스 메모리 기반 rate limit입니다. 서버리스 인스턴스가 늘어나면 인스턴스별로 적용되므로, 대규모 운영 전에는 Vercel Firewall 또는 Upstash Redis 같은 공유 저장소 기반 rate limit으로 교체합니다.
+
+- `/api/auth/login`: 아이디 기준 15분 12회, IP 기준 15분 40회 제한.
+- `/api/admin/login`: 아이디 기준 15분 10회, IP 기준 15분 30회 제한.
+- `/api/auth/identity-verification`: 연락처 기준 인증번호 요청 15분 5회, IP 기준 15분 30회, 인증번호 확인은 토큰 기준 5분 8회 제한.
+- `/api/rp/signup`: 아이디/연락처 기준 1시간 6회, IP 기준 1시간 30회 제한.
+- `/api/rp/service-application`: 연락처 기준 1시간 8회, IP 기준 1시간 50회 제한.
+- `/api/auth/account-recovery`: 전화번호 15분 5회, IP 15분 20회, 인증 확인 5분 8회 제한.
+- 신규 회원가입과 비밀번호 재설정의 최소 비밀번호 길이는 8자입니다.
+- 전역 보안 헤더: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
+
+운영 전 필수값:
+
+```txt
+RP_ADMIN_SESSION_SECRET=긴 랜덤 문자열
+RP_PASSWORD_HASH_SECRET=긴 랜덤 문자열
+RP_IDENTITY_VERIFICATION_SECRET=긴 랜덤 문자열
+RP_ACCOUNT_RECOVERY_SECRET=긴 랜덤 문자열
+```
+
+## 3. 입시 데이터 최신화 단순화
+
+입시 데이터 갱신은 스크립트를 단일 명령으로 묶어 운영자가 매번 순서를 기억하지 않도록 합니다.
+
+```powershell
+npm run pe-exam:data:refresh
+```
+
+이 명령은 KUSF 수시 요약, KUSF 상세, ADIGA 정시 전형, ADIGA 입결 데이터를 순서대로 갱신하고 마지막에 누락 감사를 실행합니다.
+
+운영 기준:
+
+- 데이터 갱신 후 `npm run pe-exam:data:audit` 결과에서 신규 누락 대학이 없는지 확인합니다.
+- `npm run build`로 486개 이상의 정적 체대입시 상세 페이지가 생성되는지 확인합니다.
+- 공식 원천에 없는 등급컷/기록 기준은 임의 작성하지 않고 “공식 모집요강 확인”으로 표시합니다.
+- 수동 보강 대학은 `peExamData.ts`에 검색어, 코드, 학과, 공식 확인 문구를 함께 남깁니다.
+- 연 1회 정기 갱신, 대입 모집요강 변경 시 수시 갱신을 운영 루틴으로 둡니다.
+
+## 4. 트래픽 급증 대비
+
+현재 체대입시 대학 상세 페이지는 SSG로 생성되어 정적 트래픽에 강합니다. 급증 시 취약한 곳은 공개 POST API와 DB 연결입니다.
+
+- 공개 정적 페이지: Vercel CDN 캐시와 SSG를 유지합니다.
+- 공개 POST API: 상담 신청, 회원가입, 인증번호 발송에 rate limit을 적용합니다.
+- DB 연결: `RP_DATABASE_POOL_MAX` 기본 5를 유지하고, 관리형 PostgreSQL 커넥션 제한에 맞춰 조정합니다.
+- 봇/스팸 급증: Vercel Firewall에서 `/api/auth/*`, `/api/rp/signup`, `/api/rp/service-application`에 IP/ASN/국가/속도 제한 규칙을 추가합니다.
+- 장애 대응: 신청 저장소 장애 시 공개 응답은 setup/error 상태만 노출하고 민감 payload를 반환하지 않습니다.
+- 모니터링: Vercel 배포 로그, API 429/5xx 비율, DB connection timeout, Apps Script backup 실패율을 확인합니다.
+
+## 5. 데이터 관리 급증 대비
+
+사용자와 상담 신청이 늘면 “저장”보다 “검색, 중복 정리, 보존 기간, 권한”이 병목이 됩니다.
+
+- `rp_clients`, `rp_service_applications`, `rp_pe_exam_ai_consults`는 생성일/사용자/고객 ID 인덱스를 유지합니다.
+- 고객 중복은 이름+전화번호 기준으로 상담 화면에서 병합 후보를 확인하는 운영 흐름을 둡니다.
+- Google Drive/Sheets 백업은 운영자가 직접 다루기 쉬운 장점이 있지만, 장기 보관 원본 저장소로 쓰지 않습니다.
+- 상담 원본 payload, PAR-Q 메모, 체대입시 상담 준비 기록은 보존 기간을 정하고 만료 후 삭제/익명화합니다.
+- 관리자/트레이너 계정은 최소 권한 원칙을 적용하고, 퇴사/역할 변경 시 즉시 계정 비활성화합니다.
+
+## 검증 체크리스트
+
+- `npm run build`
+- `git diff --check`
+- `/api/rp/system-status`에서 DB, 인증 웹훅, 세션 설정 확인
+- 로그인 실패 반복 시 429 응답 또는 제한 안내 확인
+- 인증번호 반복 요청 시 429 응답 확인
+- 상담 신청 반복 제출 시 429 응답 또는 `rate-limited` 상태 확인
+- `npm run pe-exam:data:audit`로 대학 누락 감사

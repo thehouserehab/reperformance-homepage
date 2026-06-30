@@ -8,8 +8,13 @@ import {
   getGoogleDriveBackupSkipReason,
   isGoogleDriveBackupEnabled,
 } from '../../../../lib/rpGoogleDriveBackup';
+import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
 
 export const dynamic = 'force-dynamic';
+
+const APPLICATION_WINDOW_MS = 60 * 60 * 1000;
+const APPLICATION_LIMIT = 8;
+const APPLICATION_IP_LIMIT = 50;
 
 const SERVICE_OPTIONS = {
   'senior-rehab': {
@@ -394,6 +399,20 @@ export async function POST(request) {
 
     const payload = await readPayload(request);
     const application = buildApplication(payload);
+    const retryAfterSeconds = checkRequestRateLimit({
+      request,
+      scope: 'service-application',
+      identifier: application.phone,
+      limit: APPLICATION_LIMIT,
+      ipLimit: APPLICATION_IP_LIMIT,
+      windowMs: APPLICATION_WINDOW_MS,
+    });
+
+    if (retryAfterSeconds) {
+      if (jsonMode) return buildRateLimitResponse(retryAfterSeconds);
+      return redirectTo(request, 'rate-limited');
+    }
+
     const result = await saveServiceApplication(application);
 
     if (jsonMode) {

@@ -6,11 +6,16 @@ import {
 } from '../../../../lib/rpIdentityVerification';
 import { getSheetRoleLabel, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
 import { isDatabaseConfigured, isDatabaseOnlyMode, saveDatabaseAuthSignup } from '../../../../lib/rpDatabase';
+import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
 
 export const dynamic = 'force-dynamic';
 
 const MEMBER_ACTIVE_STATUS = '활성';
 const STAFF_PENDING_STATUS = '승인 대기';
+const SIGNUP_WINDOW_MS = 60 * 60 * 1000;
+const SIGNUP_LIMIT = 6;
+const SIGNUP_IP_LIMIT = 30;
+const MIN_PASSWORD_LENGTH = 8;
 
 function cleanEnvValue(value) {
   return String(value || '')
@@ -120,6 +125,20 @@ export async function POST(request) {
   const payload = await readPayload(request);
   const role = 'member';
   const roleLabel = getSheetRoleLabel(role);
+  const retryAfterSeconds = checkRequestRateLimit({
+    request,
+    scope: 'signup-submit',
+    identifier: payload.username || payload.verificationContact || payload.phone || payload.email,
+    limit: SIGNUP_LIMIT,
+    ipLimit: SIGNUP_IP_LIMIT,
+    windowMs: SIGNUP_WINDOW_MS,
+  });
+
+  if (retryAfterSeconds) {
+    if (wantsJson) return buildRateLimitResponse(retryAfterSeconds);
+    return buildRedirect(request, 'rate-limited', role);
+  }
+
   const now = new Date().toISOString();
   const isMember = role === 'member';
   const identity = await verifyIdentityToken(payload.identityToken, 'signup').catch(() => null);
@@ -166,8 +185,8 @@ export async function POST(request) {
     return buildRedirect(request, 'invalid', role);
   }
 
-  if (record.password.length < 6) {
-    if (wantsJson) return jsonResponse({ ok: false, error: '비밀번호는 6자 이상이어야 합니다.' }, 400);
+  if (record.password.length < MIN_PASSWORD_LENGTH) {
+    if (wantsJson) return jsonResponse({ ok: false, error: `비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.` }, 400);
     return buildRedirect(request, 'invalid', role);
   }
 

@@ -189,7 +189,7 @@ export default function FindAccountClient() {
                   <input
                     autoComplete="new-password"
                     disabled={!verificationToken}
-                    minLength={6}
+                    minLength={8}
                     name="newPassword"
                     onChange={updateField}
                     required
@@ -202,7 +202,7 @@ export default function FindAccountClient() {
                   <input
                     autoComplete="new-password"
                     disabled={!verificationToken}
-                    minLength={6}
+                    minLength={8}
                     name="passwordConfirm"
                     onChange={updateField}
                     required

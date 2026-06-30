@@ -25,6 +25,10 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Public service application JSON responses no longer return the full application/client payload.
 - Service application and PE exam AI consult free-text inputs are length-limited before storage/backup.
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
+- Login, admin login, identity verification, signup, account recovery, and service application routes now have first-pass rate limiting.
+- New signup and password reset inputs require at least 8 characters.
+- Global security headers are configured in `next.config.js`.
+- PE exam source data refresh is available through `npm run pe-exam:data:refresh`, followed by coverage auditing.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
 - The deprecated interactive `next lint` script was replaced with an explicit nonconfigured message, and `npm run typecheck` was added.
 
@@ -33,6 +37,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Runtime table creation still exists in request paths. Prefer formal migrations before heavier production use.
 - `rp_service_applications.payload` still stores a broad application object, although input length is now limited. A stricter column-by-column schema would reduce retention surface.
 - `rp_auth_accounts` still supports legacy `password_plain` fallback. Keep it only for migration and clear any remaining plain values.
+- Current app-level rate limits are in-memory and instance-local. Use Vercel Firewall or shared Redis-backed rate limiting before large traffic campaigns.
 - Google Drive/Sheets backup duplicates sensitive consultation data. Use it only as a transition/backup path, restrict sheet access, and define retention/deletion rules.
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
 - PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Record the source year whenever generated data is updated.
