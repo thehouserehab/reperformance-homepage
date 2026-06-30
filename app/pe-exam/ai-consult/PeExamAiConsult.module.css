@@ -58,6 +58,34 @@
   margin-bottom: 0;
 }
 
+.aiLimitList {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aiLimitList li {
+  position: relative;
+  padding-left: 18px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.aiLimitList li::before {
+  position: absolute;
+  top: 0.72em;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #f5a24a;
+  content: "";
+}
+
 .section {
   background: #f7f9fc;
 }

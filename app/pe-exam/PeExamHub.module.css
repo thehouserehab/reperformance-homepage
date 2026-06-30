@@ -3733,6 +3733,307 @@
   color: #050505;
 }
 
+.starterGuideSection {
+  padding: clamp(44px, 5vw, 72px) 0;
+  background: #fff;
+}
+
+.starterGuideInner {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(20px, 4vw, 48px);
+  align-items: stretch;
+}
+
+.starterGuideLead {
+  min-width: 0;
+  padding: clamp(24px, 4vw, 42px);
+  border-radius: 24px;
+  background: #050505;
+  color: #fff;
+}
+
+.starterGuideLead :global(.eyebrow) {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 20px;
+  background: #fff;
+  color: #050505;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.starterGuideLead h2 {
+  margin: 18px 0 12px;
+  color: #fff;
+  font-size: clamp(30px, 4vw, 52px);
+  line-height: 1.12;
+}
+
+.starterGuideLead p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.72;
+}
+
+.starterGuideCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.starterGuideCards article {
+  min-width: 0;
+  padding: clamp(20px, 3vw, 28px);
+  border-radius: 24px;
+  background: #f4f4f4;
+}
+
+.starterGuideCards span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #050505;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.starterGuideCards strong {
+  display: block;
+  margin: 18px 0 10px;
+  color: #050505;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.22;
+}
+
+.starterGuideCards p {
+  margin: 0;
+  color: #666;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.65;
+}
+
+.homeSearchAdvanced {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.conditionSearchRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.conditionSearchRow label,
+.homeSearchSelectLabel {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: #050505;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.conditionSearchRow input,
+.homeSearchSelectLabel select {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+  border: 2px solid #050505;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #fff;
+  color: #050505;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.conditionSearchRow button,
+.homeSearchResultBar button {
+  min-height: 46px;
+  border: 2px solid #050505;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: #050505;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.homeSearchSelectGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.homeSearchResultBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.homeSearchResultBar button {
+  min-height: 36px;
+  padding: 0 14px;
+  background: #fff;
+  color: #050505;
+}
+
+.searchSummaryNotice {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 4px solid #050505;
+  border-radius: 14px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.breadcrumbTrail {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f4f4f4;
+}
+
+.breadcrumbTrailInner {
+  display: flex;
+  min-width: 0;
+  gap: 8px;
+  overflow-x: auto;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+}
+
+.breadcrumbTrailInner::-webkit-scrollbar {
+  display: none;
+}
+
+.breadcrumbTrailInner a,
+.breadcrumbTrailInner span {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d8d8d8;
+  border-radius: 999px;
+  padding: 0 13px;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.breadcrumbTrailInner span[aria-current="page"] {
+  border-color: #050505;
+  background: #050505;
+  color: #fff;
+}
+
+.hubNav {
+  overflow: hidden;
+}
+
+.hubNavInner {
+  scroll-padding-inline: 16px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.hubNavInner::-webkit-scrollbar {
+  display: none;
+}
+
+.hubNav a,
+.filterPills a,
+.homeSearchFilterGroup button,
+.universityFilterGroup button {
+  scroll-snap-align: start;
+  white-space: nowrap;
+}
+
+@media (max-width: 1120px) {
+  .starterGuideInner,
+  .starterGuideCards,
+  .homeSearchSelectGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .starterGuideInner,
+  .starterGuideCards,
+  .homeSearchSelectGrid,
+  .conditionSearchRow {
+    grid-template-columns: 1fr;
+  }
+
+  .hubNav {
+    top: 70px;
+  }
+
+  .hubNavInner {
+    display: flex;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px 16px;
+  }
+
+  .hubNav a,
+  .filterPills a,
+  .homeSearchFilterGroup button,
+  .universityFilterGroup button,
+  .trackSwitchBar a {
+    min-height: 42px;
+    flex: 0 0 auto;
+    padding-inline: 14px;
+    font-size: 13px;
+  }
+
+  .hubNav a {
+    width: auto;
+  }
+
+  .conditionSearchRow button,
+  .homeSearchResultBar button {
+    width: 100%;
+  }
+
+  .breadcrumbTrailInner {
+    max-width: none;
+    margin: 0;
+    padding: 10px 16px;
+  }
+}
+
 .kusfDataHead a:hover,
 .dataSourceLinks a:hover {
   background: #050505;

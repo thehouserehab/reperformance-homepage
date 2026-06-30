@@ -423,8 +423,8 @@ export default function PeExamAiConsultClient({ initialValues = {}, universityOp
           )}
 
           <p className={styles.guidanceNotice}>
-            이 가이드는 입력값을 바탕으로 한 준비 방향 정리입니다. 최종 지원 판단은 대학별 모집요강,
-            전년도 입결, 실측 기록, 부상 상태를 함께 보고 상담에서 확정합니다.
+            이 가이드는 입력값을 바탕으로 한 준비 방향 정리이며, 합격 가능성을 단정하거나 지원 결과를 보장하지 않습니다.
+            최종 지원 판단은 대학별 모집요강, 전년도 입결, 실측 기록, 부상 상태를 함께 보고 상담에서 확정합니다.
           </p>
         </section>
       )}

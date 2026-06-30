@@ -85,12 +85,65 @@ const roadmapSteps = [
   ["04", "상담으로 연결", "공개자료만으로 부족한 부분은 상담에서 개인별 방향으로 정리합니다."],
 ] as const;
 
+const starterGuideCards = [
+  {
+    label: "STEP 1",
+    title: "조건을 먼저 좁히기",
+    text: "지역, 수시·정시, 등급대, 포함·제외할 실기 종목을 고르면 긴 목록을 훨씬 짧게 볼 수 있습니다.",
+  },
+  {
+    label: "STEP 2",
+    title: "대학 상세로 이동",
+    text: "검색 결과 카드는 요약만 보여주고, 실제 전형·입결·실기 기준은 대학별 하위 페이지에서 확인합니다.",
+  },
+  {
+    label: "STEP 3",
+    title: "공식 자료로 최종 확인",
+    text: "기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시결과표가 최종 기준입니다.",
+  },
+] as const;
+
+const gradeBandLabels = {
+  "grade-1-2": "1~2등급대",
+  "grade-3": "3등급대",
+  "grade-4": "4등급대",
+  "grade-5-plus": "5등급 이하",
+} as const;
+
 function getSchoolDisplayName(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
   return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
 }
 
 function uniqueItems(items: string[]) {
   return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
+}
+
+function compactPracticalItem(item: string) {
+  return item
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s*[:：].*$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getGradeBand(value: number) {
+  if (value <= 2.49) return "grade-1-2";
+  if (value <= 3.49) return "grade-3";
+  if (value <= 4.49) return "grade-4";
+  return "grade-5-plus";
+}
+
+function extractGradeBands(texts: string[]) {
+  const bands = new Set<string>();
+
+  for (const text of texts) {
+    for (const match of text.matchAll(/(\d+(?:\.\d+)?)\s*등급/g)) {
+      const value = Number(match[1]);
+      if (Number.isFinite(value) && value >= 1 && value <= 9) bands.add(getGradeBand(value));
+    }
+  }
+
+  return [...bands];
 }
 
 function getSchoolSearchKeywords(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
@@ -111,9 +164,34 @@ const universitySearchCards = peExamRegionDetails
         ...admission.practicalTasks,
         ...admission.practicalCriteriaItems,
       ]);
+      const practicalFilterItems = uniqueItems(
+        [...school.earlyAdmissions.flatMap((admission) => admission.practicalTasks), ...school.regularAdmissions.flatMap((admission) => admission.practicalTasks)]
+          .map(compactPracticalItem),
+      ).slice(0, 12);
       const practicalPreview = uniqueItems([...earlyPracticalItems, ...regularPracticalItems]).slice(0, 3);
       const earlyGradeCount = school.earlyAdmissions.filter((admission) => admission.hasGradeDetail).length;
       const regularResultCount = school.regularSelectionDetail?.resultRows.length || 0;
+      const gradeTexts = [
+        ...school.earlyAdmissions.flatMap((admission) => [
+          admission.gradeSummary,
+          admission.minimumCriteriaSummary,
+          admission.elementSummary,
+        ]),
+        ...school.regularAdmissions.flatMap((admission) => [
+          admission.gradeSummary,
+          admission.method,
+          admission.unitSummary,
+        ]),
+        ...(school.regularSelectionDetail?.resultRows || []).flatMap((row) => [
+          row.note,
+          row.englishGrade70 ? `${row.englishGrade70}등급` : "",
+        ]),
+        ...(school.regularSelectionDetail?.resultHighlights || []),
+      ];
+      const gradeBands = extractGradeBands(gradeTexts);
+      const gradePreview = gradeBands.length
+        ? gradeBands.map((band) => gradeBandLabels[band as keyof typeof gradeBandLabels]).join(" · ")
+        : "공식 확인";
       const practicalCount = school.earlyAdmissions.filter(
         (admission) =>
           admission.hasPracticalDetail ||
@@ -131,6 +209,7 @@ const universitySearchCards = peExamRegionDetails
         name,
         meta: `${school.area} · ${school.schoolType}`,
         regionLabel: region.region,
+        regionSlug: region.slug,
         earlyHref: getPeExamSchoolTrackHref(region.region, "early", school.slug),
         regularHref: getPeExamSchoolTrackHref(region.region, "regular", school.slug),
         preview: practicalPreview.length ? practicalPreview.join(" · ") : "대학별 상세 페이지에서 전형과 공식 확인 지점을 봅니다.",
@@ -138,8 +217,10 @@ const universitySearchCards = peExamRegionDetails
           { label: "수시", value: `${school.earlyAdmissions.length}개` },
           { label: "정시", value: `${school.regularAdmissions.length}개` },
           { label: "실기", value: practicalCount ? `${practicalCount}개` : "확인" },
-          { label: "등급·입결", value: earlyGradeCount + regularResultCount ? `${earlyGradeCount + regularResultCount}건` : "확인" },
+          { label: "등급·입결", value: gradePreview },
         ],
+        practicalItems: practicalFilterItems,
+        gradeBands,
         searchText: [
           name,
           school.name,
@@ -149,6 +230,8 @@ const universitySearchCards = peExamRegionDetails
           region.region,
           searchKeywords.join(" "),
           practicalPreview.join(" "),
+          practicalFilterItems.join(" "),
+          gradePreview,
         ].join(" "),
         flags: {
           early: school.earlyAdmissions.length > 0,
@@ -164,6 +247,22 @@ const universitySearchCards = peExamRegionDetails
     const aScore = Number(a.flags.early) + Number(a.flags.regular) + Number(a.flags.practical) + Number(a.flags.result);
     return bScore - aScore || a.name.localeCompare(b.name, "ko");
   });
+
+const universitySearchRegionOptions = peExamRegionDetails.map((region) => ({
+  value: region.slug,
+  label: region.region,
+  text: region.areas.join(" · "),
+}));
+
+const practicalSearchOptions = uniqueItems(
+  universitySearchCards.flatMap((card) => card.practicalItems),
+)
+  .sort((a, b) => a.localeCompare(b, "ko"))
+  .slice(0, 40)
+  .map((item) => ({
+    value: item,
+    label: item,
+  }));
 
 export default function PeExamPage() {
   const faqPreview = faqItems.slice(0, 4);
@@ -233,6 +332,28 @@ export default function PeExamPage() {
         </div>
       </section>
 
+      <section className={styles.starterGuideSection} aria-label="체대입시 첫 방문자 가이드">
+        <div className={`container ${styles.starterGuideInner}`}>
+          <div className={styles.starterGuideLead}>
+            <p className="eyebrow">START GUIDE</p>
+            <h2>처음 왔다면 조건 검색부터 시작하세요.</h2>
+            <p>
+              대학 목록을 처음부터 끝까지 훑기보다, 본인 조건에 맞춰 후보를 줄인 뒤
+              상세 페이지에서 공식 기준을 확인하는 흐름이 가장 빠릅니다.
+            </p>
+          </div>
+          <div className={styles.starterGuideCards}>
+            {starterGuideCards.map((card) => (
+              <article key={card.label}>
+                <span>{card.label}</span>
+                <strong>{card.title}</strong>
+                <p>{card.text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className={`section ${styles.searchSection}`} id="university-search">
         <div className="container">
           <div className={styles.searchSectionHead}>
@@ -245,7 +366,11 @@ export default function PeExamPage() {
               기록 기준, 공식 확인 링크를 이어서 봅니다.
             </p>
           </div>
-          <PeExamHomeSearchClient cards={universitySearchCards} />
+          <PeExamHomeSearchClient
+            cards={universitySearchCards}
+            practicalOptions={practicalSearchOptions}
+            regionOptions={universitySearchRegionOptions}
+          />
         </div>
       </section>
 

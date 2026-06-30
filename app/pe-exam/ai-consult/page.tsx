@@ -205,6 +205,11 @@ export default async function PeExamAiConsultPage({
             <strong>제한 공개</strong>
             <p>현재 단계에서는 합격 가능성을 단정하지 않고, 수시·정시 준비 방향과 확인 우선순위를 정리합니다.</p>
             <p>입력 자료는 향후 AI 상담 기능과 실제 체대입시 상담의 기초 정보로 활용됩니다.</p>
+            <ul className={styles.aiLimitList}>
+              <li>합격·불합격 가능성을 확정하거나 보장하지 않습니다.</li>
+              <li>대학별 공식 모집요강, 전년도 입결, 실측 기록 확인을 대체하지 않습니다.</li>
+              <li>부상·통증 판단은 의료진 진단이 아니라 운동 상담 전 참고 정보로만 사용합니다.</li>
+            </ul>
           </aside>
         </div>
       </section>

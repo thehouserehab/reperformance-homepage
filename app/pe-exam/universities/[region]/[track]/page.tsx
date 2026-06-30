@@ -271,6 +271,15 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
         </div>
       </nav>
 
+      <nav className={styles.breadcrumbTrail} aria-label="현재 페이지 위치">
+        <div className={`container ${styles.breadcrumbTrailInner}`}>
+          <Link href="/pe-exam">체대입시 홈</Link>
+          <Link href="/pe-exam#universities">지역별 대학</Link>
+          <Link href={region.href}>{region.region} 전형 선택</Link>
+          <span aria-current="page">{track.label} 대학 목록</span>
+        </div>
+      </nav>
+
       <section className={styles.regionDetailHero}>
         <div className={`container ${styles.regionDetailHeroInner}`}>
           <div>

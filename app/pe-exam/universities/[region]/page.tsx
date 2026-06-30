@@ -88,6 +88,14 @@ export default async function PeExamRegionDetailPage({ params }: RegionPageProps
         </div>
       </nav>
 
+      <nav className={styles.breadcrumbTrail} aria-label="현재 페이지 위치">
+        <div className={`container ${styles.breadcrumbTrailInner}`}>
+          <Link href="/pe-exam">체대입시 홈</Link>
+          <Link href="/pe-exam#universities">지역별 대학</Link>
+          <span aria-current="page">{region.region} 전형 선택</span>
+        </div>
+      </nav>
+
       <section className={styles.regionDetailHero}>
         <div className={`container ${styles.regionDetailHeroInner}`}>
           <div>
