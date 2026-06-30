@@ -60,7 +60,7 @@ DB와 백업 저장소에는 원본 데이터가 쌓이고, 실제 상담자가 
 
 ### 로그인 유지 시간
 
-기본 세션 유지 기간은 90일입니다. 환경변수로 조정할 수 있지만 앱은 최소 1일 이상을 보장합니다.
+기본 세션 유지 기간은 14일입니다. 환경변수로 조정할 수 있지만 앱은 최소 1일 이상을 보장합니다.
 
 - `RP_SESSION_TTL_DAYS`
 - `RP_SESSION_TTL_SECONDS`
@@ -108,6 +108,8 @@ RP_ACCOUNT_RECOVERY_SECRET=긴 랜덤 문자열
 RP_SHEETS_WEBAPP_URL=https://script.google.com/macros/s/.../exec
 RP_AUTH_WEBAPP_URL=https://script.google.com/macros/s/.../exec
 RP_API_SECRET=Apps Script 검증용 secret
+RP_GOOGLE_DRIVE_BACKUP_ENABLED=
+RP_BACKUP_SECRET_IN_QUERY=false
 RP_SMS_WEBHOOK_URL=https://...
 RP_EMAIL_WEBHOOK_URL=https://...
 RP_KAKAO_WEBHOOK_URL=https://...

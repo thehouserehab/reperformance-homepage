@@ -243,7 +243,7 @@ export default function SignupClient({ status, message }) {
         </div>
         <div className={styles.notice}>
           <strong>로그인 유지</strong>
-          <span>로그인 세션은 기본 90일 동안 유지됩니다.</span>
+          <span>로그인 세션은 기본 14일 동안 유지됩니다.</span>
         </div>
         <div className={styles.actions}>
           <Link href="/login">로그인</Link>

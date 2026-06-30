@@ -7,6 +7,11 @@ import {
   savePeExamAiConsultRequest,
 } from '../../../../lib/rpDatabase';
 import {
+  callGoogleDriveBackup,
+  getGoogleDriveBackupSkipReason,
+  isGoogleDriveBackupEnabled,
+} from '../../../../lib/rpGoogleDriveBackup';
+import {
   getPeExamSchoolTrackHref,
   peExamAdmissionTracks,
   peExamRegionDetails,
@@ -16,6 +21,10 @@ export const dynamic = 'force-dynamic';
 
 function cleanValue(value) {
   return String(value || '').trim();
+}
+
+function cleanLimitedValue(value, maxLength = 500) {
+  return cleanValue(value).slice(0, maxLength);
 }
 
 function wantsJson(request) {
@@ -36,50 +45,14 @@ function redirectToLogin(request) {
   return NextResponse.redirect(url, 303);
 }
 
-function getBackupWebAppUrl() {
-  return cleanValue(process.env.RP_SHEETS_WEBAPP_URL || process.env.RP_SIGNUP_WEBAPP_URL || process.env.RP_AUTH_WEBAPP_URL);
-}
-
-async function callGoogleDriveBackup(action, payload) {
-  const webAppUrl = getBackupWebAppUrl();
-  const apiSecret = cleanValue(process.env.RP_API_SECRET);
-
-  if (!webAppUrl) throw new Error('Google Drive backup web app URL is not configured.');
-
-  const url = new URL(webAppUrl);
-  url.searchParams.set('action', action);
-  if (apiSecret) {
-    url.searchParams.set('secret', apiSecret);
-    url.searchParams.set('apiSecret', apiSecret);
-    url.searchParams.set('token', apiSecret);
-  }
-
-  const response = await fetch(url.toString(), {
-    method: 'POST',
-    cache: 'no-store',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, ...payload, secret: apiSecret, apiSecret, token: apiSecret }),
-  });
-  const text = await response.text();
-  let data = {};
-
-  try {
-    data = JSON.parse(text);
-  } catch (_) {
-    data = { raw: text.slice(0, 250) };
-  }
-
-  if (!response.ok || data?.ok === false) {
-    throw new Error(data?.error || `Google Drive backup failed: ${response.status}`);
-  }
-
-  return data;
-}
-
 async function backupPeExamAiConsultToGoogleDrive(record) {
-  if (!getBackupWebAppUrl()) {
-    return { ok: false, skipped: true, reason: 'Google Drive backup is not configured.' };
+  if (!isGoogleDriveBackupEnabled()) {
+    return {
+      ok: true,
+      skipped: true,
+      source: 'google-drive',
+      reason: getGoogleDriveBackupSkipReason(),
+    };
   }
 
   const attempts = ['savePeExamAiConsult', 'savePeExamAiConsultation', 'saveConsultation'];
@@ -687,9 +660,9 @@ async function readPayload(request) {
 
 function buildRequest(payload = {}, session) {
   const selectedUniversity = buildSelectedUniversity(payload);
-  const targetUniversity = cleanValue(payload.targetUniversity) || selectedUniversity?.displayName || '';
-  const practicalRecords = cleanValue(payload.practicalRecords);
-  const questionFocus = cleanValue(payload.questionFocus);
+  const targetUniversity = cleanLimitedValue(payload.targetUniversity, 160) || selectedUniversity?.displayName || '';
+  const practicalRecords = cleanLimitedValue(payload.practicalRecords, 1000);
+  const questionFocus = cleanLimitedValue(payload.questionFocus, 1000);
 
   if (!targetUniversity && !practicalRecords && !questionFocus) {
     const error = new Error('희망 대학, 실기 기록, 상담 목표 중 하나 이상은 입력해주세요.');
@@ -701,23 +674,23 @@ function buildRequest(payload = {}, session) {
     username: session.sub,
     memberName: session.name,
     role: session.role,
-    gradeLevel: cleanValue(payload.gradeLevel),
-    admissionTrack: cleanValue(payload.admissionTrack) || '공통',
+    gradeLevel: cleanLimitedValue(payload.gradeLevel, 40),
+    admissionTrack: cleanLimitedValue(payload.admissionTrack, 40) || '공통',
     targetUniversity,
-    targetUniversityId: selectedUniversity?.id || cleanValue(payload.targetUniversityId),
-    targetUniversityCode: selectedUniversity?.code || cleanValue(payload.targetUniversityCode),
-    targetUniversityRegion: selectedUniversity?.region || cleanValue(payload.targetUniversityRegion),
-    targetUniversityArea: selectedUniversity?.area || cleanValue(payload.targetUniversityArea),
-    targetUniversitySchoolType: selectedUniversity?.schoolType || cleanValue(payload.targetUniversitySchoolType),
-    targetUniversitySlug: selectedUniversity?.slug || cleanValue(payload.targetUniversitySlug),
-    targetUniversityHref: selectedUniversity?.href || cleanValue(payload.targetUniversityHref),
+    targetUniversityId: selectedUniversity?.id || cleanLimitedValue(payload.targetUniversityId, 160),
+    targetUniversityCode: selectedUniversity?.code || cleanLimitedValue(payload.targetUniversityCode, 40),
+    targetUniversityRegion: selectedUniversity?.region || cleanLimitedValue(payload.targetUniversityRegion, 40),
+    targetUniversityArea: selectedUniversity?.area || cleanLimitedValue(payload.targetUniversityArea, 80),
+    targetUniversitySchoolType: selectedUniversity?.schoolType || cleanLimitedValue(payload.targetUniversitySchoolType, 40),
+    targetUniversitySlug: selectedUniversity?.slug || cleanLimitedValue(payload.targetUniversitySlug, 180),
+    targetUniversityHref: selectedUniversity?.href || cleanLimitedValue(payload.targetUniversityHref, 240),
     selectedUniversity,
-    targetDepartment: cleanValue(payload.targetDepartment),
-    schoolGrade: cleanValue(payload.schoolGrade),
-    mockExam: cleanValue(payload.mockExam),
+    targetDepartment: cleanLimitedValue(payload.targetDepartment, 160),
+    schoolGrade: cleanLimitedValue(payload.schoolGrade, 500),
+    mockExam: cleanLimitedValue(payload.mockExam, 500),
     practicalRecords,
-    trainingContext: cleanValue(payload.trainingContext),
-    injuryNote: cleanValue(payload.injuryNote),
+    trainingContext: cleanLimitedValue(payload.trainingContext, 1000),
+    injuryNote: cleanLimitedValue(payload.injuryNote, 1000),
     questionFocus,
     aiStatus: '방향 가이드 생성',
     source: 'pe-exam-ai-consult',

@@ -2694,3 +2694,1054 @@
     width: 100%;
   }
 }
+
+/* PE exam editorial redesign overrides */
+.hubNav {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(250, 250, 250, 0.95);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.hubNavInner {
+  gap: 10px;
+}
+
+.hubNav a,
+.filterPills a,
+.homeSearchFilterGroup button,
+.universityFilterGroup button,
+.trackSwitchBar a,
+.regionDetailTools > a,
+.regionDetailTools div a {
+  border-color: #d9d9d9;
+  background: #fff;
+  color: #111;
+  font-weight: 950;
+}
+
+.hubNav a:hover,
+.filterPills a:hover,
+.homeSearchFilterGroup button:hover,
+.universityFilterGroup button:hover,
+.trackSwitchBar a:hover,
+.regionDetailTools > a:hover,
+.regionDetailTools div a:hover,
+.homeSearchFilterGroup button[aria-pressed="true"],
+.universityFilterGroup button[aria-pressed="true"],
+.hubNav a[aria-current="page"] {
+  border-color: #050505;
+  background: #050505;
+  color: #fff;
+}
+
+.hero {
+  min-height: min(820px, calc(100vh - 82px));
+  padding: clamp(92px, 10vw, 150px) 0 clamp(78px, 8vw, 118px);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.96) 0%, rgba(0, 0, 0, 0.76) 48%, rgba(0, 0, 0, 0.3) 100%),
+    url("/images/pe-exam-hero.png") center / cover;
+  color: #fff;
+}
+
+.heroInner {
+  grid-template-columns: minmax(0, 1.08fr) minmax(300px, 390px);
+}
+
+.hero :global(.eyebrow),
+.timelineIntro :global(.eyebrow),
+.aiLayout :global(.eyebrow),
+.consultInner :global(.eyebrow),
+.detailDesignHead span,
+.regionDetailHero :global(.eyebrow) {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 26px;
+  background: #fff;
+  color: #050505;
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.hero h1 {
+  max-width: 930px;
+  margin-bottom: 22px;
+  font-size: clamp(44px, 5.7vw, 76px);
+  line-height: 1.08;
+}
+
+.hero p:not(:global(.eyebrow)) {
+  max-width: 790px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(17px, 1.45vw, 21px);
+  font-weight: 700;
+}
+
+.heroActions {
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.heroActions :global(.button),
+.aiPanel :global(.button),
+.consultInner :global(.button),
+.homeSearchActions a,
+.regionOverviewLink,
+.trackSourceGrid a,
+.featuredCard > a,
+.kusfItemLink,
+.kusfInlineLink {
+  border-color: #050505;
+  background: #050505;
+  color: #fff;
+}
+
+.heroActions :global(.button.secondary),
+.trackSourceGrid a,
+.featuredCard > a,
+.kusfItemLink,
+.kusfInlineLink {
+  background: #fff;
+  color: #050505;
+}
+
+.heroActions :global(.button.secondary) {
+  border-color: rgba(255, 255, 255, 0.78);
+}
+
+.heroStats {
+  gap: 12px;
+  max-width: 760px;
+  margin-top: 34px;
+}
+
+.heroStats div,
+.heroPanel article,
+.regionDetailStats div {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.heroStats div {
+  padding: 20px 18px;
+}
+
+.heroStats dt,
+.regionDetailStats span,
+.heroPanel strong,
+.aiPanel strong {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.heroStats dd {
+  font-size: clamp(36px, 4vw, 54px);
+}
+
+.heroPanel {
+  gap: 14px;
+}
+
+.heroPanel article {
+  padding: 24px;
+}
+
+.heroPanel h2 {
+  font-size: clamp(22px, 2vw, 28px);
+}
+
+.resourcesSection,
+.searchSection,
+.universitySection,
+.roadmapSection,
+.faqPreviewSection,
+.regionDetailSection {
+  background: #f4f4f4;
+}
+
+.resourcesSection,
+.searchSection,
+.universitySection,
+.roadmapSection,
+.faqPreviewSection,
+.timelineSection,
+.aiSection,
+.consultSection,
+.regionDetailSection {
+  padding-top: clamp(72px, 8vw, 116px);
+  padding-bottom: clamp(72px, 8vw, 116px);
+}
+
+.timelineSection,
+.aiSection,
+.consultSection {
+  background: #050505;
+}
+
+.sectionHead {
+  max-width: 980px;
+  margin-bottom: 38px;
+  text-align: center;
+}
+
+.sectionHead :global(.eyebrow),
+.searchSectionHead :global(.eyebrow),
+.regionChoicePreviewHead :global(.eyebrow),
+.regionSchoolDirectoryHead :global(.eyebrow),
+.officialCheckPanel :global(.eyebrow) {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 20px;
+  background: #050505;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.sectionHead h2,
+.searchSectionHead h2,
+.timelineIntro h2,
+.aiLayout h2,
+.consultInner h2,
+.faqPreviewLayout h2,
+.regionChoicePreviewHead h2,
+.regionSchoolDirectoryHead h2,
+.officialCheckPanel h2 {
+  color: #050505;
+  font-size: clamp(36px, 4.8vw, 66px);
+  line-height: 1.12;
+}
+
+.sectionHead p:not(:global(.eyebrow)),
+.searchSectionHead p:not(:global(.eyebrow)),
+.faqPreviewLayout p,
+.regionChoicePreviewHead p:not(:global(.eyebrow)),
+.regionSchoolDirectoryHead p:not(:global(.eyebrow)),
+.officialCheckPanel p:not(:global(.eyebrow)) {
+  color: #777;
+  font-size: clamp(16px, 1.45vw, 19px);
+  font-weight: 750;
+}
+
+.searchSectionHead {
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.homeSearchTool,
+.universityIndexTool {
+  gap: 18px;
+}
+
+.homeSearchControls,
+.universityIndexControls {
+  padding: 18px;
+  border-radius: 24px;
+  background: #fff;
+}
+
+.homeSearchLabel,
+.universitySearchLabel {
+  color: #050505;
+}
+
+.homeSearchLabel input,
+.universitySearchLabel input {
+  border: 2px solid #050505;
+  border-radius: 999px;
+  background: #fff;
+  color: #050505;
+}
+
+.homeSearchGrid,
+.universityJumpGrid {
+  gap: 14px;
+}
+
+.homeSearchCard,
+.universityJumpCard,
+.resourceCard,
+.catalogStats article,
+.coverageGrid article,
+.universityScopeGrid article,
+.regionOverviewCard,
+.roadmapList li,
+.admissionChoiceCard,
+.regionChoicePreviewGrid article,
+.regionDetailGuide article,
+.trackSourceGrid article,
+.trackSummaryStats div,
+.officialCheckLinks a,
+.schoolDataGuide div,
+.kusfAdmissionItem,
+.practicalRecordGrid div,
+.regularResultItem,
+.regionSchoolList article {
+  border: 0;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: none;
+}
+
+.homeSearchCard,
+.universityJumpCard {
+  padding: 22px;
+}
+
+.homeSearchCardHead span,
+.resourceCard span,
+.catalogStats span,
+.coverageGrid span,
+.universityScopeGrid strong,
+.regionOverviewHeader span,
+.admissionChoiceCard span,
+.regionChoicePreviewGrid span,
+.trackSourceGrid span,
+.schoolDataGuide span,
+.schoolTrackBriefStats dt,
+.practicalRecordGrid dt,
+.regularResultItem dt,
+.regionSchoolList span {
+  color: #777;
+  letter-spacing: 0;
+}
+
+.homeSearchCardHead h3,
+.resourceCard h3,
+.catalogStats strong,
+.coverageGrid strong,
+.regionOverviewHeader h3,
+.admissionChoiceCard h2,
+.regionChoicePreviewGrid strong,
+.trackSourceGrid h2,
+.trackSummaryHead h2,
+.universityJumpCard strong,
+.schoolDataGuide strong,
+.regularResultItem dd,
+.practicalRecordPanel > strong,
+.practicalRecordGrid dt,
+.roadmapList h3,
+.faqList summary,
+.regionSchoolList strong {
+  color: #050505;
+}
+
+.homeSearchStats div,
+.universityMiniStats div,
+.admissionChoiceStats div,
+.regionOverviewStats div {
+  border: 0;
+  border-radius: 16px;
+  background: #efefef;
+}
+
+.homeSearchStats dt,
+.universityMiniStats dt,
+.admissionChoiceStats dt,
+.regionOverviewStats dt {
+  color: #777;
+}
+
+.homeSearchStats dd,
+.universityMiniStats dd,
+.admissionChoiceStats dd,
+.regionOverviewStats dd {
+  color: #050505;
+}
+
+.resourceGrid {
+  gap: 18px;
+}
+
+.resourceCard {
+  min-height: 250px;
+  padding: 30px;
+}
+
+.resourceCard h3,
+.roadmapList h3 {
+  font-size: clamp(25px, 2.7vw, 34px);
+}
+
+.timelineLayout {
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(32px, 6vw, 84px);
+}
+
+.timelineIntro h2,
+.aiLayout h2,
+.consultInner h2 {
+  color: #fff;
+}
+
+.timelineIntro p,
+.aiLayout p,
+.consultInner p {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.timelineCards {
+  position: relative;
+  gap: 0;
+  padding: 28px;
+  border-radius: 30px;
+  background: #fff;
+}
+
+.timelineCards::before {
+  content: "";
+  position: absolute;
+  top: 48px;
+  bottom: 48px;
+  left: 66px;
+  width: 2px;
+  background: #d6d6d6;
+}
+
+.timelineCards li {
+  position: relative;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.timelineCards strong {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #050505;
+  color: #fff;
+  font-size: 20px;
+}
+
+.timelineCards span {
+  margin-bottom: 8px;
+  color: #050505;
+  font-size: clamp(30px, 3.8vw, 48px);
+}
+
+.timelineCards h3 {
+  color: #050505;
+  font-size: clamp(20px, 2vw, 26px);
+}
+
+.timelineCards p {
+  color: #686868;
+  font-weight: 700;
+}
+
+.sourcePanel {
+  padding: 26px;
+  border: 0;
+  border-radius: 28px;
+  background: #3a3a3a;
+}
+
+.sourcePanel h3,
+.sourceGrid strong {
+  color: #fff;
+}
+
+.sourceGrid a {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.catalogStats,
+.coverageGrid,
+.universityScopeGrid,
+.regionOverviewGrid {
+  gap: 18px;
+}
+
+.catalogStats article,
+.coverageGrid article,
+.universityScopeGrid article {
+  padding: 28px;
+}
+
+.catalogStats strong {
+  font-size: clamp(36px, 4.2vw, 58px);
+}
+
+.coverageGrid .coverageCaution {
+  background: #050505;
+}
+
+.coverageGrid .coverageCaution span,
+.coverageGrid .coverageCaution strong,
+.coverageGrid .coverageCaution p {
+  color: #fff;
+}
+
+.kusfDataHead {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 34px;
+  border: 0;
+  border-radius: 30px;
+  background: #fff;
+}
+
+.kusfDataHead h3 {
+  color: #050505;
+  font-size: clamp(30px, 3.8vw, 52px);
+}
+
+.dataSourceLinks {
+  justify-content: flex-start;
+}
+
+.kusfDataHead a,
+.regionOverviewLink,
+.trackSourceGrid a,
+.trackSwitchBar a,
+.regionDetailTools > a,
+.regionDetailTools div a {
+  border-radius: 999px;
+}
+
+.coverageFootnotes,
+.catalogNotice {
+  border: 0;
+  border-radius: 24px;
+  background: #fff;
+  color: #686868;
+}
+
+.catalogNotice strong {
+  color: #050505;
+}
+
+.regionOverviewCard {
+  padding: 30px;
+}
+
+.regionOverviewHeader h3 {
+  font-size: clamp(30px, 3.4vw, 44px);
+}
+
+.regionOverviewStats {
+  gap: 10px;
+}
+
+.regionOverviewLink {
+  min-height: 48px;
+  padding: 0 20px;
+}
+
+.roadmapList {
+  gap: 18px;
+}
+
+.roadmapList li {
+  min-height: 260px;
+  padding: 30px;
+}
+
+.roadmapList strong {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 50%;
+  background: #050505;
+  color: #fff;
+  font-size: 16px;
+}
+
+.faqPreviewLayout {
+  padding: clamp(28px, 5vw, 58px);
+  border-radius: 32px;
+  background: #fff;
+}
+
+.faqList {
+  border-top-color: #dcdcdc;
+}
+
+.faqList details {
+  border-bottom-color: #dcdcdc;
+}
+
+.faqList summary::after {
+  color: #050505;
+}
+
+.aiLayout {
+  padding: clamp(28px, 5vw, 58px);
+  border-radius: 34px;
+  background: #111;
+}
+
+.aiPanel {
+  border: 0;
+  border-radius: 28px;
+  background: #3a3a3a;
+}
+
+.aiPanel span {
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.consultInner {
+  padding: clamp(30px, 5vw, 58px);
+  border-radius: 34px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.94), rgba(0, 0, 0, 0.66)),
+    url("/images/pe-exam-hero.png") center / cover;
+}
+
+.regionDetailHero {
+  padding: clamp(82px, 9vw, 136px) 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0.58)),
+    url("/images/pe-exam-hero.png") center / cover;
+}
+
+.regionDetailHero h1 {
+  font-size: clamp(42px, 5.8vw, 78px);
+}
+
+.regionDetailHero p:not(:global(.eyebrow)) {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 700;
+}
+
+.regionDetailStats {
+  gap: 14px;
+}
+
+.regionDetailStats strong {
+  font-size: clamp(36px, 4vw, 54px);
+}
+
+.detailDesignBand {
+  background: #050505;
+}
+
+.detailPriorityGrid {
+  gap: 22px;
+}
+
+.detailPriorityCard {
+  border-radius: 28px;
+  padding: 34px 26px;
+  background: #f2f2f2;
+}
+
+.detailPriorityRing {
+  width: 150px;
+  background:
+    radial-gradient(circle at center, #f2f2f2 0 48%, transparent 49%),
+    conic-gradient(#050505 0 78%, #cfcfcf 78% 100%);
+}
+
+.regionDetailSection {
+  background: #f4f4f4;
+}
+
+.regionDetailGuide {
+  gap: 16px;
+}
+
+.regionDetailGuide article,
+.regionChoicePreview,
+.admissionChoiceCard,
+.trackSummaryPanel,
+.officialCheckPanel {
+  border: 0;
+  border-radius: 30px;
+  background: #fff;
+}
+
+.regionChoicePreview,
+.officialCheckPanel {
+  padding: clamp(28px, 4vw, 44px);
+}
+
+.regionChoicePreviewHead {
+  align-items: center;
+}
+
+.regionChoicePreviewGrid {
+  gap: 14px;
+}
+
+.admissionChoiceGrid {
+  gap: 18px;
+}
+
+.admissionChoiceCard {
+  padding: clamp(30px, 4vw, 44px);
+}
+
+.admissionChoiceCard h2 {
+  font-size: clamp(34px, 4.2vw, 58px);
+}
+
+.admissionChoiceStats {
+  gap: 10px;
+}
+
+.trackSummaryPanel {
+  padding: clamp(26px, 4vw, 38px);
+}
+
+.trackSourceGrid article {
+  padding: 26px;
+}
+
+.universityJumpCard[data-empty="true"] {
+  background: #e9e9e9;
+}
+
+.universityDetailCue {
+  color: #050505;
+}
+
+.schoolDataGuide {
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.schoolDataGuide div {
+  padding: 24px;
+}
+
+.schoolDataGuide strong {
+  font-size: clamp(22px, 2.4vw, 30px);
+}
+
+.officialCheckPanel ol {
+  padding-left: 0;
+  list-style: none;
+  counter-reset: official-step;
+}
+
+.officialCheckPanel li {
+  position: relative;
+  min-height: 46px;
+  padding: 10px 0 10px 64px;
+  border-bottom: 1px solid #e5e5e5;
+  counter-increment: official-step;
+}
+
+.officialCheckPanel li::before {
+  content: counter(official-step, decimal-leading-zero);
+  position: absolute;
+  top: 7px;
+  left: 0;
+  color: #bdbdbd;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.officialCheckLinks {
+  gap: 14px;
+}
+
+.officialCheckLinks a {
+  padding: 18px;
+  background: #f3f3f3;
+}
+
+.officialCheckLinks strong {
+  color: #050505;
+}
+
+.dataStatusBadges em {
+  border: 0;
+  background: #e7e7e7;
+  color: #050505;
+}
+
+.dataStatusBadges em[data-tone="good"],
+.dataStatusBadges em[data-tone="neutral"],
+.dataStatusBadges em[data-tone="warn"],
+.dataStatusBadges em[data-tone="muted"] {
+  border: 0;
+  background: #e7e7e7;
+  color: #050505;
+}
+
+.kusfAdmissionItem {
+  padding: 24px;
+}
+
+.kusfAdmissionItem strong {
+  color: #050505;
+  font-size: clamp(21px, 2.2vw, 28px);
+}
+
+.kusfAdmissionItem > span,
+.kusfAdmissionItem dd,
+.regularResultItem p,
+.practicalRecordGrid dd,
+.schoolTrackChipList li,
+.practicalTaskList li,
+.practicalCriteriaList li {
+  color: #686868;
+}
+
+.kusfAdmissionItem dt {
+  color: #050505;
+}
+
+.practicalRecordPanel {
+  border-top-color: #dcdcdc;
+}
+
+.practicalRecordGrid {
+  gap: 10px;
+}
+
+.practicalRecordGrid div {
+  background: #f2f2f2;
+}
+
+.regularResultPanel {
+  border-top-color: #dcdcdc;
+}
+
+.regularResultPanel > strong {
+  color: #050505;
+  font-size: 18px;
+}
+
+.regularResultList {
+  gap: 10px;
+  border-top: 0;
+}
+
+.regularResultItem {
+  padding: 18px;
+  border-bottom: 0;
+  background: #f2f2f2;
+}
+
+.regularResultItemHead strong {
+  color: #050505;
+  font-size: 16px;
+}
+
+.regularResultItem dl div {
+  padding: 10px;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.practicalTaskList li,
+.schoolTrackChipList li {
+  border: 0;
+  background: #e7e7e7;
+}
+
+.practicalCriteriaList li::before,
+.trackBox li::before {
+  background: #050505;
+}
+
+.regionSchoolList {
+  gap: 12px;
+}
+
+.regionSchoolList article {
+  padding: 18px;
+  background: #fff;
+}
+
+@media (max-width: 1120px) {
+  .timelineLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineIntro {
+    position: static;
+  }
+
+  .sourcePanel {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 960px) {
+  .heroInner,
+  .regionDetailHeroInner,
+  .aiLayout,
+  .consultInner,
+  .faqPreviewLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionHead {
+    text-align: left;
+  }
+
+  .searchSectionHead,
+  .regionChoicePreviewHead,
+  .trackSummaryHead {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineCards {
+    padding: 22px;
+  }
+
+  .timelineCards::before {
+    left: 51px;
+  }
+
+  .timelineCards li {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .timelineCards strong {
+    width: 58px;
+    height: 58px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero,
+  .regionDetailHero {
+    padding: 64px 0 72px;
+  }
+
+  .hero h1,
+  .regionDetailHero h1 {
+    font-size: clamp(38px, 11vw, 52px);
+  }
+
+  .sectionHead h2,
+  .searchSectionHead h2,
+  .timelineIntro h2,
+  .aiLayout h2,
+  .consultInner h2,
+  .faqPreviewLayout h2,
+  .regionChoicePreviewHead h2,
+  .regionSchoolDirectoryHead h2,
+  .officialCheckPanel h2 {
+    font-size: clamp(32px, 9vw, 44px);
+  }
+
+  .homeSearchControls,
+  .universityIndexControls,
+  .kusfDataHead,
+  .faqPreviewLayout,
+  .aiLayout,
+  .consultInner,
+  .regionChoicePreview,
+  .officialCheckPanel,
+  .trackSummaryPanel {
+    border-radius: 22px;
+  }
+
+  .homeSearchCard,
+  .universityJumpCard,
+  .resourceCard,
+  .catalogStats article,
+  .coverageGrid article,
+  .universityScopeGrid article,
+  .regionOverviewCard,
+  .roadmapList li,
+  .admissionChoiceCard,
+  .regionChoicePreviewGrid article,
+  .regionDetailGuide article,
+  .trackSourceGrid article,
+  .officialCheckLinks a,
+  .schoolDataGuide div,
+  .kusfAdmissionItem,
+  .regionSchoolList article {
+    border-radius: 18px;
+  }
+
+  .timelineCards::before {
+    display: none;
+  }
+
+  .timelineCards li {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineCards strong {
+    width: 48px;
+    height: 48px;
+  }
+
+  .catalogStats strong,
+  .heroStats dd,
+  .regionDetailStats strong {
+    font-size: clamp(34px, 11vw, 48px);
+  }
+
+  .officialCheckPanel li {
+    padding-left: 50px;
+  }
+
+  .officialCheckPanel li::before {
+    font-size: 24px;
+  }
+}
+
+.kusfDataHead :global(.eyebrow),
+.trackSummaryHead :global(.eyebrow),
+.noreLead :global(.eyebrow) {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 20px;
+  background: #050505;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.kusfDataHead a,
+.dataSourceLinks a {
+  border-color: #050505;
+  background: #fff;
+  color: #050505;
+}
+
+.kusfDataHead a:hover,
+.dataSourceLinks a:hover {
+  background: #050505;
+  color: #fff;
+}
+
+.regionDetailGuide strong,
+.regionChoicePreviewGrid span,
+.trackSourceGrid span,
+.admissionChoiceCard span {
+  color: #777;
+}

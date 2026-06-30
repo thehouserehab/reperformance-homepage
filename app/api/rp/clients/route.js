@@ -6,6 +6,7 @@ import {
   saveDatabaseClient,
   saveDatabaseConsultation,
 } from '../../../../lib/rpDatabase';
+import { shouldSendGoogleDriveSecretInQuery } from '../../../../lib/rpGoogleDriveBackup';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,7 @@ function buildScriptUrl(webAppUrl, body, apiSecret) {
   const action = body?.action || 'listClients';
   url.searchParams.set('action', action);
 
-  if (apiSecret) {
+  if (apiSecret && shouldSendGoogleDriveSecretInQuery()) {
     url.searchParams.set('secret', apiSecret);
     url.searchParams.set('apiSecret', apiSecret);
     url.searchParams.set('token', apiSecret);
@@ -286,10 +287,15 @@ async function callSheetsApi(body, options = {}) {
 
   const method = options.method || 'POST';
   const requestBody = { ...body, secret: apiSecret, apiSecret, token: apiSecret };
-  const fetchOptions = { method, cache: 'no-store', redirect: 'follow' };
+  const fetchOptions = { method, cache: 'no-store', redirect: 'follow', headers: {} };
+
+  if (apiSecret) {
+    fetchOptions.headers['X-RP-API-Secret'] = apiSecret;
+    fetchOptions.headers.Authorization = `Bearer ${apiSecret}`;
+  }
 
   if (method !== 'GET') {
-    fetchOptions.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+    fetchOptions.headers['Content-Type'] = 'text/plain;charset=utf-8';
     fetchOptions.body = JSON.stringify(requestBody);
   }
 

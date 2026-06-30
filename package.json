@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "typecheck": "tsc --noEmit",
+    "lint": "node -e \"console.error('ESLint is not configured for this Next.js 15 project. Run npm run build and npm run typecheck for current validation until ESLint config is added.'); process.exit(1)\""
   },
   "dependencies": {
     "next": "15.5.19",

@@ -3,6 +3,11 @@ import {
   isDatabaseConfigured,
   saveDatabaseClient,
 } from '../../../../lib/rpDatabase';
+import {
+  callGoogleDriveBackup,
+  getGoogleDriveBackupSkipReason,
+  isGoogleDriveBackupEnabled,
+} from '../../../../lib/rpGoogleDriveBackup';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,48 +46,16 @@ function getSslConfig(databaseUrl) {
   return { rejectUnauthorized: false };
 }
 
-function getBackupWebAppUrl() {
-  return cleanValue(process.env.RP_SHEETS_WEBAPP_URL || process.env.RP_SIGNUP_WEBAPP_URL || process.env.RP_AUTH_WEBAPP_URL);
-}
-
-async function callGoogleDriveBackup(action, payload) {
-  const webAppUrl = getBackupWebAppUrl();
-  const apiSecret = cleanValue(process.env.RP_API_SECRET);
-
-  if (!webAppUrl) throw new Error('Google Drive backup web app URL is not configured.');
-
-  const url = new URL(webAppUrl);
-  url.searchParams.set('action', action);
-  if (apiSecret) {
-    url.searchParams.set('secret', apiSecret);
-    url.searchParams.set('apiSecret', apiSecret);
-    url.searchParams.set('token', apiSecret);
-  }
-
-  const response = await fetch(url.toString(), {
-    method: 'POST',
-    cache: 'no-store',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, ...payload, secret: apiSecret, apiSecret, token: apiSecret }),
-  });
-  const text = await response.text();
-  let data = {};
-
-  try {
-    data = JSON.parse(text);
-  } catch (_) {
-    data = { raw: text.slice(0, 250) };
-  }
-
-  if (!response.ok || data?.ok === false) {
-    throw new Error(data?.error || `Google Drive backup failed: ${response.status}`);
-  }
-
-  return data;
-}
-
 async function backupServiceApplication(application, client) {
+  if (!isGoogleDriveBackupEnabled()) {
+    return {
+      ok: true,
+      skipped: true,
+      source: 'google-drive',
+      reason: getGoogleDriveBackupSkipReason(),
+    };
+  }
+
   const payload = {
     application,
     client,
@@ -117,6 +90,10 @@ function cleanValue(value) {
   return String(value || '').trim();
 }
 
+function cleanLimitedValue(value, maxLength = 500) {
+  return cleanValue(value).slice(0, maxLength);
+}
+
 function buildId(prefix) {
   const stamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14);
   const random = Math.random().toString(36).slice(2, 6).toUpperCase();
@@ -127,6 +104,13 @@ function normalizeArray(value) {
   if (Array.isArray(value)) return value.filter(Boolean).map((item) => cleanValue(item)).filter(Boolean);
   if (!value) return [];
   return [cleanValue(value)].filter(Boolean);
+}
+
+function normalizeLimitedArray(value, maxItems = 16, maxLength = 120) {
+  return normalizeArray(value)
+    .map((item) => cleanLimitedValue(item, maxLength))
+    .filter(Boolean)
+    .slice(0, maxItems);
 }
 
 function wantsJson(request) {
@@ -174,8 +158,8 @@ function buildApplication(payload = {}) {
     throw error;
   }
 
-  const name = cleanValue(payload.name);
-  const phone = cleanValue(payload.phone);
+  const name = cleanLimitedValue(payload.name, 80);
+  const phone = cleanLimitedValue(payload.phone, 40);
   const privacyConsent = cleanValue(payload.privacyConsent);
   const parqConsent = cleanValue(payload.parqConsent);
 
@@ -185,12 +169,15 @@ function buildApplication(payload = {}) {
     throw error;
   }
 
-  const parqYesItems = normalizeArray(payload.parqYesItems);
+  const parqYesItems = normalizeLimitedArray(payload.parqYesItems, 12, 120);
+  const peExamTargetUniversities = cleanLimitedValue(payload.peExamTargetUniversities, 300);
+  const peExamTargetDepartment = cleanLimitedValue(payload.peExamTargetDepartment, 160);
+  const peExamPracticalEvents = normalizeLimitedArray(payload.peExamPracticalEvents, 20, 80);
   const peExamParts = [
-    cleanValue(payload.peExamMemo),
-    cleanValue(payload.peExamTargetUniversities) ? `희망 대학: ${cleanValue(payload.peExamTargetUniversities)}` : '',
-    cleanValue(payload.peExamTargetDepartment) ? `목표 학과: ${cleanValue(payload.peExamTargetDepartment)}` : '',
-    normalizeArray(payload.peExamPracticalEvents).length ? `실기 종목: ${normalizeArray(payload.peExamPracticalEvents).join(', ')}` : '',
+    cleanLimitedValue(payload.peExamMemo, 1200),
+    peExamTargetUniversities ? `희망 대학: ${peExamTargetUniversities}` : '',
+    peExamTargetDepartment ? `목표 학과: ${peExamTargetDepartment}` : '',
+    peExamPracticalEvents.length ? `실기 종목: ${peExamPracticalEvents.join(', ')}` : '',
   ].filter(Boolean);
 
   return {
@@ -201,21 +188,21 @@ function buildApplication(payload = {}) {
     memberType: option.memberType,
     name,
     phone,
-    birth: cleanValue(payload.birth),
-    gender: cleanValue(payload.gender),
-    goal: cleanValue(payload.goal),
-    purpose: normalizeArray(payload.purpose),
-    painAreas: normalizeArray(payload.painAreas),
+    birth: cleanLimitedValue(payload.birth, 20),
+    gender: cleanLimitedValue(payload.gender, 20),
+    goal: cleanLimitedValue(payload.goal, 800),
+    purpose: normalizeLimitedArray(payload.purpose, 12, 100),
+    painAreas: normalizeLimitedArray(payload.painAreas, 16, 80),
     painScore: Number(payload.painScore) || 0,
-    weeklyFrequency: cleanValue(payload.weeklyFrequency),
-    preferredTime: cleanValue(payload.preferredTime),
-    exerciseExperience: cleanValue(payload.exerciseExperience),
-    concern: cleanValue(payload.concern),
-    peExamTargetUniversities: cleanValue(payload.peExamTargetUniversities),
-    peExamTargetDepartment: cleanValue(payload.peExamTargetDepartment),
-    peExamPracticalEvents: normalizeArray(payload.peExamPracticalEvents),
-    peExamMemo: peExamParts.join('\n'),
-    parqMemo: cleanValue(payload.parqMemo),
+    weeklyFrequency: cleanLimitedValue(payload.weeklyFrequency, 120),
+    preferredTime: cleanLimitedValue(payload.preferredTime, 160),
+    exerciseExperience: cleanLimitedValue(payload.exerciseExperience, 800),
+    concern: cleanLimitedValue(payload.concern, 1000),
+    peExamTargetUniversities,
+    peExamTargetDepartment,
+    peExamPracticalEvents,
+    peExamMemo: cleanLimitedValue(peExamParts.join('\n'), 1800),
+    parqMemo: cleanLimitedValue(payload.parqMemo, 1000),
     parqYesItems,
     parqStatus: parqYesItems.length ? '추가 확인 필요' : '설문 완료',
     privacyConsent,
@@ -365,13 +352,41 @@ async function saveServiceApplication(application) {
   return { ok: true, action: 'database', backupSource: 'google-drive', backup, application, client: clientResult.client };
 }
 
+function buildPublicBackupResult(backup) {
+  if (!backup) return null;
+
+  return {
+    ok: Boolean(backup.ok),
+    skipped: Boolean(backup.skipped),
+    source: backup.source || null,
+    action: backup.action || null,
+    reason: backup.reason || null,
+  };
+}
+
+function buildPublicApplicationResult(result) {
+  return {
+    action: result.action,
+    backupSource: result.backupSource,
+    backup: buildPublicBackupResult(result.backup),
+    applicationId: result.application?.id || null,
+    clientId: result.client?.id || null,
+  };
+}
+
+function getPublicApplicationError(error) {
+  if (error?.status === 400) return error?.message || '필수 항목을 확인해주세요.';
+  if (error?.status === 503) return '현재 신청 저장소 설정이 완료되지 않았습니다.';
+  return '서비스 신청 저장 중 오류가 발생했습니다.';
+}
+
 export async function POST(request) {
   const jsonMode = wantsJson(request);
 
   try {
     if (!isDatabaseConfigured()) {
       if (jsonMode) {
-        return NextResponse.json({ ok: false, error: 'DATABASE_URL 또는 RP_DATABASE_URL 환경변수가 필요합니다.' }, { status: 503 });
+        return NextResponse.json({ ok: false, error: '현재 신청 저장소 설정이 완료되지 않았습니다.' }, { status: 503 });
       }
 
       return redirectTo(request, 'setup');
@@ -382,14 +397,14 @@ export async function POST(request) {
     const result = await saveServiceApplication(application);
 
     if (jsonMode) {
-      return NextResponse.json({ ok: true, ...result });
+      return NextResponse.json({ ok: true, ...buildPublicApplicationResult(result) });
     }
 
     return redirectTo(request, 'success', { clientId: result.client?.id });
   } catch (error) {
     if (jsonMode) {
       return NextResponse.json(
-        { ok: false, error: error?.message || '서비스 신청 저장 중 오류가 발생했습니다.' },
+        { ok: false, error: getPublicApplicationError(error) },
         { status: error?.status || 500 },
       );
     }

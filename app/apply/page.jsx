@@ -235,7 +235,7 @@ export default async function ApplyPage({ searchParams }) {
               </div>
               <label>
                 <span>추가로 알려야 할 건강 상태</span>
-                <textarea name="parqMemo" placeholder="복용 약, 진단명, 치료 중인 내용, 운동 시 불안한 점이 있다면 적어주세요." />
+                <textarea name="parqMemo" placeholder="운동 시 주의가 필요한 사항이나 의료진에게 운동 제한 안내를 받은 내용이 있다면 적어주세요." />
               </label>
             </div>
 
@@ -246,11 +246,11 @@ export default async function ApplyPage({ searchParams }) {
               </div>
               <label className={styles.agreeLabel}>
                 <input name="parqConsent" type="checkbox" value="yes" required />
-                <span>운동 전 확인 항목을 읽었고, 해당되는 내용을 사실대로 체크했습니다.</span>
+                <span>운동 전 안전 확인 항목을 읽었고, 이 내용이 의료 진단을 대체하지 않는다는 점을 확인했습니다.</span>
               </label>
               <label className={styles.agreeLabel}>
                 <input name="privacyConsent" type="checkbox" value="yes" required />
-                <span>상담 준비를 위해 이름, 연락처, 신청 내용, 운동 전 확인 결과를 저장하는 것에 동의합니다.</span>
+                <span>상담 준비를 위해 이름, 연락처, 신청 내용, 운동 전 확인 결과가 저장되고 설정된 운영 백업에 보관될 수 있음에 동의합니다.</span>
               </label>
             </div>
 
