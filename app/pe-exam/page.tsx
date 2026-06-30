@@ -93,10 +93,16 @@ function uniqueItems(items: string[]) {
   return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
 }
 
+function getSchoolSearchKeywords(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
+  if (!("searchKeywords" in school) || !Array.isArray(school.searchKeywords)) return [];
+  return school.searchKeywords;
+}
+
 const universitySearchCards = peExamRegionDetails
   .flatMap((region) =>
     region.universities.map((school) => {
       const name = getSchoolDisplayName(school);
+      const searchKeywords = getSchoolSearchKeywords(school);
       const earlyPracticalItems = school.earlyAdmissions.flatMap((admission) => [
         ...admission.practicalTasks,
         ...admission.practicalCriteriaItems,
@@ -141,6 +147,7 @@ const universitySearchCards = peExamRegionDetails
           school.area,
           school.schoolType,
           region.region,
+          searchKeywords.join(" "),
           practicalPreview.join(" "),
         ].join(" "),
         flags: {

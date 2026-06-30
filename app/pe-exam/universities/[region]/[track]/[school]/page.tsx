@@ -235,6 +235,11 @@ function uniqueOfficialLinks(links: readonly OfficialCheckLink[]) {
   });
 }
 
+function getSchoolOfficialLinks(school: RegionSchool): readonly OfficialCheckLink[] {
+  if (!("officialLinks" in school) || !Array.isArray(school.officialLinks)) return [];
+  return school.officialLinks;
+}
+
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.flatMap((track) =>
@@ -344,7 +349,9 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
           },
         ]
       : [];
+  const schoolOfficialLinks = getSchoolOfficialLinks(school);
   const officialCheckLinks = uniqueOfficialLinks([
+    ...schoolOfficialLinks,
     ...directSourceLinks.slice(0, 4),
     {
       label: isEarly ? "KUSF 체육특기자대입포털" : "대입정보포털 어디가",

@@ -174,6 +174,7 @@ const catalogTuples = [
   ["전남", "2,3년제", "전남과학대학교"],
   ["광주", "4년제", "전남대학교"],
   ["전남", "4년제", "전남대학교 여수캠퍼스"],
+  ["전북", "4년제", "전북대학교"],
   ["전북", "2,3년제", "전주기전대학"],
   ["전북", "4년제", "전주대학교"],
   ["전북", "2,3년제", "전주비전대학교"],
@@ -400,8 +401,31 @@ function uniqueItems(items: readonly string[]) {
   return [...new Set(items)].filter(Boolean);
 }
 
+const schoolNameAliases: Record<string, string> = {
+  "건국대학교(글로컬)": "건국대학교글로컬캠퍼스",
+  건국대학교글로컬: "건국대학교글로컬캠퍼스",
+  "고려대학교(세종)": "고려대학교세종캠퍼스",
+  고려대학교세종: "고려대학교세종캠퍼스",
+  단국대학교: "단국대학교천안캠퍼스",
+  "동국대학교(WISE)": "동국대학교WISE캠퍼스",
+  동국대학교WISE: "동국대학교WISE캠퍼스",
+  상명대학교: "상명대학교천안캠퍼스",
+  영산대학교: "영산대학교양산캠퍼스",
+  "연세대학교(미래)": "연세대학교미래캠퍼스",
+  연세대학교미래: "연세대학교미래캠퍼스",
+  우석대학교: "우석대학교진천캠퍼스",
+  전남대학교: "전남대학교여수캠퍼스",
+  "한양대학교(ERICA)": "한양대학교ERICA캠퍼스",
+  한양대학교ERICA: "한양대학교ERICA캠퍼스",
+};
+
 function normalizeSchoolName(value: string) {
-  return value.replace(/\s+/g, "").replace(/본교$/g, "");
+  const compact = value
+    .replace(/\s+/g, "")
+    .replace(/본교$/g, "")
+    .replace(/[（）]/g, (char) => (char === "（" ? "(" : ")"));
+
+  return schoolNameAliases[compact] || compact.replace(/[()]/g, "");
 }
 
 function getSchoolDisplayName(school: { readonly name: string; readonly campus?: string }) {
@@ -783,9 +807,178 @@ const kusfAdmissionDetailsByKey: ReadonlyMap<
   (typeof kusfAdmissionDetailSnapshot.admissions)[number]
 > = new Map(kusfAdmissionDetailSnapshot.admissions.map((detail) => [detail.key, detail]));
 
+const jbnuOfficialLinks = [
+  {
+    label: "ADIGA 전북대학교",
+    href: "https://www.adiga.kr/ucp/uvt/uni/univDetail.do?menuId=PCUVTINF2000&searchSyr=2027&unvCd=0000025",
+    text: "전북대학교 대학 정보, 모집요강, 정시 평가기준·입시결과 탭을 공식 포털에서 확인합니다.",
+  },
+  {
+    label: "전북대학교 입학처",
+    href: "https://enter.jbnu.ac.kr/mainIntro/intro.do",
+    text: "수시·정시 모집요강, 실기고사 세부 기준, 공지 변경사항을 최종 확인합니다.",
+  },
+  {
+    label: "전북대학교 스포츠과학과",
+    href: "https://sportscience.jbnu.ac.kr/",
+    text: "스포츠과학과 학과 안내와 공지사항을 확인합니다.",
+  },
+  {
+    label: "전북대학교 체육교육과",
+    href: "https://physicaledu.jbnu.ac.kr/",
+    text: "체육교육과 학과 안내와 공지사항을 확인합니다.",
+  },
+] as const;
+
+const manualSupplementalUniversities = [
+  {
+    code: "0000025",
+    area: "전북",
+    schoolType: "4년제",
+    name: "전북대학교",
+    campus: "본교",
+    track: "수동보강",
+    source: "ADIGA 전북대학교·전북대학교 입학처 공식 확인 보강",
+    region: "전라권",
+    admissions: [],
+    searchKeywords: ["전북대", "JBNU", "체육교육과", "스포츠과학과"],
+    officialLinks: jbnuOfficialLinks,
+    earlyAdmissions: [
+      {
+        unit: "체육교육과",
+        admissionName: "수시 전형(공식 모집요강 확인)",
+        elementSummary: "전형명, 모집인원, 학생부·실기 반영비율은 전북대학교 수시 모집요강에서 최종 확인",
+        admissionType: "공식 모집요강 확인",
+        quota: "공식 모집요강 확인",
+        detailParams: {
+          schoolYear: "2026",
+          universityCode: "0000025",
+          recruitmentCode: "manual-early",
+          selectionGroupCode: "physical-education",
+          recruitmentUnitCode: "physical-education",
+          recruitmentUnitSerial: "manual",
+          schoolClassCode: "02",
+        },
+        practicalSummary:
+          "전북대학교 체육교육과 실기 확인 항목: 체조, 농구 레이업 슛, 배구 토스, 축구 드리블 테스트",
+        practicalTasks: ["체조", "농구 레이업 슛", "배구 토스", "축구 드리블 테스트"],
+        practicalCriteriaItems: [
+          "체조: 세부 동작·배점·감점 기준은 전북대학교 모집요강 확인",
+          "농구 레이업 슛: 시도 방식·기록 기준은 전북대학교 모집요강 확인",
+          "배구 토스: 측정 방식·기록 기준은 전북대학교 모집요강 확인",
+          "축구 드리블 테스트: 코스·시간 기준은 전북대학교 모집요강 확인",
+        ],
+        gradeSummary: "등급컷·평균등급은 ADIGA와 전북대학교 입학처 공식 자료에서 확인",
+        minimumCriteriaSummary: "수능최저 여부와 적용 기준은 전북대학교 수시 모집요강 확인",
+        detailUrl: "https://enter.jbnu.ac.kr/mainIntro/intro.do",
+        hasPracticalDetail: true,
+        hasGradeDetail: false,
+      },
+      {
+        unit: "스포츠과학과",
+        admissionName: "수시 전형(공식 모집요강 확인)",
+        elementSummary: "전형명, 모집인원, 학생부·실기 반영비율은 전북대학교 수시 모집요강에서 최종 확인",
+        admissionType: "공식 모집요강 확인",
+        quota: "공식 모집요강 확인",
+        detailParams: {
+          schoolYear: "2026",
+          universityCode: "0000025",
+          recruitmentCode: "manual-early",
+          selectionGroupCode: "sport-science",
+          recruitmentUnitCode: "sport-science",
+          recruitmentUnitSerial: "manual",
+          schoolClassCode: "02",
+        },
+        practicalSummary:
+          "전북대학교 스포츠과학과 실기 확인 항목: 제자리멀리뛰기, 핸드볼공 던지기, 윗몸일으키기, 윗몸 앞으로 굽히기",
+        practicalTasks: ["제자리멀리뛰기", "핸드볼공 던지기", "윗몸일으키기", "윗몸 앞으로 굽히기"],
+        practicalCriteriaItems: [
+          "제자리멀리뛰기: cm 기록 기준과 배점은 전북대학교 모집요강 확인",
+          "핸드볼공 던지기: m 기록 기준과 배점은 전북대학교 모집요강 확인",
+          "윗몸일으키기: 회 기록 기준과 배점은 전북대학교 모집요강 확인",
+          "윗몸 앞으로 굽히기: cm 기록 기준과 배점은 전북대학교 모집요강 확인",
+        ],
+        gradeSummary: "등급컷·평균등급은 ADIGA와 전북대학교 입학처 공식 자료에서 확인",
+        minimumCriteriaSummary: "수능최저 여부와 적용 기준은 전북대학교 수시 모집요강 확인",
+        detailUrl: "https://enter.jbnu.ac.kr/mainIntro/intro.do",
+        hasPracticalDetail: true,
+        hasGradeDetail: false,
+      },
+    ],
+    regularAdmissions: [
+      {
+        category: "예체능계열",
+        categoryCode: "C",
+        admissionType: "공식 모집요강 확인",
+        admissionTypeCode: "manual",
+        admissionName: "정시 전형(체육교육과 공식 확인)",
+        admissionCode: "manual-physical-education",
+        method: "수능·실기 반영 비율은 ADIGA와 전북대학교 정시 모집요강 확인 / 실기 포함 여부 공식 확인",
+        rowId: "jbnu-regular-physical-education",
+        units: [{ name: "체육교육과", quota: "공식 모집요강 확인" }],
+        unitSummary: "체육교육과 · 모집인원은 전북대학교 정시 모집요강 확인",
+        practicalSummary:
+          "전북대학교 체육교육과 실기 확인 항목: 체조, 농구 레이업 슛, 배구 토스, 축구 드리블 테스트",
+        practicalTasks: ["체조", "농구 레이업 슛", "배구 토스", "축구 드리블 테스트"],
+        practicalCriteriaItems: [
+          "체조: 세부 동작·배점·감점 기준은 전북대학교 모집요강 확인",
+          "농구 레이업 슛: 시도 방식·기록 기준은 전북대학교 모집요강 확인",
+          "배구 토스: 측정 방식·기록 기준은 전북대학교 모집요강 확인",
+          "축구 드리블 테스트: 코스·시간 기준은 전북대학교 모집요강 확인",
+        ],
+        gradeSummary: "등급컷·평균등급은 ADIGA 평가기준·입시결과와 전북대학교 입학처 확인",
+        hasResultDetail: false,
+        hasCriteriaDetail: true,
+      },
+      {
+        category: "예체능계열",
+        categoryCode: "C",
+        admissionType: "공식 모집요강 확인",
+        admissionTypeCode: "manual",
+        admissionName: "정시 전형(스포츠과학과 공식 확인)",
+        admissionCode: "manual-sport-science",
+        method: "수능·실기 반영 비율은 ADIGA와 전북대학교 정시 모집요강 확인 / 실기 포함 여부 공식 확인",
+        rowId: "jbnu-regular-sport-science",
+        units: [{ name: "스포츠과학과", quota: "공식 모집요강 확인" }],
+        unitSummary: "스포츠과학과 · 모집인원은 전북대학교 정시 모집요강 확인",
+        practicalSummary:
+          "전북대학교 스포츠과학과 실기 확인 항목: 제자리멀리뛰기, 핸드볼공 던지기, 윗몸일으키기, 윗몸 앞으로 굽히기",
+        practicalTasks: ["제자리멀리뛰기", "핸드볼공 던지기", "윗몸일으키기", "윗몸 앞으로 굽히기"],
+        practicalCriteriaItems: [
+          "제자리멀리뛰기: cm 기록 기준과 배점은 전북대학교 모집요강 확인",
+          "핸드볼공 던지기: m 기록 기준과 배점은 전북대학교 모집요강 확인",
+          "윗몸일으키기: 회 기록 기준과 배점은 전북대학교 모집요강 확인",
+          "윗몸 앞으로 굽히기: cm 기록 기준과 배점은 전북대학교 모집요강 확인",
+        ],
+        gradeSummary: "등급컷·평균등급은 ADIGA 평가기준·입시결과와 전북대학교 입학처 확인",
+        hasResultDetail: false,
+        hasCriteriaDetail: true,
+      },
+    ],
+    regularDetailUrl: "https://www.adiga.kr/ucp/uvt/uni/univDetail.do?menuId=PCUVTINF2000&searchSyr=2027&unvCd=0000025",
+    regularSelectionDetail: {
+      selectionUrl: "https://www.adiga.kr/ucp/uvt/uni/univDetail.do?menuId=PCUVTINF2000&searchSyr=2027&unvCd=0000025",
+      resultRows: [],
+      resultHighlights: ["등급컷·평균등급은 ADIGA 전북대학교 탭과 전북대학교 입학처 모집요강에서 최종 확인"],
+      criteriaHighlights: [
+        "스포츠과학과 실기 확인 항목: 제자리멀리뛰기, 핸드볼공 던지기, 윗몸일으키기, 윗몸 앞으로 굽히기",
+        "체육교육과 실기 확인 항목: 체조, 농구 레이업 슛, 배구 토스, 축구 드리블 테스트",
+      ],
+      hasResultTable: false,
+      hasCriteria: true,
+    },
+    regularGuide: {
+      title: "정시 준비생",
+      text:
+        "전북대학교는 ADIGA 생성 원천에 누락되어 공식 확인 중심으로 수동 보강했습니다. 정시 등급컷·평균등급, 모집인원, 실기 배점은 ADIGA 전북대학교 탭과 전북대학교 입학처 모집요강을 최종 기준으로 확인합니다.",
+    },
+  },
+] as const;
+
 export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
     region,
-    universities: kusfAdmissionSnapshot.universities
+    universities: [
+      ...kusfAdmissionSnapshot.universities
       .filter((school) => (regionMap[school.area] || "기타") === region)
       .map((school) => {
         const regularSchool = regularAdmissionsByCode.get(school.code);
@@ -849,6 +1042,8 @@ export const kusfRegionAdmissionGroups = peExamRegionNames.map((region) => ({
           },
         };
       }),
+      ...manualSupplementalUniversities.filter((school) => school.region === region),
+    ],
   }));
 
 export const peExamRegionDetails = kusfRegionAdmissionGroups.map((group) => {

@@ -47,6 +47,11 @@ function uniqueBriefItems(items: readonly string[]) {
   return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
 }
 
+function getSchoolSearchKeywords(school: RegionSchool) {
+  if (!("searchKeywords" in school) || !Array.isArray(school.searchKeywords)) return [];
+  return school.searchKeywords;
+}
+
 function compactBriefText(value: string, maxLength = 90) {
   const normalized = value
     .replace(/^KUSF 상세 기준:\s*/, "")
@@ -228,6 +233,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
     const preview = schoolBrief.groups[0]?.items.slice(0, 3).join(" · ") || "";
     const name = getSchoolDisplayName(school);
     const meta = `${school.area} · ${school.schoolType}`;
+    const searchKeywords = getSchoolSearchKeywords(school);
 
     return {
       href: getPeExamSchoolTrackHref(region.region, track.key, school.slug),
@@ -237,7 +243,7 @@ export default async function PeExamRegionTrackPage({ params }: TrackPageProps) 
       isEmpty: trackCount === 0,
       stats: trackCount > 0 ? schoolBrief.stats : [],
       preview,
-      searchText: [name, meta, school.area, school.schoolType, preview].join(" "),
+      searchText: [name, meta, school.area, school.schoolType, searchKeywords.join(" "), preview].join(" "),
       flags: {
         active: trackCount > 0,
         practical: hasPracticalTarget,
