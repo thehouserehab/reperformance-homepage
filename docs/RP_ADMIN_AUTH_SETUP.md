@@ -6,7 +6,7 @@ RePERFORMANCE는 공개 로그인과 운영자 전용 접근을 분리합니다.
 /login          = 회원, 트레이너, 관리자 공통 로그인
 /signup         = 회원 자동가입 / 운영 계정 신청
 /account        = 로그인한 계정의 마이페이지
-/find-account   = 아이디 / 비밀번호 찾기 안내
+/find-account   = 전화번호 인증 기반 아이디 찾기 / 비밀번호 재설정
 /admin/login    = 운영자 전용 로그인
 /admin          = 운영관리
 /admin/clients  = 고객관리
@@ -34,7 +34,7 @@ admin   = 가입 신청 저장, 승인 대기
 owner   = 자동가입 불가, 환경변수 또는 별도 관리자 등록 권장
 ```
 
-회원 자동가입은 Google Sheets Apps Script에 계정 저장/조회 액션이 연결되어 있어야 완전히 작동합니다.
+회원 자동가입은 PostgreSQL을 우선 저장소로 사용하고, Google Sheets Apps Script는 백업 또는 전환 기간의 fallback 저장소로 사용할 수 있습니다. DB 없이 운영하려면 Google Sheets Apps Script에 계정 저장/조회 액션이 연결되어 있어야 합니다.
 
 필요 액션 예시는 아래 문서에 있습니다.
 
@@ -51,6 +51,9 @@ Vercel 프로젝트 Settings → Environment Variables에서 아래 값을 Produ
 ```txt
 RP_ADMIN_SESSION_SECRET=충분히 긴 임의 문자열
 RP_API_SECRET=Apps Script API secret
+RP_ACCOUNT_RECOVERY_SECRET=계정 찾기 인증 토큰 서명용 긴 임의 문자열
+RP_IDENTITY_VERIFICATION_SECRET=회원가입 본인 인증 토큰 서명용 긴 임의 문자열
+RP_SMS_WEBHOOK_URL=문자 인증번호 발송 웹훅 URL
 ```
 
 예시:
@@ -145,7 +148,7 @@ member  = /account 접근 가능, 관리자 영역 접근 불가
 회원 가입 성공 시:
 
 ```txt
-member → Google Sheets 계정 저장 → 세션 발급 → /account 이동
+member → PostgreSQL 계정 저장 → Google Sheets 백업 시도 → 세션 발급 → /account 이동
 ```
 
 트레이너/관리자 신청 성공 시:
@@ -182,4 +185,6 @@ member              → /account
 - `RP_ADMIN_SESSION_SECRET` 또는 `RP_PASSWORD_HASH_SECRET`을 바꾸면 기존 자동가입 회원의 비밀번호 해시가 달라질 수 있습니다.
 - `RP_ADMIN_SESSION_SECRET`을 바꾸면 기존 로그인 세션은 모두 무효화됩니다.
 - 트레이너/관리자 가입 신청은 자동 승인하지 않습니다. 승인 후 Apps Script 또는 환경변수 계정 목록에서 역할을 활성화해야 합니다.
-- 카카오 로그인, 문자 인증, 자동 비밀번호 재설정은 별도 OAuth/SMS/Auth 서비스 연결이 필요합니다.
+- 실제 문자 인증번호 발송에는 `RP_SMS_WEBHOOK_URL` 연결이 필요합니다.
+- 계정 찾기 문자 인증은 전화번호/IP 기준 요청 제한이 적용되어 있습니다. 운영 상태는 `/api/rp/system-status`의 `auth.accountRecovery`에서 확인합니다.
+- 자동 비밀번호 재설정은 PostgreSQL 계정에서 지원됩니다. 환경변수 계정과 Google Sheets 계정은 운영자가 임시 비밀번호를 발급하거나 DB 계정으로 전환해야 합니다.

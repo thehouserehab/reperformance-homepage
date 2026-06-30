@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import NavLinks from "./NavLinks";
 import { site } from "./siteData";
@@ -6,11 +7,22 @@ import { site } from "./siteData";
 export function BrandLogo() {
   return (
     <Link href="/" className="brand-logo" aria-label="RePERFORMANCE 홈으로 이동">
-      <span className="brand-main">
-        <span className="brand-re">Re</span>
-        <span className="brand-performance">PERFORMANCE</span>
+      <span className="brand-mark" aria-hidden="true">
+        <Image
+          alt=""
+          height={72}
+          priority
+          src="/images/reperformance-official-mark.png"
+          width={72}
+        />
       </span>
-      <span className="brand-sub">{site.tagline}</span>
+      <span className="brand-lockup">
+        <span className="brand-main">
+          <span className="brand-re">Re</span>
+          <span className="brand-performance">PERFORMANCE</span>
+        </span>
+        <span className="brand-sub">{site.tagline}</span>
+      </span>
     </Link>
   );
 }

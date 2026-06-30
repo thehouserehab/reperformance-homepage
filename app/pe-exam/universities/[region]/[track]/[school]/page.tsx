@@ -370,6 +370,40 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
         "실기 반영 여부, 종목별 기록표, 배점표 확인",
         "전년도 70% 평균백분위, 영어 등급, 환산점수와 공식 입결 표 확인",
       ];
+  const detailPriorityCards = [
+    {
+      label: "전형 구조",
+      value: `${trackCount}개`,
+      title: "모집단위와 반영 요소",
+      text: isEarly
+        ? "수시 전형명, 모집단위, 학생부·실기·수능최저 반영 여부를 먼저 분리합니다."
+        : "정시 모집군, 모집단위, 수능·실기 반영 비율을 먼저 분리합니다.",
+    },
+    {
+      label: "실기 기준",
+      value: resolvedPracticalRecordCount > 0
+        ? `${resolvedPracticalRecordCount}개`
+        : practicalTaskCount > 0
+          ? `${practicalTaskCount}개`
+          : "확인",
+      title: "종목과 기록표",
+      text: "종목명만 보지 않고 배점표, 만점 기록, 결시·실격 기준까지 이어서 확인합니다.",
+    },
+    {
+      label: isEarly ? "등급 기준" : "입결 기준",
+      value: isEarly
+        ? gradeOrResultCount > 0
+          ? `${gradeOrResultCount}개`
+          : "확인"
+        : regularResultRows.length > 0
+          ? `${regularResultRows.length}건`
+          : "확인",
+      title: isEarly ? "학생부 산출 기준" : "70% 입결과 환산점수",
+      text: isEarly
+        ? "평균등급 숫자보다 학생부 반영 교과, 학년별 비율, 산출 방식을 우선 확인합니다."
+        : "전년도 평균백분위, 영어 등급, 환산점수는 지원 판단의 기준선으로만 사용합니다.",
+    },
+  ] as const;
 
   return (
     <PageShell>
@@ -413,6 +447,36 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
               <strong>{track.sourceLabel}</strong>
             </div>
           </aside>
+        </div>
+      </section>
+
+      <section className={styles.detailDesignBand} aria-label={`${schoolName} ${track.label} 지원 전 확인 요약`}>
+        <div className={`container ${styles.detailDesignInner}`}>
+          <div className={styles.detailDesignHead}>
+            <span>DETAIL CHECKLIST</span>
+            <h2>지원 전, 이 3가지를 먼저 확인합니다.</h2>
+            <p>
+              대학 상세페이지는 정보를 길게 나열하기보다 전형 구조, 실기 기준, 등급·입결 기준을 먼저 잡고
+              공식 자료 확인으로 이어지도록 구성했습니다.
+            </p>
+          </div>
+
+          <div className={styles.detailPriorityGrid}>
+            {detailPriorityCards.map((card) => (
+              <article className={styles.detailPriorityCard} key={card.label}>
+                <span>{card.label}</span>
+                <div className={styles.detailPriorityRing}>
+                  <strong>{card.value}</strong>
+                </div>
+                <h3>{card.title}</h3>
+                <p>{card.text}</p>
+              </article>
+            ))}
+          </div>
+
+          <strong className={styles.detailConclusion}>
+            공개자료는 출발점이고, 최종 판단은 모집요강과 학생 기록을 함께 놓고 봅니다.
+          </strong>
         </div>
       </section>
 

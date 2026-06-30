@@ -31,6 +31,9 @@ export default async function AdminLoginPage({ searchParams }) {
             <span>비밀번호</span>
             <input name="password" type="password" autoComplete="current-password" required />
           </label>
+          <div className={styles.utilityRow}>
+            <Link href="/find-account">아이디 / 비밀번호 찾기</Link>
+          </div>
           {error && <p className={styles.error}>{errorMessages[error] || errorMessages.invalid}</p>}
           <button type="submit">운영 로그인</button>
         </form>

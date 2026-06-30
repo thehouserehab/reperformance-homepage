@@ -3,7 +3,14 @@ import {
   updateAuthAccountPasswordFromStores,
 } from '../../../../lib/rpAuthStores';
 
+export const dynamic = 'force-dynamic';
+
 const CODE_TTL_SECONDS = 5 * 60;
+const REQUEST_WINDOW_MS = 15 * 60 * 1000;
+const PHONE_REQUEST_LIMIT = 5;
+const IP_REQUEST_LIMIT = 20;
+const VERIFY_WINDOW_MS = 5 * 60 * 1000;
+const VERIFY_ATTEMPT_LIMIT = 8;
 
 function cleanValue(value) {
   return String(value || '').trim();
@@ -13,25 +20,60 @@ function normalizePhone(value) {
   return cleanValue(value).replace(/\D/g, '');
 }
 
-function normalizeVerificationMethod(value) {
-  const method = cleanValue(value).toLowerCase().replace(/[\s_-]+/g, '');
-  if (method === 'email') return 'email';
-  if (method === 'kakao' || method === 'kakaotalk' || method === '카카오' || method === '카카오톡') return 'kakao';
-  return 'phone';
+function getClientIp(request) {
+  const forwarded = request.headers.get('x-forwarded-for') || '';
+  return forwarded.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
 }
 
-function normalizeVerificationContact(method, value) {
-  const normalizedMethod = normalizeVerificationMethod(method);
-  if (normalizedMethod === 'phone') return normalizePhone(value);
-  if (normalizedMethod === 'email') return cleanValue(value).toLowerCase();
-  return cleanValue(value);
+function getRateLimitStore() {
+  const globalKey = '__rpAccountRecoveryRateLimit';
+  if (!globalThis[globalKey]) globalThis[globalKey] = new Map();
+  return globalThis[globalKey];
 }
 
-function getVerificationLabel(method) {
-  const normalizedMethod = normalizeVerificationMethod(method);
-  if (normalizedMethod === 'email') return '이메일';
-  if (normalizedMethod === 'kakao') return '카카오톡';
-  return '전화번호';
+function getRateLimitKey(scope, value) {
+  return `${scope}:${cleanValue(value).toLowerCase()}`;
+}
+
+function checkRateLimit(key, limit, windowMs) {
+  const store = getRateLimitStore();
+  const now = Date.now();
+  const recent = (store.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
+
+  if (recent.length >= limit) {
+    const retryAt = recent[0] + windowMs;
+    store.set(key, recent);
+    return Math.max(1, Math.ceil((retryAt - now) / 1000));
+  }
+
+  recent.push(now);
+  store.set(key, recent);
+
+  if (store.size > 1000) {
+    for (const [storedKey, timestamps] of store.entries()) {
+      const active = timestamps.filter((timestamp) => now - timestamp < windowMs);
+      if (active.length) store.set(storedKey, active);
+      else store.delete(storedKey);
+    }
+  }
+
+  return 0;
+}
+
+function rateLimitResponse(retryAfterSeconds) {
+  return Response.json(
+    {
+      ok: false,
+      error: `요청이 너무 많습니다. ${Math.ceil(retryAfterSeconds / 60)}분 후 다시 시도해주세요.`,
+      retryAfterSeconds,
+    },
+    {
+      status: 429,
+      headers: {
+        'Retry-After': String(retryAfterSeconds),
+      },
+    },
+  );
 }
 
 function getRecoverySecret() {
@@ -42,11 +84,20 @@ function getRecoverySecret() {
   );
 }
 
-function getRecoveryWebhookUrl(method) {
-  const normalizedMethod = normalizeVerificationMethod(method);
-  if (normalizedMethod === 'email') return cleanValue(process.env.RP_EMAIL_WEBHOOK_URL || process.env.EMAIL_WEBHOOK_URL);
-  if (normalizedMethod === 'kakao') return cleanValue(process.env.RP_KAKAO_WEBHOOK_URL || process.env.KAKAO_WEBHOOK_URL);
+function getSmsWebhookUrl() {
   return cleanValue(process.env.RP_SMS_WEBHOOK_URL || process.env.SMS_WEBHOOK_URL);
+}
+
+function getWebhookSecret() {
+  return cleanValue(
+    process.env.RP_IDENTITY_WEBHOOK_SECRET ||
+    process.env.RP_SMS_WEBHOOK_SECRET ||
+    process.env.RP_API_SECRET,
+  );
+}
+
+function getPurpose(value) {
+  return cleanValue(value) === 'reset-password' ? 'reset-password' : 'find-id';
 }
 
 function base64UrlEncode(value) {
@@ -65,7 +116,9 @@ function base64UrlDecode(value) {
 
 async function sign(value) {
   const secret = getRecoverySecret();
-  if (!secret) throw new Error('RP_ACCOUNT_RECOVERY_SECRET 또는 RP_ADMIN_SESSION_SECRET 환경변수가 필요합니다.');
+  if (!secret) {
+    throw new Error('RP_ACCOUNT_RECOVERY_SECRET 또는 RP_ADMIN_SESSION_SECRET 환경변수가 필요합니다.');
+  }
 
   const key = await crypto.subtle.importKey(
     'raw',
@@ -95,9 +148,13 @@ async function verifyToken(token) {
   const expectedSignature = await sign(body);
   if (signature !== expectedSignature) return null;
 
-  const payload = JSON.parse(base64UrlDecode(body));
-  if (!payload?.exp || Date.now() > payload.exp) return null;
-  return payload;
+  try {
+    const payload = JSON.parse(base64UrlDecode(body));
+    if (!payload?.exp || Date.now() > payload.exp) return null;
+    return payload;
+  } catch (_) {
+    return null;
+  }
 }
 
 function createCode() {
@@ -114,18 +171,16 @@ function maskUsername(username) {
 
 async function readPayload(request) {
   const contentType = request.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) return request.json();
+  if (contentType.includes('application/json')) return request.json().catch(() => ({}));
 
   const formData = await request.formData();
   return Object.fromEntries(formData.entries());
 }
 
-async function sendRecoverySms({ method = 'phone', phone, contact, code, purpose }) {
-  const normalizedMethod = normalizeVerificationMethod(method);
-  const normalizedContact = normalizeVerificationContact(normalizedMethod, contact || phone);
-  const label = getVerificationLabel(normalizedMethod);
-  const webhookUrl = getRecoveryWebhookUrl(normalizedMethod);
-  const message = `[RePERFORMANCE] 계정 ${purpose === 'reset-password' ? '비밀번호 재설정' : '아이디 찾기'} 인증번호는 ${code}입니다. ${Math.floor(CODE_TTL_SECONDS / 60)}분 안에 입력해주세요.`;
+async function sendRecoveryCode({ phone, code, purpose }) {
+  const webhookUrl = getSmsWebhookUrl();
+  const purposeLabel = purpose === 'reset-password' ? '비밀번호 재설정' : '아이디 찾기';
+  const message = `[RePERFORMANCE] 계정 ${purposeLabel} 인증번호는 ${code}입니다. ${Math.floor(CODE_TTL_SECONDS / 60)}분 안에 입력해주세요.`;
 
   if (!webhookUrl) {
     return {
@@ -139,17 +194,15 @@ async function sendRecoverySms({ method = 'phone', phone, contact, code, purpose
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      method: normalizedMethod,
-      channel: normalizedMethod,
-      contact: normalizedContact,
-      phone: normalizedMethod === 'phone' ? normalizedContact : undefined,
-      email: normalizedMethod === 'email' ? normalizedContact : undefined,
-      kakaoId: normalizedMethod === 'kakao' ? normalizedContact : undefined,
-      to: normalizedContact,
+      method: 'phone',
+      channel: 'phone',
+      contact: phone,
+      phone,
+      to: phone,
       code,
       purpose,
       message,
-      secret: cleanValue(process.env.RP_IDENTITY_WEBHOOK_SECRET || process.env.RP_SMS_WEBHOOK_SECRET || process.env.RP_API_SECRET),
+      secret: getWebhookSecret(),
       source: 'reperformance-account-recovery',
     }),
   });
@@ -162,43 +215,55 @@ async function sendRecoverySms({ method = 'phone', phone, contact, code, purpose
     };
   }
 
-  return { sent: true, setupRequired: false, message: '인증번호를 문자로 발송했습니다.' };
+  return { sent: true, setupRequired: false, message: '인증번호를 문자로 보냈습니다.' };
 }
 
-async function handleRequestCode(payload) {
+async function handleRequestCode(payload, request) {
   const name = cleanValue(payload.name);
-  const verificationMethod = normalizeVerificationMethod(payload.verificationMethod || payload.method);
-  const contact = cleanValue(
-    payload.contact ||
-    payload.verificationContact ||
-    (verificationMethod === 'email' ? payload.email : '') ||
-    (verificationMethod === 'kakao' ? payload.kakaoId || payload.kakaoTalkId : '') ||
-    payload.phone,
-  );
-  const normalizedContact = normalizeVerificationContact(verificationMethod, contact);
-  const purpose = payload.purpose === 'reset-password' ? 'reset-password' : 'find-id';
+  const phone = normalizePhone(payload.phone || payload.verificationContact || payload.contact);
+  const purpose = getPurpose(payload.purpose);
+  const clientIp = getClientIp(request);
 
-  if (!name || !normalizedContact) {
-    return Response.json({ ok: false, error: `이름과 ${getVerificationLabel(verificationMethod)} 정보를 입력해주세요.` }, { status: 400 });
+  if (!name || !phone) {
+    return Response.json({ ok: false, error: '이름과 전화번호를 입력해주세요.' }, { status: 400 });
   }
+
+  if (phone.length < 9) {
+    return Response.json({ ok: false, error: '올바른 전화번호를 입력해주세요.' }, { status: 400 });
+  }
+
+  const phoneRetryAfter = checkRateLimit(
+    getRateLimitKey('account-recovery-phone', `${purpose}:${phone}`),
+    PHONE_REQUEST_LIMIT,
+    REQUEST_WINDOW_MS,
+  );
+  if (phoneRetryAfter) return rateLimitResponse(phoneRetryAfter);
+
+  const ipRetryAfter = checkRateLimit(
+    getRateLimitKey('account-recovery-ip', `${purpose}:${clientIp}`),
+    IP_REQUEST_LIMIT,
+    REQUEST_WINDOW_MS,
+  );
+  if (ipRetryAfter) return rateLimitResponse(ipRetryAfter);
 
   const { account, source, passwordResetSupported } = await findAuthAccountByIdentityFromStores(
     name,
-    normalizedContact,
-    verificationMethod,
+    phone,
+    'phone',
   );
+
   if (!account) {
-    return Response.json({ ok: false, error: '입력한 정보와 일치하는 승인 계정을 찾지 못했습니다.' }, { status: 404 });
+    return Response.json({ ok: false, error: '입력한 정보와 일치하는 계정을 찾지 못했습니다.' }, { status: 404 });
   }
 
   const code = createCode();
   const salt = crypto.randomUUID();
   const codeHash = await hashCode(code, salt);
   const verificationToken = await createToken({
+    type: 'account-recovery-code',
     username: account.username,
     name: account.name,
-    contact: normalizedContact,
-    verificationMethod,
+    phone,
     purpose,
     source,
     passwordResetSupported,
@@ -206,7 +271,7 @@ async function handleRequestCode(payload) {
     codeHash,
     exp: Date.now() + CODE_TTL_SECONDS * 1000,
   });
-  const sms = await sendRecoverySms({ method: verificationMethod, contact: normalizedContact, code, purpose });
+  const sms = await sendRecoveryCode({ phone, code, purpose });
 
   return Response.json({
     ok: true,
@@ -219,13 +284,21 @@ async function handleRequestCode(payload) {
   });
 }
 
-async function handleVerifyCode(payload) {
+async function handleVerifyCode(payload, request) {
   const verificationToken = cleanValue(payload.verificationToken);
   const code = cleanValue(payload.code);
-  const purpose = payload.purpose === 'reset-password' ? 'reset-password' : 'find-id';
+  const purpose = getPurpose(payload.purpose);
+  const clientIp = getClientIp(request);
+  const verifyRetryAfter = checkRateLimit(
+    getRateLimitKey('account-recovery-verify', `${purpose}:${clientIp}:${verificationToken.slice(0, 32)}`),
+    VERIFY_ATTEMPT_LIMIT,
+    VERIFY_WINDOW_MS,
+  );
+  if (verifyRetryAfter) return rateLimitResponse(verifyRetryAfter);
+
   const tokenPayload = await verifyToken(verificationToken);
 
-  if (!tokenPayload || tokenPayload.purpose !== purpose) {
+  if (!tokenPayload || tokenPayload.type !== 'account-recovery-code' || tokenPayload.purpose !== purpose) {
     return Response.json({ ok: false, error: '인증 시간이 만료되었거나 요청이 올바르지 않습니다.' }, { status: 400 });
   }
 
@@ -254,7 +327,7 @@ async function handleVerifyCode(payload) {
   if (!tokenPayload.passwordResetSupported) {
     return Response.json({
       ok: false,
-      error: '현재 저장소에서는 자동 비밀번호 변경을 지원하지 않습니다. 관리자에게 임시 비밀번호 발급을 요청해주세요.',
+      error: '현재 계정 저장소에서는 자동 비밀번호 변경을 지원하지 않습니다. 관리자에게 임시 비밀번호 발급을 요청해주세요.',
     }, { status: 409 });
   }
 
@@ -281,12 +354,15 @@ export async function POST(request) {
     const payload = await readPayload(request);
     const action = cleanValue(payload.action);
 
-    if (action === 'request-code') return handleRequestCode(payload);
-    if (action === 'verify-code') return handleVerifyCode(payload);
+    if (action === 'request-code') return handleRequestCode(payload, request);
+    if (action === 'verify-code') return handleVerifyCode(payload, request);
 
     return Response.json({ ok: false, error: '지원하지 않는 요청입니다.' }, { status: 400 });
   } catch (error) {
     console.error('account recovery failed', error);
-    return Response.json({ ok: false, error: error?.message || '계정 찾기 처리 중 오류가 발생했습니다.' }, { status: 500 });
+    return Response.json(
+      { ok: false, error: error?.message || '계정 찾기 처리 중 오류가 발생했습니다.' },
+      { status: 500 },
+    );
   }
 }

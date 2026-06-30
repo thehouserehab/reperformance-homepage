@@ -1,25 +1,19 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import styles from './FindAccount.module.css';
 
-const verificationOptions = [
-  { value: 'phone', label: '전화번호', placeholder: '01012345678', type: 'tel' },
-  { value: 'email', label: '이메일', placeholder: 'member@example.com', type: 'email' },
-  { value: 'kakao', label: '카카오톡', placeholder: '카카오톡 ID 또는 연결 연락처', type: 'text' },
-];
-
 const initialForm = {
   name: '',
-  verificationMethod: 'phone',
-  verificationContact: '',
+  phone: '',
   code: '',
   newPassword: '',
   passwordConfirm: '',
 };
 
-function getCurrentOption(method) {
-  return verificationOptions.find((option) => option.value === method) || verificationOptions[0];
+function getModeLabel(mode) {
+  return mode === 'reset-password' ? '비밀번호 재설정' : '아이디 찾기';
 }
 
 export default function FindAccountClient() {
@@ -29,16 +23,16 @@ export default function FindAccountClient() {
   const [status, setStatus] = useState(null);
   const [result, setResult] = useState(null);
   const [pending, setPending] = useState(false);
-  const currentOption = getCurrentOption(form.verificationMethod);
 
   function updateField(event) {
     const { name, value } = event.target;
     setForm((current) => ({
       ...current,
       [name]: value,
-      ...(name === 'verificationMethod' || name === 'verificationContact' ? { code: '' } : {}),
+      ...(name === 'name' || name === 'phone' ? { code: '' } : {}),
     }));
-    if (name === 'verificationMethod' || name === 'verificationContact') {
+
+    if (name === 'name' || name === 'phone') {
       setVerificationToken('');
       setStatus(null);
       setResult(null);
@@ -67,8 +61,7 @@ export default function FindAccountClient() {
           action: 'request-code',
           purpose: mode,
           name: form.name,
-          verificationMethod: form.verificationMethod,
-          verificationContact: form.verificationContact,
+          phone: form.phone,
         }),
       });
       const data = await response.json();
@@ -116,7 +109,10 @@ export default function FindAccountClient() {
       }
 
       setResult(data);
-      setStatus({ tone: 'good', text: mode === 'find-id' ? '아이디를 확인했습니다.' : data.message });
+      setStatus({
+        tone: 'good',
+        text: mode === 'find-id' ? '아이디를 확인했습니다.' : data.message,
+      });
     } catch (error) {
       setStatus({ tone: 'error', text: error.message || '인증 확인에 실패했습니다.' });
     } finally {
@@ -139,32 +135,24 @@ export default function FindAccountClient() {
         <div className={styles.findAccountGrid}>
           <form className={styles.findAccountCard} onSubmit={requestCode}>
             <p className="eyebrow">{mode === 'find-id' ? 'FIND ID' : 'RESET PASSWORD'}</p>
-            <h2>본인 인증</h2>
-            <p>가입할 때 사용한 이름과 인증 수단을 입력하면 6자리 인증번호를 보냅니다.</p>
+            <h2>전화번호 인증</h2>
+            <p>가입할 때 입력한 이름과 전화번호를 확인한 뒤 6자리 인증번호를 보냅니다.</p>
 
             <label>
               이름
               <input name="name" onChange={updateField} required type="text" value={form.name} />
             </label>
             <label>
-              인증 수단
-              <select name="verificationMethod" onChange={updateField} value={form.verificationMethod}>
-                {verificationOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {currentOption.label}
+              전화번호
               <input
-                name="verificationContact"
+                autoComplete="tel"
+                inputMode="tel"
+                name="phone"
                 onChange={updateField}
-                placeholder={currentOption.placeholder}
+                placeholder="01012345678"
                 required
-                type={currentOption.type}
-                value={form.verificationContact}
+                type="tel"
+                value={form.phone}
               />
             </label>
             <button disabled={pending} type="submit">
@@ -174,16 +162,20 @@ export default function FindAccountClient() {
 
           <form className={styles.findAccountCard} onSubmit={verifyCode}>
             <p className="eyebrow">VERIFY</p>
-            <h2>{mode === 'find-id' ? '아이디 확인' : '새 비밀번호 설정'}</h2>
-            <p>받은 6자리 인증번호를 입력하면 아이디 확인 또는 비밀번호 변경을 진행합니다.</p>
+            <h2>{getModeLabel(mode)}</h2>
+            <p>
+              받은 인증번호를 입력하면 {mode === 'find-id' ? '아이디를 바로 확인합니다.' : '새 비밀번호로 변경합니다.'}
+            </p>
 
             <label>
               인증번호
               <input
+                disabled={!verificationToken}
                 inputMode="numeric"
                 maxLength={6}
                 name="code"
                 onChange={updateField}
+                pattern="[0-9]*"
                 required
                 type="text"
                 value={form.code}
@@ -195,6 +187,8 @@ export default function FindAccountClient() {
                 <label>
                   새 비밀번호
                   <input
+                    autoComplete="new-password"
+                    disabled={!verificationToken}
                     minLength={6}
                     name="newPassword"
                     onChange={updateField}
@@ -206,6 +200,8 @@ export default function FindAccountClient() {
                 <label>
                   새 비밀번호 확인
                   <input
+                    autoComplete="new-password"
+                    disabled={!verificationToken}
                     minLength={6}
                     name="passwordConfirm"
                     onChange={updateField}
@@ -232,8 +228,11 @@ export default function FindAccountClient() {
 
         {result?.username ? (
           <div className={styles.findAccountResult}>
-            <span>확인된 아이디</span>
+            <span>{mode === 'find-id' ? '확인된 아이디' : '비밀번호가 변경된 아이디'}</span>
             <strong>{result.username}</strong>
+            <Link className="button primary" href="/login">
+              로그인하기
+            </Link>
           </div>
         ) : null}
       </div>

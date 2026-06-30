@@ -4,7 +4,7 @@ import SignupClient from './SignupClient';
 const statusMessages = {
   success: {
     title: '회원가입 요청이 접수되었습니다.',
-    body: '계정 정보를 확인한 뒤 안내드리겠습니다.',
+    body: '계정 정보를 확인한 뒤 안내해드리겠습니다.',
   },
   pending: {
     title: '승인 대기로 접수되었습니다.',
@@ -39,7 +39,7 @@ export default async function SignupPage({ searchParams }) {
         <div className="container page-title">
           <p className="eyebrow">CREATE ACCOUNT</p>
           <h1>RePERFORMANCE 회원가입</h1>
-          <p>전화번호, 이메일, 카카오톡 중 하나로 본인 인증을 마치면 바로 회원 계정으로 등록됩니다.</p>
+          <p>전화번호, 이메일, 카카오톡 중 하나로 본인 인증을 마치면 회원 계정으로 등록됩니다.</p>
         </div>
       </section>
 

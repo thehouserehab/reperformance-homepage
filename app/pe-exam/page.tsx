@@ -7,11 +7,13 @@ import {
   adigaRegularSelectionMeta,
   catalogMeta,
   faqItems,
+  getPeExamSchoolTrackHref,
   kusfAdmissionDetailMeta,
   kusfAdmissionMeta,
   peExamRegionDetails,
   sourceLinks,
 } from "./peExamData";
+import PeExamHomeSearchClient from "./PeExamHomeSearchClient";
 import styles from "./PeExamHub.module.css";
 
 export const metadata: Metadata = {
@@ -21,6 +23,7 @@ export const metadata: Metadata = {
 };
 
 const hubLinks = [
+  { href: "#university-search", label: "대학검색" },
   { href: "#resources", label: "공개자료" },
   { href: "#timeline", label: "2026 흐름" },
   { href: "#universities", label: "지역별 대학" },
@@ -82,6 +85,79 @@ const roadmapSteps = [
   ["04", "상담으로 연결", "공개자료만으로 부족한 부분은 상담에서 개인별 방향으로 정리합니다."],
 ] as const;
 
+function getSchoolDisplayName(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
+  return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
+}
+
+function uniqueItems(items: string[]) {
+  return [...new Set(items.map((item) => item.trim()).filter(Boolean))];
+}
+
+const universitySearchCards = peExamRegionDetails
+  .flatMap((region) =>
+    region.universities.map((school) => {
+      const name = getSchoolDisplayName(school);
+      const earlyPracticalItems = school.earlyAdmissions.flatMap((admission) => [
+        ...admission.practicalTasks,
+        ...admission.practicalCriteriaItems,
+      ]);
+      const regularPracticalItems = school.regularAdmissions.flatMap((admission) => [
+        ...admission.practicalTasks,
+        ...admission.practicalCriteriaItems,
+      ]);
+      const practicalPreview = uniqueItems([...earlyPracticalItems, ...regularPracticalItems]).slice(0, 3);
+      const earlyGradeCount = school.earlyAdmissions.filter((admission) => admission.hasGradeDetail).length;
+      const regularResultCount = school.regularSelectionDetail?.resultRows.length || 0;
+      const practicalCount = school.earlyAdmissions.filter(
+        (admission) =>
+          admission.hasPracticalDetail ||
+          admission.practicalTasks.length > 0 ||
+          admission.practicalCriteriaItems.length > 0,
+      ).length + school.regularAdmissions.filter(
+        (admission) =>
+          admission.practicalTasks.length > 0 ||
+          admission.practicalCriteriaItems.length > 0 ||
+          admission.method.includes("실기"),
+      ).length;
+
+      return {
+        key: `${region.slug}-${school.slug}`,
+        name,
+        meta: `${school.area} · ${school.schoolType}`,
+        regionLabel: region.region,
+        earlyHref: getPeExamSchoolTrackHref(region.region, "early", school.slug),
+        regularHref: getPeExamSchoolTrackHref(region.region, "regular", school.slug),
+        preview: practicalPreview.length ? practicalPreview.join(" · ") : "대학별 상세 페이지에서 전형과 공식 확인 지점을 봅니다.",
+        stats: [
+          { label: "수시", value: `${school.earlyAdmissions.length}개` },
+          { label: "정시", value: `${school.regularAdmissions.length}개` },
+          { label: "실기", value: practicalCount ? `${practicalCount}개` : "확인" },
+          { label: "등급·입결", value: earlyGradeCount + regularResultCount ? `${earlyGradeCount + regularResultCount}건` : "확인" },
+        ],
+        searchText: [
+          name,
+          school.name,
+          school.campus || "",
+          school.area,
+          school.schoolType,
+          region.region,
+          practicalPreview.join(" "),
+        ].join(" "),
+        flags: {
+          early: school.earlyAdmissions.length > 0,
+          regular: school.regularAdmissions.length > 0,
+          practical: practicalCount > 0,
+          result: earlyGradeCount + regularResultCount > 0,
+        },
+      };
+    }),
+  )
+  .sort((a, b) => {
+    const bScore = Number(b.flags.early) + Number(b.flags.regular) + Number(b.flags.practical) + Number(b.flags.result);
+    const aScore = Number(a.flags.early) + Number(a.flags.regular) + Number(a.flags.practical) + Number(a.flags.result);
+    return bScore - aScore || a.name.localeCompare(b.name, "ko");
+  });
+
 export default function PeExamPage() {
   const faqPreview = faqItems.slice(0, 4);
 
@@ -101,11 +177,33 @@ export default function PeExamPage() {
         <div className={`container ${styles.heroInner}`}>
           <div className={styles.heroCopy}>
             <p className="eyebrow light-text">PE EXAM INFO HUB</p>
-            <h1>체대입시 자료는 공개하고, 개인 전략은 상담에서 정리합니다.</h1>
+            <h1>체대입시 대학 정보와 준비 흐름을 한 번에 찾습니다.</h1>
             <p>
-              RePERFORMANCE 체대입시 허브는 2026년 대입 흐름, 전국 체육관련학과 대학 목록,
-              수시·정시 준비 관점, FAQ를 먼저 확인하는 공개 자료 공간입니다.
+              2026년 대입 흐름, 전국 체육관련학과 대학 목록, 수시·정시 상세 페이지를 먼저
+              확인하고 개인 전략은 상담에서 정리합니다.
             </p>
+            <div className={styles.heroActions}>
+              <Link className="button primary" href="#university-search">
+                대학 정보 검색
+              </Link>
+              <Link className="button secondary" href="/apply?service=pe-exam">
+                체대입시 상담 신청
+              </Link>
+            </div>
+            <dl className={styles.heroStats} aria-label="체대입시 허브 주요 데이터">
+              <div>
+                <dt>전국 목록</dt>
+                <dd>{catalogMeta.count}개</dd>
+              </div>
+              <div>
+                <dt>수시 전형</dt>
+                <dd>{kusfAdmissionMeta.admissionCount}개</dd>
+              </div>
+              <div>
+                <dt>정시 전형</dt>
+                <dd>{adigaRegularAdmissionMeta.admissionCount}개</dd>
+              </div>
+            </dl>
           </div>
 
           <aside className={styles.heroPanel} aria-label="허브 이용 기준">
@@ -125,6 +223,22 @@ export default function PeExamPage() {
               <p>실제 기록, 수업 피드백, 개인 메모는 상담 이후 NORE에서 안내합니다.</p>
             </article>
           </aside>
+        </div>
+      </section>
+
+      <section className={`section ${styles.searchSection}`} id="university-search">
+        <div className="container">
+          <div className={styles.searchSectionHead}>
+            <div>
+              <p className="eyebrow">UNIVERSITY SEARCH</p>
+              <h2>학교명을 검색하고 수시·정시 상세 페이지로 바로 이동합니다.</h2>
+            </div>
+            <p>
+              첫 화면에서 대학을 먼저 찾고, 선택한 전형 페이지에서 등급·입결, 실기 종목,
+              기록 기준, 공식 확인 링크를 이어서 봅니다.
+            </p>
+          </div>
+          <PeExamHomeSearchClient cards={universitySearchCards} />
         </div>
       </section>
 

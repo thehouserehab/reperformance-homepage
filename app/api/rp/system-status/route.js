@@ -64,7 +64,14 @@ function buildStatus() {
       },
       accountRecovery: {
         signingSecretConfigured: hasEnv('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+        phoneWebhookConfigured: hasEnv('RP_SMS_WEBHOOK_URL', 'SMS_WEBHOOK_URL'),
+        webhookSecretConfigured: hasEnv('RP_IDENTITY_WEBHOOK_SECRET', 'RP_SMS_WEBHOOK_SECRET', 'RP_API_SECRET'),
         passwordResetStore: databaseConfigured ? 'postgres' : 'manual',
+        requestLimit: {
+          perPhone: '5 / 15min',
+          perIp: '20 / 15min',
+          verifyAttempts: '8 / 5min',
+        },
       },
       seedAccounts: {
         authUsersConfigured: hasEnv('RP_AUTH_USERS'),

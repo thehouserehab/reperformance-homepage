@@ -87,7 +87,7 @@ async function saveAuthSignup(record) {
 
       return { ...result, primary: 'database', backup };
     } catch (error) {
-      if (isDatabaseOnlyMode()) throw error;
+      if (isDatabaseOnlyMode() || String(error?.message || '').includes('이미 사용 중인 아이디')) throw error;
     }
   }
 
@@ -197,7 +197,9 @@ export async function POST(request) {
     return buildRedirect(request, 'pending', role);
   } catch (error) {
     const status = getFailureStatus(error);
-    if (wantsJson) return jsonResponse({ ok: false, error: error?.message || '가입 처리 중 오류가 발생했습니다.' }, 500);
+    if (wantsJson) {
+      return jsonResponse({ ok: false, error: error?.message || '가입 처리 중 오류가 발생했습니다.' }, 500);
+    }
     return buildRedirect(request, status, role);
   }
 }

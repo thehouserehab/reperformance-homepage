@@ -151,6 +151,7 @@ export default function SignupClient({ status, message }) {
                 maxLength={6}
                 name="verificationCode"
                 onChange={updateField}
+                pattern="[0-9]*"
                 placeholder="6자리"
                 type="text"
                 value={form.verificationCode}
@@ -191,7 +192,9 @@ export default function SignupClient({ status, message }) {
               <input name="passwordConfirm" type="password" autoComplete="new-password" minLength={6} required />
             </label>
           </div>
-          <p className={styles.helperText}>회원 계정은 인증 후 바로 생성됩니다. 트레이너와 관리자 권한은 운영자가 확인한 뒤 별도로 부여합니다.</p>
+          <p className={styles.helperText}>
+            회원 계정은 본인 인증 후 바로 생성됩니다. 트레이너와 관리자 권한은 운영자가 별도로 승인합니다.
+          </p>
         </div>
 
         <div className={styles.formSection}>
@@ -235,12 +238,12 @@ export default function SignupClient({ status, message }) {
           </div>
           <div className={styles.roleCard}>
             <strong>관리자</strong>
-            <span>전체 고객 데이터와 운영 화면 접근은 수동 승인으로만 열어둡니다.</span>
+            <span>전체 고객 데이터와 운영 화면 접근은 수동 승인으로만 열립니다.</span>
           </div>
         </div>
         <div className={styles.notice}>
           <strong>로그인 유지</strong>
-          <span>로그인 세션은 최소 1일 이상 유지되며, 기본 설정은 90일입니다.</span>
+          <span>로그인 세션은 기본 90일 동안 유지됩니다.</span>
         </div>
         <div className={styles.actions}>
           <Link href="/login">로그인</Link>

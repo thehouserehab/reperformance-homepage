@@ -55,9 +55,31 @@ img {
 }
 .brand-logo {
   display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  line-height: 1;
+}
+.brand-mark {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #202327;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 58%;
+}
+.brand-lockup {
+  display: inline-flex;
+  min-width: 0;
   flex-direction: column;
   justify-content: center;
-  line-height: 1;
 }
 .brand-main {
   display: flex;
@@ -686,6 +708,10 @@ h1 {
   }
   .brand-main {
     font-size: 20px;
+  }
+  .brand-mark {
+    width: 42px;
+    height: 42px;
   }
   .brand-sub {
     font-size: 8px;

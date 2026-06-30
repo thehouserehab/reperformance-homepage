@@ -44,9 +44,10 @@
 }
 
 .hero {
-  padding: clamp(82px, 9vw, 128px) 0;
+  min-height: min(760px, calc(100vh - 82px));
+  padding: clamp(86px, 10vw, 136px) 0 clamp(74px, 8vw, 110px);
   background:
-    linear-gradient(90deg, rgba(6, 9, 12, 0.95) 0%, rgba(9, 13, 18, 0.86) 42%, rgba(7, 11, 15, 0.76) 100%),
+    linear-gradient(90deg, rgba(4, 6, 8, 0.98) 0%, rgba(8, 13, 18, 0.9) 38%, rgba(5, 8, 12, 0.72) 100%),
     url("/images/pe-exam-hero.png") center / cover;
   background-color: #080c10;
   color: #fff;
@@ -87,6 +88,45 @@
   color: rgba(255, 255, 255, 0.82);
   font-size: 18px;
   line-height: 1.78;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 720px;
+  margin: 28px 0 0;
+}
+
+.heroStats div {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.heroStats dt {
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.heroStats dd {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(25px, 3vw, 36px);
+  font-weight: 950;
+  line-height: 1;
 }
 
 .heroPanel {
@@ -133,6 +173,7 @@
 }
 
 .resourcesSection,
+.searchSection,
 .timelineSection,
 .universitySection,
 .roadmapSection,
@@ -147,6 +188,10 @@
 .faqPreviewSection,
 .regionDetailSection {
   background: #f7f9fc;
+}
+
+.searchSection {
+  background: #eef4f4;
 }
 
 .universitySection,
@@ -206,6 +251,202 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
+}
+
+.searchSectionHead {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: clamp(18px, 4vw, 48px);
+  align-items: end;
+  margin-bottom: 24px;
+}
+
+.searchSectionHead h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.18;
+  text-wrap: balance;
+}
+
+.searchSectionHead p:not(:global(.eyebrow)) {
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.72;
+}
+
+.homeSearchTool {
+  display: grid;
+  gap: 14px;
+}
+
+.homeSearchControls {
+  display: grid;
+  grid-template-columns: minmax(240px, 420px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.homeSearchLabel {
+  display: grid;
+  gap: 8px;
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.homeSearchLabel input {
+  width: 100%;
+  min-width: 0;
+  height: 50px;
+  border: 1px solid #bdccd2;
+  border-radius: 8px;
+  padding: 0 15px;
+  background: #fff;
+  color: var(--navy);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.homeSearchLabel input:focus {
+  outline: 2px solid rgba(15, 118, 110, 0.24);
+  outline-offset: 2px;
+}
+
+.homeSearchFilterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.homeSearchFilterGroup button {
+  min-height: 40px;
+  border: 1px solid #cbd7df;
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #fff;
+  color: #526167;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.homeSearchFilterGroup button[aria-pressed="true"] {
+  border-color: var(--teal-dark);
+  background: var(--teal-dark);
+  color: #fff;
+}
+
+.homeSearchMeta {
+  margin: 0;
+  color: #526167;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.homeSearchGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.homeSearchCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid #d4e0e5;
+  border-left: 4px solid var(--teal-dark);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.homeSearchCardHead span {
+  display: block;
+  margin-bottom: 8px;
+  color: #c28032;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.homeSearchCardHead h3 {
+  margin: 0 0 6px;
+  color: var(--navy);
+  font-size: 20px;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+}
+
+.homeSearchCardHead p,
+.homeSearchPreview {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.52;
+}
+
+.homeSearchStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 14px 0;
+}
+
+.homeSearchStats div {
+  min-width: 0;
+  padding: 9px;
+  border-radius: 8px;
+  background: #f3f7f8;
+}
+
+.homeSearchStats dt {
+  margin-bottom: 3px;
+  color: #587076;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.homeSearchStats dd {
+  margin: 0;
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.homeSearchPreview {
+  min-height: 40px;
+  overflow-wrap: anywhere;
+}
+
+.homeSearchActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.homeSearchActions a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--teal-dark);
+  border-radius: 999px;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.homeSearchActions a:hover {
+  background: var(--teal-dark);
+  color: #fff;
 }
 
 .resourceCard,
@@ -825,6 +1066,127 @@
   color: rgba(255, 255, 255, 0.76);
   font-size: 18px;
   line-height: 1.78;
+}
+
+.detailDesignBand {
+  padding: clamp(58px, 7vw, 92px) 0;
+  background: #050505;
+  color: #fff;
+}
+
+.detailDesignInner {
+  display: grid;
+  gap: 30px;
+}
+
+.detailDesignHead {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.detailDesignHead span {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 28px;
+  background: #fff;
+  color: #050505;
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.detailDesignHead h2 {
+  max-width: 780px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(36px, 5vw, 62px);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.detailDesignHead p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 17px;
+  line-height: 1.72;
+}
+
+.detailPriorityGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.detailPriorityCard {
+  display: grid;
+  justify-items: center;
+  min-width: 0;
+  gap: 14px;
+  padding: 30px 22px;
+  border-radius: 8px;
+  background: #f4f4f4;
+  color: #050505;
+  text-align: center;
+}
+
+.detailPriorityCard > span {
+  color: #777;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.detailPriorityRing {
+  width: 132px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #f4f4f4 0 48%, transparent 49%),
+    conic-gradient(#050505 0 78%, #cfcfcf 78% 100%);
+}
+
+.detailPriorityRing strong {
+  color: #050505;
+  font-size: 30px;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.detailPriorityCard h3 {
+  margin: 0;
+  color: #050505;
+  font-size: 25px;
+  line-height: 1.26;
+  text-wrap: balance;
+}
+
+.detailPriorityCard p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.62;
+}
+
+.detailConclusion {
+  display: block;
+  max-width: 980px;
+  margin: 4px auto 0;
+  color: #fff;
+  font-size: clamp(25px, 3.2vw, 38px);
+  font-weight: 950;
+  line-height: 1.32;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .regionDetailStats {
@@ -2136,11 +2498,13 @@
 @media (max-width: 1120px) {
   .resourceGrid,
   .catalogStats,
+  .homeSearchGrid,
   .schoolList,
   .regionSchoolList,
   .universityJumpGrid,
   .coverageGrid,
   .universityScopeGrid,
+  .detailPriorityGrid,
   .regionDetailGuide,
   .regionChoicePreviewGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2177,6 +2541,8 @@
   .trackGrid,
   .regionOverviewGrid,
   .kusfDataHead,
+  .searchSectionHead,
+  .homeSearchControls,
   .trackSummaryHead,
   .regionChoicePreviewHead,
   .universityIndexControls,
@@ -2225,6 +2591,7 @@
 
   .hero {
     padding: 62px 0 70px;
+    min-height: auto;
   }
 
   .hero p:not(:global(.eyebrow)),
@@ -2238,6 +2605,8 @@
 
   .resourceGrid,
   .catalogStats,
+  .homeSearchGrid,
+  .heroStats,
   .sourceGrid,
   .schoolList,
   .regionSchoolList,
@@ -2248,6 +2617,7 @@
   .regionDetailGuide,
   .regionChoicePreviewGrid,
   .admissionChoiceGrid,
+  .detailPriorityGrid,
   .trackSourceGrid,
   .trackSummaryStats,
   .universityJumpGrid,
@@ -2260,6 +2630,15 @@
 
   .universityFilterGroup button {
     flex: 1 1 calc(50% - 7px);
+  }
+
+  .homeSearchFilterGroup button {
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  .heroActions :global(.button),
+  .homeSearchActions {
+    width: 100%;
   }
 
   .catalogNotice,

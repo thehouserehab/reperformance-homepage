@@ -9,7 +9,7 @@ export default function FindAccountPage() {
         <div className="container page-title">
           <p className="eyebrow">ACCOUNT HELP</p>
           <h1>아이디 / 비밀번호 찾기</h1>
-          <p>계정 확인이 필요한 경우 이름과 연락처를 기준으로 확인 후 안내해드립니다.</p>
+          <p>가입할 때 사용한 이름과 전화번호로 본인 확인을 진행합니다.</p>
         </div>
       </section>
 

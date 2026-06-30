@@ -41,7 +41,7 @@ export default async function LoginPage({ searchParams }) {
 
         <div className={styles.joinBox}>
           <strong>계정이 없으신가요?</strong>
-          <span>회원은 가입 즉시 사용할 수 있고, 트레이너/관리자 권한은 승인 후 활성화됩니다.</span>
+          <span>회원은 가입 즉시 사용할 수 있고, 트레이너/관리자 권한은 별도 승인 후 활성화됩니다.</span>
           <Link href="/signup">회원가입</Link>
         </div>
       </section>
