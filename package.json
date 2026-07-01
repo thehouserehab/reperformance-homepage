@@ -8,6 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "node -e \"console.error('ESLint is not configured for this Next.js 15 project. Run npm run build and npm run typecheck for current validation until ESLint config is added.'); process.exit(1)\"",
+    "db:migration:apply": "node scripts/apply-rp-database-migration.mjs",
     "db:migration:check": "node scripts/check-rp-database-migration.mjs",
     "data:retention:audit": "node scripts/audit-rp-data-retention.mjs",
     "ops:audit": "node scripts/audit-rp-operational-readiness.mjs",

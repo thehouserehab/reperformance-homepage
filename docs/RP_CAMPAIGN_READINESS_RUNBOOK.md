@@ -45,6 +45,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 
 - Production has `DATABASE_URL`, `POSTGRES_URL`, or `RP_DATABASE_URL`.
 - `database/migrations/20260630_security_scale_baseline.sql` has been applied in production.
+- If the migration has not been applied, use `npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` with `RP_DATABASE_MIGRATION_ALLOW_APPLY=true`.
 - `npm.cmd run db:migration:check` passes against the production PostgreSQL database.
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.

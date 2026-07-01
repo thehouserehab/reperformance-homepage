@@ -107,6 +107,12 @@ addCheck(
     && includesAll("scripts/check-rp-database-migration.mjs", ["rp_auth_accounts", "rp_rate_limit_buckets", "requiredIndexes", "--allow-missing-database"]),
 );
 addCheck(
+  "data",
+  "Database migration apply command is gated",
+  Boolean(scripts["db:migration:apply"])
+    && includesAll("scripts/apply-rp-database-migration.mjs", ["RP_DATABASE_MIGRATION_ALLOW_APPLY", "APPLY_RP_DB_MIGRATION", "20260630_security_scale_baseline.sql", "db:migration:check"]),
+);
+addCheck(
   "traffic",
   "Vercel production check command exists",
   Boolean(scripts["ops:vercel:check"])

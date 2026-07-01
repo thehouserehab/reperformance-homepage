@@ -33,10 +33,24 @@ The script also accepts `POSTGRES_URL` or `RP_DATABASE_URL`. It verifies:
 
 ## 3. Apply baseline migration
 
-Apply this migration through the production database console or deployment migration process:
+Apply the checked-in migration with the guarded script:
+
+```powershell
+$env:DATABASE_URL="postgres://..."
+$env:RP_DATABASE_MIGRATION_ALLOW_APPLY="true"
+npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION
+```
+
+The script applies this file and then runs `npm.cmd run db:migration:check` automatically:
 
 ```text
 database/migrations/20260630_security_scale_baseline.sql
+```
+
+To inspect the migration metadata without connecting to a database:
+
+```powershell
+npm.cmd run db:migration:apply -- --plan
 ```
 
 After applying it, rerun:

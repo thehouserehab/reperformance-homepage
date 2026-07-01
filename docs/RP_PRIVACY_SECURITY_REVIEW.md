@@ -56,6 +56,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 
 - Keep `DATABASE_URL` or `RP_DATABASE_URL` configured in production.
 - Apply `database/migrations/20260630_security_scale_baseline.sql` before high-traffic production use, then keep runtime schema creation as a safety net only.
+- Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying the baseline migration.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Use `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` if backup access or retention policy is not ready.
