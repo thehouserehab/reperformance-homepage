@@ -5,8 +5,18 @@ import {
   isDatabaseConfigured,
   savePeExamQuestion,
 } from '../../../../lib/rpDatabase';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 export const dynamic = 'force-dynamic';
+
+const QUESTION_WINDOW_MS = 60 * 60 * 1000;
+const QUESTION_LIMIT = 12;
+const QUESTION_IP_LIMIT = 80;
 
 function cleanValue(value) {
   return String(value || '').trim();
@@ -76,6 +86,9 @@ function buildQuestion(payload = {}, session) {
 
 export async function POST(request) {
   const jsonMode = wantsJson(request);
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.small);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
   const cookieStore = await cookies();
   const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
@@ -85,6 +98,16 @@ export async function POST(request) {
   }
 
   try {
+    const retryAfterSeconds = await checkSharedRequestRateLimit({
+      request,
+      scope: 'pe-exam-question-submit',
+      identifier: session.sub,
+      limit: QUESTION_LIMIT,
+      ipLimit: QUESTION_IP_LIMIT,
+      windowMs: QUESTION_WINDOW_MS,
+    });
+    if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
+
     if (!isDatabaseConfigured()) {
       if (jsonMode) {
         return NextResponse.json({ ok: false, error: 'DATABASE_URL 또는 RP_DATABASE_URL 환경변수가 필요합니다.' }, { status: 503 });

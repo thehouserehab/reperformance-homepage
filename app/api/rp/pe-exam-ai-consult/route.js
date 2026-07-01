@@ -11,6 +11,12 @@ import {
   getGoogleDriveBackupSkipReason,
   isGoogleDriveBackupEnabled,
 } from '../../../../lib/rpGoogleDriveBackup';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 import {
   getPeExamSchoolTrackHref,
   peExamAdmissionTracks,
@@ -18,6 +24,13 @@ import {
 } from '../../../pe-exam/peExamData';
 
 export const dynamic = 'force-dynamic';
+
+const AI_CONSULT_POST_WINDOW_MS = 60 * 60 * 1000;
+const AI_CONSULT_POST_LIMIT = 10;
+const AI_CONSULT_POST_IP_LIMIT = 60;
+const AI_CONSULT_GET_WINDOW_MS = 5 * 60 * 1000;
+const AI_CONSULT_GET_LIMIT = 60;
+const AI_CONSULT_GET_IP_LIMIT = 180;
 
 function cleanValue(value) {
   return String(value || '').trim();
@@ -699,6 +712,9 @@ function buildRequest(payload = {}, session) {
 
 export async function POST(request) {
   const jsonMode = wantsJson(request);
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.medium);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
   const cookieStore = await cookies();
   const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
@@ -708,6 +724,16 @@ export async function POST(request) {
   }
 
   try {
+    const retryAfterSeconds = await checkSharedRequestRateLimit({
+      request,
+      scope: 'pe-exam-ai-consult-submit',
+      identifier: session.sub,
+      limit: AI_CONSULT_POST_LIMIT,
+      ipLimit: AI_CONSULT_POST_IP_LIMIT,
+      windowMs: AI_CONSULT_POST_WINDOW_MS,
+    });
+    if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
+
     const payload = await readPayload(request);
     const consultRequest = buildRequest(payload, session);
     const guidance = buildDirectionGuide(consultRequest);
@@ -765,6 +791,16 @@ export async function GET(request) {
   const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) return NextResponse.json({ ok: false, error: '로그인이 필요합니다.' }, { status: 401 });
+
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
+    request,
+    scope: 'pe-exam-ai-consult-list',
+    identifier: session.sub,
+    limit: AI_CONSULT_GET_LIMIT,
+    ipLimit: AI_CONSULT_GET_IP_LIMIT,
+    windowMs: AI_CONSULT_GET_WINDOW_MS,
+  });
+  if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
 
   if (!isDatabaseConfigured()) {
     return NextResponse.json({

@@ -7,7 +7,12 @@ import {
   sanitizeAdminNext,
 } from '../../../../lib/rpAdminAuth';
 import { findAuthAccountFromStores } from '../../../../lib/rpAuthStores';
-import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const ADMIN_LOGIN_ATTEMPT_LIMIT = 10;
@@ -47,9 +52,12 @@ function wantsJson(request) {
 }
 
 export async function POST(request) {
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.tiny);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
   const payload = await readLoginPayload(request);
   const nextPath = sanitizeAdminNext(payload.next);
-  const retryAfterSeconds = checkRequestRateLimit({
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
     request,
     scope: 'admin-login',
     identifier: payload.username,

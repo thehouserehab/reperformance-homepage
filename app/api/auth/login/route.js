@@ -6,7 +6,12 @@ import {
   hasStaffRole,
 } from '../../../../lib/rpAdminAuth';
 import { findAuthAccountFromStores } from '../../../../lib/rpAuthStores';
-import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_ATTEMPT_LIMIT = 12;
@@ -76,8 +81,11 @@ function wantsJson(request) {
 }
 
 export async function POST(request) {
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.tiny);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
   const payload = await readLoginPayload(request);
-  const retryAfterSeconds = checkRequestRateLimit({
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
     request,
     scope: 'auth-login',
     identifier: payload.username,

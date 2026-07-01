@@ -6,7 +6,12 @@ import {
 } from '../../../../lib/rpIdentityVerification';
 import { getSheetRoleLabel, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
 import { isDatabaseConfigured, isDatabaseOnlyMode, saveDatabaseAuthSignup } from '../../../../lib/rpDatabase';
-import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 export const dynamic = 'force-dynamic';
 
@@ -122,10 +127,13 @@ async function buildSessionResponse(request, account) {
 
 export async function POST(request) {
   const wantsJson = (request.headers.get('content-type') || '').includes('application/json');
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.small);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
   const payload = await readPayload(request);
   const role = 'member';
   const roleLabel = getSheetRoleLabel(role);
-  const retryAfterSeconds = checkRequestRateLimit({
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
     request,
     scope: 'signup-submit',
     identifier: payload.username || payload.verificationContact || payload.phone || payload.email,

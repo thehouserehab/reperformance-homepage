@@ -1,0 +1,175 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+const checks = [];
+
+function readFile(file) {
+  return fs.readFileSync(path.join(root, file), "utf8");
+}
+
+function fileExists(file) {
+  return fs.existsSync(path.join(root, file));
+}
+
+function addCheck(area, name, ok, detail = "") {
+  checks.push({ area, name, ok: Boolean(ok), detail });
+}
+
+function parseVersion(version) {
+  return String(version || "")
+    .replace(/^[^\d]*/, "")
+    .split(".")
+    .map((part) => Number.parseInt(part, 10) || 0);
+}
+
+function versionAtLeast(current, minimum) {
+  const left = parseVersion(current);
+  const right = parseVersion(minimum);
+  for (let index = 0; index < Math.max(left.length, right.length); index += 1) {
+    const currentPart = left[index] || 0;
+    const minimumPart = right[index] || 0;
+    if (currentPart > minimumPart) return true;
+    if (currentPart < minimumPart) return false;
+  }
+  return true;
+}
+
+function includesAll(file, needles) {
+  const text = readFile(file);
+  return needles.every((needle) => text.includes(needle));
+}
+
+const packageJson = JSON.parse(readFile("package.json"));
+const dependencies = packageJson.dependencies || {};
+const scripts = packageJson.scripts || {};
+
+addCheck("runtime", "Next.js is on a patched 15.5.x+ line", versionAtLeast(dependencies.next, "15.5.7"), `next=${dependencies.next}`);
+addCheck("runtime", "React is on a patched 19.2.x+ line", versionAtLeast(dependencies.react, "19.2.4"), `react=${dependencies.react}`);
+addCheck("runtime", "PostCSS override is pinned", packageJson.overrides?.postcss === "8.5.10", `postcss=${packageJson.overrides?.postcss || "missing"}`);
+
+addCheck(
+  "security",
+  "Global security headers are configured",
+  includesAll("next.config.js", [
+    "X-Content-Type-Options",
+    "X-Frame-Options",
+    "Referrer-Policy",
+    "Permissions-Policy",
+    "Strict-Transport-Security",
+  ]),
+);
+addCheck(
+  "security",
+  "Shared rate limit helper exists",
+  includesAll("lib/rpRateLimit.js", ["checkSharedRequestRateLimit", "checkDatabaseRateLimit", "checkRateLimit(key"]),
+);
+addCheck(
+  "security",
+  "Request body size guard exists",
+  includesAll("lib/rpRequestGuards.js", ["checkRequestBodySize", "buildRequestTooLargeResponse", "REQUEST_SIZE_LIMITS"]),
+);
+addCheck(
+  "security",
+  "PostgreSQL shared rate limit buckets are available",
+  includesAll("lib/rpDatabase.js", ["rp_rate_limit_buckets", "checkDatabaseRateLimit", "ON CONFLICT (rate_key, window_start)"]),
+);
+addCheck(
+  "security",
+  "Baseline SQL migration exists",
+  includesAll("database/migrations/20260630_security_scale_baseline.sql", ["rp_auth_accounts", "rp_service_applications", "rp_rate_limit_buckets"]),
+);
+addCheck(
+  "data",
+  "Data retention audit command exists",
+  Boolean(scripts["data:retention:audit"]) && includesAll("scripts/audit-rp-data-retention.mjs", ["RP_RETENTION_ALLOW_APPLY", "APPLY_RP_RETENTION"]),
+);
+addCheck(
+  "data",
+  "Retention audit covers sensitive broad payloads",
+  includesAll("scripts/audit-rp-data-retention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "legacyPlainPasswords"]),
+);
+addCheck("security", "Shared safe comparison helper exists", fileExists("lib/rpSecurity.js") && readFile("lib/rpSecurity.js").includes("safeEqual"));
+addCheck(
+  "security",
+  "PostgreSQL legacy password fallback auto-migrates",
+  includesAll("lib/rpDatabase.js", ["migratePlainDatabasePassword", "password_plain = NULL", "safeEqual(account.password_plain"]),
+);
+addCheck(
+  "security",
+  "Google backup query secret is legacy opt-in only",
+  includesAll("lib/rpGoogleDriveBackup.js", ["RP_BACKUP_SECRET_IN_QUERY", "isEnabledFlag(process.env.RP_BACKUP_SECRET_IN_QUERY)"]),
+);
+
+const rateLimitedRoutes = [
+  "app/api/auth/login/route.js",
+  "app/api/admin/login/route.js",
+  "app/api/auth/identity-verification/route.js",
+  "app/api/auth/account-recovery/route.js",
+  "app/api/rp/signup/route.js",
+  "app/api/rp/service-application/route.js",
+  "app/api/rp/pe-exam-question/route.js",
+  "app/api/rp/pe-exam-ai-consult/route.js",
+  "app/api/rp/consultation-summary/route.js",
+];
+
+for (const route of rateLimitedRoutes) {
+  addCheck("traffic", `${route} uses shared rate limiting`, includesAll(route, ["checkSharedRequestRateLimit", "buildRateLimitResponse"]));
+}
+
+const bodyLimitedRoutes = [
+  "app/api/auth/login/route.js",
+  "app/api/admin/login/route.js",
+  "app/api/auth/identity-verification/route.js",
+  "app/api/auth/account-recovery/route.js",
+  "app/api/rp/signup/route.js",
+  "app/api/rp/service-application/route.js",
+  "app/api/rp/pe-exam-question/route.js",
+  "app/api/rp/pe-exam-ai-consult/route.js",
+  "app/api/rp/consultation-summary/route.js",
+];
+
+for (const route of bodyLimitedRoutes) {
+  addCheck("traffic", `${route} enforces request body size`, includesAll(route, ["checkRequestBodySize", "buildRequestTooLargeResponse"]));
+}
+
+addCheck(
+  "traffic",
+  "Consultation summary requires staff session",
+  includesAll("app/api/rp/consultation-summary/route.js", ["verifyAdminSessionCookie", "hasStaffRole", "OPENAI_API_KEY"]),
+);
+
+addCheck(
+  "traffic",
+  "Account recovery has request and verification limits",
+  includesAll("app/api/auth/account-recovery/route.js", ["PHONE_REQUEST_LIMIT", "IP_REQUEST_LIMIT", "VERIFY_ATTEMPT_LIMIT"]),
+);
+
+addCheck("pe-data", "PE exam data refresh command exists", Boolean(scripts["pe-exam:data:refresh"]));
+addCheck("pe-data", "PE exam data coverage audit command exists", Boolean(scripts["pe-exam:data:audit"]));
+addCheck("pe-data", "KUSF summary fetch script exists", fileExists("scripts/fetch-kusf-pe-exam-data.mjs"));
+addCheck("pe-data", "KUSF detail fetch script exists", fileExists("scripts/fetch-kusf-pe-exam-detail-data.mjs"));
+addCheck("pe-data", "ADIGA regular fetch script exists", fileExists("scripts/fetch-adiga-pe-exam-regular-data.mjs"));
+addCheck("pe-data", "ADIGA selection fetch script exists", fileExists("scripts/fetch-adiga-pe-exam-selection-data.mjs"));
+addCheck("pe-data", "Coverage audit script exists", fileExists("scripts/audit-pe-exam-university-coverage.mjs"));
+
+const byArea = new Map();
+for (const check of checks) {
+  if (!byArea.has(check.area)) byArea.set(check.area, []);
+  byArea.get(check.area).push(check);
+}
+
+console.log("RePERFORMANCE operational readiness audit");
+for (const [area, areaChecks] of byArea.entries()) {
+  console.log(`\n[${area}]`);
+  for (const check of areaChecks) {
+    console.log(`${check.ok ? "OK" : "FAIL"} ${check.name}${check.detail ? ` (${check.detail})` : ""}`);
+  }
+}
+
+const failed = checks.filter((check) => !check.ok);
+console.log(`\nSummary: ${checks.length - failed.length}/${checks.length} checks passed`);
+
+if (failed.length) {
+  process.exitCode = 1;
+}

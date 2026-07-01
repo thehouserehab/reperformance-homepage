@@ -8,7 +8,12 @@ import {
   getGoogleDriveBackupSkipReason,
   isGoogleDriveBackupEnabled,
 } from '../../../../lib/rpGoogleDriveBackup';
-import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 export const dynamic = 'force-dynamic';
 
@@ -387,6 +392,8 @@ function getPublicApplicationError(error) {
 
 export async function POST(request) {
   const jsonMode = wantsJson(request);
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.medium);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
 
   try {
     if (!isDatabaseConfigured()) {
@@ -399,7 +406,7 @@ export async function POST(request) {
 
     const payload = await readPayload(request);
     const application = buildApplication(payload);
-    const retryAfterSeconds = checkRequestRateLimit({
+    const retryAfterSeconds = await checkSharedRequestRateLimit({
       request,
       scope: 'service-application',
       identifier: application.phone,

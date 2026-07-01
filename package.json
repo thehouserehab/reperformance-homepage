@@ -8,6 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "node -e \"console.error('ESLint is not configured for this Next.js 15 project. Run npm run build and npm run typecheck for current validation until ESLint config is added.'); process.exit(1)\"",
+    "data:retention:audit": "node scripts/audit-rp-data-retention.mjs",
+    "ops:audit": "node scripts/audit-rp-operational-readiness.mjs",
     "pe-exam:data:audit": "node scripts/audit-pe-exam-university-coverage.mjs",
     "pe-exam:data:refresh": "node scripts/fetch-kusf-pe-exam-data.mjs && node scripts/fetch-kusf-pe-exam-detail-data.mjs && node scripts/fetch-adiga-pe-exam-regular-data.mjs && node scripts/fetch-adiga-pe-exam-selection-data.mjs && npm run pe-exam:data:audit"
   },

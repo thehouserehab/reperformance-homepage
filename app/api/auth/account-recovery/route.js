@@ -2,6 +2,13 @@ import {
   findAuthAccountByIdentityFromStores,
   updateAuthAccountPasswordFromStores,
 } from '../../../../lib/rpAuthStores';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
+import { safeEqual } from '../../../../lib/rpSecurity';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,46 +26,6 @@ function cleanValue(value) {
 
 function normalizePhone(value) {
   return cleanValue(value).replace(/\D/g, '');
-}
-
-function getClientIp(request) {
-  const forwarded = request.headers.get('x-forwarded-for') || '';
-  return forwarded.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown';
-}
-
-function getRateLimitStore() {
-  const globalKey = '__rpAccountRecoveryRateLimit';
-  if (!globalThis[globalKey]) globalThis[globalKey] = new Map();
-  return globalThis[globalKey];
-}
-
-function getRateLimitKey(scope, value) {
-  return `${scope}:${cleanValue(value).toLowerCase()}`;
-}
-
-function checkRateLimit(key, limit, windowMs) {
-  const store = getRateLimitStore();
-  const now = Date.now();
-  const recent = (store.get(key) || []).filter((timestamp) => now - timestamp < windowMs);
-
-  if (recent.length >= limit) {
-    const retryAt = recent[0] + windowMs;
-    store.set(key, recent);
-    return Math.max(1, Math.ceil((retryAt - now) / 1000));
-  }
-
-  recent.push(now);
-  store.set(key, recent);
-
-  if (store.size > 1000) {
-    for (const [storedKey, timestamps] of store.entries()) {
-      const active = timestamps.filter((timestamp) => now - timestamp < windowMs);
-      if (active.length) store.set(storedKey, active);
-      else store.delete(storedKey);
-    }
-  }
-
-  return 0;
 }
 
 function rateLimitResponse(retryAfterSeconds) {
@@ -147,7 +114,7 @@ async function verifyToken(token) {
   if (!body || !signature) return null;
 
   const expectedSignature = await sign(body);
-  if (signature !== expectedSignature) return null;
+  if (!safeEqual(signature, expectedSignature)) return null;
 
   try {
     const payload = JSON.parse(base64UrlDecode(body));
@@ -223,7 +190,6 @@ async function handleRequestCode(payload, request) {
   const name = cleanValue(payload.name);
   const phone = normalizePhone(payload.phone || payload.verificationContact || payload.contact);
   const purpose = getPurpose(payload.purpose);
-  const clientIp = getClientIp(request);
 
   if (!name || !phone) {
     return Response.json({ ok: false, error: '이름과 전화번호를 입력해주세요.' }, { status: 400 });
@@ -233,19 +199,15 @@ async function handleRequestCode(payload, request) {
     return Response.json({ ok: false, error: '올바른 전화번호를 입력해주세요.' }, { status: 400 });
   }
 
-  const phoneRetryAfter = checkRateLimit(
-    getRateLimitKey('account-recovery-phone', `${purpose}:${phone}`),
-    PHONE_REQUEST_LIMIT,
-    REQUEST_WINDOW_MS,
-  );
-  if (phoneRetryAfter) return rateLimitResponse(phoneRetryAfter);
-
-  const ipRetryAfter = checkRateLimit(
-    getRateLimitKey('account-recovery-ip', `${purpose}:${clientIp}`),
-    IP_REQUEST_LIMIT,
-    REQUEST_WINDOW_MS,
-  );
-  if (ipRetryAfter) return rateLimitResponse(ipRetryAfter);
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
+    request,
+    scope: 'account-recovery-code',
+    identifier: `${purpose}:${phone}`,
+    limit: PHONE_REQUEST_LIMIT,
+    ipLimit: IP_REQUEST_LIMIT,
+    windowMs: REQUEST_WINDOW_MS,
+  });
+  if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
 
   const { account, source, passwordResetSupported } = await findAuthAccountByIdentityFromStores(
     name,
@@ -289,13 +251,15 @@ async function handleVerifyCode(payload, request) {
   const verificationToken = cleanValue(payload.verificationToken);
   const code = cleanValue(payload.code);
   const purpose = getPurpose(payload.purpose);
-  const clientIp = getClientIp(request);
-  const verifyRetryAfter = checkRateLimit(
-    getRateLimitKey('account-recovery-verify', `${purpose}:${clientIp}:${verificationToken.slice(0, 32)}`),
-    VERIFY_ATTEMPT_LIMIT,
-    VERIFY_WINDOW_MS,
-  );
-  if (verifyRetryAfter) return rateLimitResponse(verifyRetryAfter);
+  const verifyRetryAfter = await checkSharedRequestRateLimit({
+    request,
+    scope: 'account-recovery-verify',
+    identifier: `${purpose}:${verificationToken.slice(0, 32)}`,
+    limit: VERIFY_ATTEMPT_LIMIT,
+    ipLimit: VERIFY_ATTEMPT_LIMIT,
+    windowMs: VERIFY_WINDOW_MS,
+  });
+  if (verifyRetryAfter) return buildRateLimitResponse(verifyRetryAfter);
 
   const tokenPayload = await verifyToken(verificationToken);
 
@@ -304,7 +268,7 @@ async function handleVerifyCode(payload, request) {
   }
 
   const attemptedHash = await hashCode(code, tokenPayload.salt);
-  if (!code || attemptedHash !== tokenPayload.codeHash) {
+  if (!code || !safeEqual(attemptedHash, tokenPayload.codeHash)) {
     return Response.json({ ok: false, error: '인증번호가 일치하지 않습니다.' }, { status: 400 });
   }
 
@@ -352,6 +316,9 @@ async function handleVerifyCode(payload, request) {
 
 export async function POST(request) {
   try {
+    const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.small);
+    if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
     const payload = await readPayload(request);
     const action = cleanValue(payload.action);
 

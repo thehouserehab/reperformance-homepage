@@ -1,6 +1,22 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import {
+  ADMIN_COOKIE_NAME,
+  hasStaffRole,
+  verifyAdminSessionCookie,
+} from '../../../../lib/rpAdminAuth';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 export const dynamic = 'force-dynamic';
+
+const SUMMARY_WINDOW_MS = 60 * 60 * 1000;
+const SUMMARY_LIMIT = 30;
+const SUMMARY_IP_LIMIT = 120;
 
 function cleanText(value) {
   return String(value || '').trim();
@@ -200,6 +216,25 @@ async function callOpenAI({ client, record, phase }) {
 }
 
 export async function POST(request) {
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.medium);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
+  const cookieStore = await cookies();
+  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+
+  if (!session) return NextResponse.json({ ok: false, error: '로그인이 필요합니다.' }, { status: 401 });
+  if (!hasStaffRole(session.role)) return NextResponse.json({ ok: false, error: '상담 요약 권한이 없습니다.' }, { status: 403 });
+
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
+    request,
+    scope: 'consultation-summary',
+    identifier: session.sub,
+    limit: SUMMARY_LIMIT,
+    ipLimit: SUMMARY_IP_LIMIT,
+    windowMs: SUMMARY_WINDOW_MS,
+  });
+  if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
+
   const payload = await request.json().catch(() => ({}));
   const { client, record, phase } = payload;
   const fallback = {

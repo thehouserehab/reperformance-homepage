@@ -3,7 +3,12 @@ import {
   requestIdentityCode,
   verifyIdentityCode,
 } from '../../../../lib/rpIdentityVerification';
-import { buildRateLimitResponse, checkRequestRateLimit } from '../../../../lib/rpRateLimit';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,12 +29,15 @@ async function readPayload(request) {
 
 export async function POST(request) {
   try {
+    const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.small);
+    if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
     const payload = await readPayload(request);
     const action = String(payload.action || '').trim();
 
     if (action === 'request-code') {
       const { method, contact } = getIdentityContactFromPayload(payload);
-      const retryAfterSeconds = checkRequestRateLimit({
+      const retryAfterSeconds = await checkSharedRequestRateLimit({
         request,
         scope: 'identity-code-request',
         identifier: `${payload.purpose || 'signup'}:${method}:${contact}`,
@@ -45,7 +53,7 @@ export async function POST(request) {
     }
 
     if (action === 'verify-code') {
-      const retryAfterSeconds = checkRequestRateLimit({
+      const retryAfterSeconds = await checkSharedRequestRateLimit({
         request,
         scope: 'identity-code-verify',
         identifier: String(payload.verificationToken || '').slice(0, 32),
