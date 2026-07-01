@@ -28,6 +28,7 @@ const requiredTables = [
   "rp_pe_exam_questions",
   "rp_pe_exam_ai_consults",
   "rp_rate_limit_buckets",
+  "rp_ai_usage_buckets",
 ];
 
 const requiredColumns = {
@@ -42,6 +43,10 @@ const requiredColumns = {
     "verification_method",
     "verified_contact",
     "role",
+    "ai_approved",
+    "ai_approved_at",
+    "ai_approved_by",
+    "ai_daily_limit",
     "created_at",
     "updated_at",
   ],
@@ -99,6 +104,14 @@ const requiredColumns = {
     "expires_at",
     "updated_at",
   ],
+  rp_ai_usage_buckets: [
+    "subject_key",
+    "route_key",
+    "usage_date",
+    "request_count",
+    "token_estimate",
+    "updated_at",
+  ],
 };
 
 const requiredIndexes = [
@@ -113,6 +126,7 @@ const requiredIndexes = [
   "rp_pe_exam_ai_consults_username_idx",
   "rp_pe_exam_ai_consults_created_at_idx",
   "rp_rate_limit_buckets_expires_at_idx",
+  "rp_ai_usage_buckets_usage_date_idx",
 ];
 
 const results = [];

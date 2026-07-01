@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS rp_auth_accounts (
   status TEXT,
   account_status TEXT,
   approved BOOLEAN NOT NULL DEFAULT FALSE,
+  ai_approved BOOLEAN NOT NULL DEFAULT FALSE,
+  ai_approved_at TIMESTAMPTZ,
+  ai_approved_by TEXT,
+  ai_daily_limit INTEGER,
   requested_at TIMESTAMPTZ DEFAULT NOW(),
   approved_at TIMESTAMPTZ,
   message TEXT,
@@ -29,6 +33,10 @@ ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS kakao_id TEXT;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS verification_method TEXT;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS verified_contact TEXT;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_approved BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_approved_at TIMESTAMPTZ;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_approved_by TEXT;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_daily_limit INTEGER;
 
 CREATE TABLE IF NOT EXISTS rp_clients (
   id TEXT PRIMARY KEY,
@@ -147,6 +155,16 @@ CREATE TABLE IF NOT EXISTS rp_rate_limit_buckets (
   PRIMARY KEY (rate_key, window_start)
 );
 
+CREATE TABLE IF NOT EXISTS rp_ai_usage_buckets (
+  subject_key TEXT NOT NULL,
+  route_key TEXT NOT NULL,
+  usage_date DATE NOT NULL,
+  request_count INTEGER NOT NULL DEFAULT 0,
+  token_estimate INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (subject_key, route_key, usage_date)
+);
+
 CREATE INDEX IF NOT EXISTS rp_clients_name_idx ON rp_clients (name);
 CREATE INDEX IF NOT EXISTS rp_clients_phone_idx ON rp_clients (phone);
 CREATE INDEX IF NOT EXISTS rp_consultations_client_id_idx ON rp_consultations (client_id);
@@ -158,6 +176,7 @@ CREATE INDEX IF NOT EXISTS rp_pe_exam_questions_created_at_idx ON rp_pe_exam_que
 CREATE INDEX IF NOT EXISTS rp_pe_exam_ai_consults_username_idx ON rp_pe_exam_ai_consults (username);
 CREATE INDEX IF NOT EXISTS rp_pe_exam_ai_consults_created_at_idx ON rp_pe_exam_ai_consults (created_at DESC);
 CREATE INDEX IF NOT EXISTS rp_rate_limit_buckets_expires_at_idx ON rp_rate_limit_buckets (expires_at);
+CREATE INDEX IF NOT EXISTS rp_ai_usage_buckets_usage_date_idx ON rp_ai_usage_buckets (usage_date DESC);
 
 -- After this migration is applied, audit and clear any legacy plaintext values:
 -- SELECT username, updated_at FROM rp_auth_accounts WHERE password_plain IS NOT NULL AND password_plain <> '';

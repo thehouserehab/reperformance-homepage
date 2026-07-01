@@ -77,6 +77,19 @@ function buildLocalClient(record) {
   };
 }
 
+function formatDateTime(value) {
+  if (!value) return '기록 없음';
+
+  try {
+    return new Intl.DateTimeFormat('ko-KR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch (_) {
+    return String(value);
+  }
+}
+
 function getParqLevel(client) {
   const status = client?.parqStatus || '';
   const hasYesItems = Array.isArray(client?.parqYesItems) && client.parqYesItems.length > 0;
@@ -115,6 +128,10 @@ export default function RPClientManager() {
   const [isAddingClient, setIsAddingClient] = useState(false);
   const [addClientError, setAddClientError] = useState('');
   const [addClientStatus, setAddClientStatus] = useState('');
+  const [authAccounts, setAuthAccounts] = useState([]);
+  const [authStatus, setAuthStatus] = useState('AI 승인 계정 확인 중...');
+  const [authError, setAuthError] = useState('');
+  const [updatingAiUsername, setUpdatingAiUsername] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -149,6 +166,45 @@ export default function RPClientManager() {
     }
 
     loadClients();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAuthAccounts() {
+      try {
+        setAuthError('');
+        setAuthStatus('AI 승인 계정 확인 중...');
+
+        const response = await fetch('/api/rp/auth-accounts', {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          cache: 'no-store',
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok || payload?.ok === false) {
+          throw new Error(payload?.error || `AI 승인 계정을 불러오지 못했습니다. (${response.status})`);
+        }
+
+        if (cancelled) return;
+
+        const accounts = Array.isArray(payload.accounts) ? payload.accounts : [];
+        setAuthAccounts(accounts);
+        setAuthStatus(accounts.length ? `계정 ${accounts.length}개 확인` : '승인 관리할 계정이 아직 없습니다.');
+      } catch (error) {
+        if (cancelled) return;
+        setAuthAccounts([]);
+        setAuthStatus('AI 승인 계정 확인 실패');
+        setAuthError(error?.message || 'AI 승인 계정을 불러오지 못했습니다.');
+      }
+    }
+
+    loadAuthAccounts();
 
     return () => {
       cancelled = true;
@@ -247,6 +303,41 @@ export default function RPClientManager() {
     }
   }
 
+  async function handleToggleAiApproval(account) {
+    if (!account?.username) return;
+
+    try {
+      setUpdatingAiUsername(account.username);
+      setAuthError('');
+
+      const response = await fetch('/api/rp/auth-accounts', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          username: account.username,
+          aiApproved: !account.aiApproved,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.error || `AI 승인 상태를 저장하지 못했습니다. (${response.status})`);
+      }
+
+      setAuthAccounts((current) => current.map((item) => (
+        item.username === account.username ? payload.account : item
+      )));
+      setAuthStatus(`${payload.account.name || payload.account.username} AI 사용 ${payload.account.aiApproved ? '승인' : '해제'} 완료`);
+    } catch (error) {
+      setAuthError(error?.message || 'AI 승인 상태를 저장하지 못했습니다.');
+    } finally {
+      setUpdatingAiUsername('');
+    }
+  }
+
   return (
     <main className={styles.wrap}>
       <header className={styles.topbar}>
@@ -282,6 +373,55 @@ export default function RPClientManager() {
               <strong>{item.value}</strong>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className={styles.aiAccessPanel} aria-label="AI 사용 승인 관리">
+        <div className={styles.aiAccessHeader}>
+          <div>
+            <p className={styles.eyebrow}>AI ACCESS CONTROL</p>
+            <h2>AI 사용은 승인된 회원만 허용합니다.</h2>
+            <p>홈페이지 이용과 회원 로그인은 유지하고, 토큰을 사용하는 AI 기능만 별도로 승인 및 일일 사용량 기준을 적용합니다.</p>
+          </div>
+          <div className={authError ? styles.errorStatus : styles.connectionStatus}>
+            {authError || authStatus}
+          </div>
+        </div>
+
+        <div className={styles.aiAccountGrid}>
+          {authAccounts.length ? authAccounts.map((account) => (
+            <article className={styles.aiAccountCard} key={account.username}>
+              <div>
+                <span className={account.aiApproved ? styles.safeChip : styles.warnChip}>
+                  {account.aiApproved ? 'AI 승인' : 'AI 제한'}
+                </span>
+                <h3>{account.name || account.username}</h3>
+                <p>{account.username} · {account.roleLabel || account.role}</p>
+              </div>
+              <dl>
+                <div>
+                  <dt>오늘 사용량</dt>
+                  <dd>{Number(account.aiUsageToday) || 0}회</dd>
+                </div>
+                <div>
+                  <dt>승인일</dt>
+                  <dd>{formatDateTime(account.aiApprovedAt)}</dd>
+                </div>
+              </dl>
+              <button
+                className={account.aiApproved ? styles.dangerButton : styles.primaryButton}
+                type="button"
+                onClick={() => handleToggleAiApproval(account)}
+                disabled={updatingAiUsername === account.username}
+              >
+                {updatingAiUsername === account.username
+                  ? '저장 중...'
+                  : account.aiApproved ? 'AI 승인 해제' : 'AI 사용 승인'}
+              </button>
+            </article>
+          )) : (
+            <div className={styles.emptyState}>회원가입 계정이 확인되면 이곳에서 AI 사용을 승인할 수 있습니다.</div>
+          )}
         </div>
       </section>
 

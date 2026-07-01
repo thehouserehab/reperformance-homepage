@@ -4,7 +4,7 @@ Last updated: 2026-06-30
 
 ## Scope
 
-This review covers the homepage customer data flow, login/session handling, service application storage, Google Drive/Sheets backup path, PE exam AI consult records, and NORE boundary wording.
+This review covers the homepage customer data flow, login/session handling, service application storage, Google Drive/Sheets backup path, PE exam AI consult records, and external-service separation wording.
 
 It does not replace a legal privacy policy, medical disclaimer review, or database migration plan.
 
@@ -14,7 +14,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - `/api/rp/service-application` stores the application in PostgreSQL tables `rp_clients` and `rp_service_applications`.
 - If a Google Apps Script URL is configured, the app can attempt a Google Drive/Sheets backup after the DB save.
 - `/pe-exam/ai-consult` is login-gated and stores PE exam preparation inputs in `rp_pe_exam_ai_consults`.
-- NORE remains the post-consultation member/student management destination. The public homepage should not present NORE as an open member-management dashboard.
+- External member-management products are not called from the homepage. Public pages should describe only RePERFORMANCE consultation and internal record-management flows.
 
 ## Fixes Applied
 

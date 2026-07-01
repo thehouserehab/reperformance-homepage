@@ -40,6 +40,25 @@ function includesAll(file, needles) {
   return needles.every((needle) => text.includes(needle));
 }
 
+function directoryIncludesText(dir, needle) {
+  const dirPath = path.join(root, dir);
+  if (!fs.existsSync(dirPath)) return false;
+
+  const stack = [dirPath];
+  while (stack.length) {
+    const current = stack.pop();
+    const stats = fs.statSync(current);
+    if (stats.isDirectory()) {
+      for (const child of fs.readdirSync(current)) stack.push(path.join(current, child));
+      continue;
+    }
+
+    if (stats.isFile() && fs.readFileSync(current, "utf8").includes(needle)) return true;
+  }
+
+  return false;
+}
+
 const packageJson = JSON.parse(readFile("package.json"));
 const dependencies = packageJson.dependencies || {};
 const scripts = packageJson.scripts || {};
@@ -86,8 +105,44 @@ addCheck(
 );
 addCheck(
   "security",
+  "AI approval and daily usage buckets are available",
+  includesAll("lib/rpDatabase.js", ["ai_approved", "rp_ai_usage_buckets", "consumeDatabaseAiUsage"])
+    && includesAll("lib/rpAiAccess.js", ["checkAiServiceAccess", "RP_AI_MEMBER_DAILY_LIMIT", "AI_APPROVAL_REQUIRED"]),
+);
+addCheck(
+  "security",
+  "Member-facing AI consult route is gated by approval and daily usage",
+  includesAll("app/api/rp/pe-exam-ai-consult/route.js", ["checkAiServiceAccess", "AI_DAILY_LIMIT_REACHED", "aiUsage"]),
+);
+addCheck(
+  "security",
+  "Token-backed staff AI summary route is daily limited",
+  includesAll("app/api/rp/consultation-summary/route.js", ["checkAiServiceAccess", "OPENAI_API_KEY", "consultation-summary"]),
+);
+addCheck(
+  "security",
+  "Admin account API can manage AI approvals",
+  includesAll("app/api/rp/auth-accounts/route.js", ["updateDatabaseAuthAccountAiApproval", "PATCH", "aiApproved"]),
+);
+addCheck(
+  "security",
+  "Admin client manager exposes AI approval controls",
+  includesAll("components/rp-consultation/RPClientManager.jsx", ["/api/rp/auth-accounts", "AI ACCESS CONTROL", "AI 사용 승인"]),
+);
+addCheck(
+  "security",
+  "External management app URL is not wired into homepage code",
+  !directoryIncludesText("app", "noreapp.com") && !directoryIncludesText("components", "noreapp.com") && !directoryIncludesText("lib", "noreapp.com"),
+);
+addCheck(
+  "security",
   "Baseline SQL migration exists",
-  includesAll("database/migrations/20260630_security_scale_baseline.sql", ["rp_auth_accounts", "rp_service_applications", "rp_rate_limit_buckets"]),
+  includesAll("database/migrations/20260630_security_scale_baseline.sql", ["rp_auth_accounts", "rp_service_applications", "rp_rate_limit_buckets", "rp_ai_usage_buckets"]),
+);
+addCheck(
+  "security",
+  "AI access SQL migration exists",
+  includesAll("database/migrations/20260701_ai_access_controls.sql", ["ai_approved", "rp_ai_usage_buckets", "rp_ai_usage_buckets_usage_date_idx"]),
 );
 addCheck(
   "data",
@@ -131,13 +186,13 @@ addCheck(
   "data",
   "Database migration check command exists",
   Boolean(scripts["db:migration:check"])
-    && includesAll("scripts/check-rp-database-migration.mjs", ["rp_auth_accounts", "rp_rate_limit_buckets", "requiredIndexes", "--allow-missing-database"]),
+    && includesAll("scripts/check-rp-database-migration.mjs", ["rp_auth_accounts", "rp_rate_limit_buckets", "rp_ai_usage_buckets", "requiredIndexes", "--allow-missing-database"]),
 );
 addCheck(
   "data",
   "Database migration apply command is gated",
   Boolean(scripts["db:migration:apply"])
-    && includesAll("scripts/apply-rp-database-migration.mjs", ["RP_DATABASE_MIGRATION_ALLOW_APPLY", "APPLY_RP_DB_MIGRATION", "20260630_security_scale_baseline.sql", "db:migration:check"]),
+    && includesAll("scripts/apply-rp-database-migration.mjs", ["RP_DATABASE_MIGRATION_ALLOW_APPLY", "APPLY_RP_DB_MIGRATION", "database/migrations", "db:migration:check"]),
 );
 addCheck(
   "traffic",

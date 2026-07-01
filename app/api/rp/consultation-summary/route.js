@@ -5,6 +5,7 @@ import {
   hasStaffRole,
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
+import { checkAiServiceAccess } from '../../../../lib/rpAiAccess';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -246,8 +247,29 @@ export async function POST(request) {
     clientSummary: fallbackClientSummary(client, record, phase),
     coachSummary: fallbackCoachSummary(client, record, phase),
   };
+  let aiAccess = null;
 
   try {
+    if (cleanText(process.env.OPENAI_API_KEY)) {
+      aiAccess = await checkAiServiceAccess(session, {
+        routeKey: 'consultation-summary',
+        requireMemberApproval: false,
+      });
+
+      if (!aiAccess.ok) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: aiAccess.error,
+            code: aiAccess.code,
+            usage: aiAccess.usage,
+            setupRequired: aiAccess.setupRequired,
+          },
+          { status: aiAccess.status || 403 },
+        );
+      }
+    }
+
     const ai = await callOpenAI({ client, record, phase });
 
     if (!ai) {
@@ -258,6 +280,7 @@ export async function POST(request) {
       ok: true,
       source: 'openai',
       model: ai.model,
+      aiUsage: aiAccess?.usage || null,
       clientSummary: ai.clientSummary || fallback.clientSummary,
       coachSummary: ai.coachSummary || ai.rawText || fallback.coachSummary,
     });

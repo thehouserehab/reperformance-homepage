@@ -160,10 +160,10 @@ export default function Home() {
         <div className="container grid-2">
           <div className="contact-box accent-box">
             <p className="eyebrow">MEMBER GUIDE</p>
-            <h2>회원관리는 NORE에서 이어집니다.</h2>
+            <h2>회원관리는 상담 이후 내부 흐름으로 이어집니다.</h2>
             <p>
               상담 후 필요한 경우 회원 계정을 안내해드립니다. 수업 기록, 개인운동, 식단, 메모,
-              계약 관리는 NORE에서 확인할 수 있습니다.
+              계약 관리는 상담 이후 안내되는 내부 관리 흐름에서 확인할 수 있습니다.
             </p>
             <div className="button-row">
               <Link href="/member" className="button dark">

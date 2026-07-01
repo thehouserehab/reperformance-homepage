@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME, verifyAdminSessionCookie } from '../../../../lib/rpAdminAuth';
+import { checkAiServiceAccess } from '../../../../lib/rpAiAccess';
 import {
   isDatabaseConfigured,
   listPeExamAiConsultRequests,
@@ -741,6 +742,28 @@ export async function POST(request) {
 
     const payload = await readPayload(request);
     const consultRequest = buildRequest(payload, session);
+    const aiAccess = await checkAiServiceAccess(session, {
+      routeKey: 'pe-exam-ai-consult',
+      requireMemberApproval: true,
+    });
+
+    if (!aiAccess.ok) {
+      if (jsonMode) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: aiAccess.error,
+            code: aiAccess.code,
+            usage: aiAccess.usage,
+            setupRequired: aiAccess.setupRequired,
+          },
+          { status: aiAccess.status || 403 },
+        );
+      }
+
+      return redirectTo(request, aiAccess.code === 'AI_DAILY_LIMIT_REACHED' ? 'ai-limit' : 'ai-approval-required');
+    }
+
     const guidance = buildDirectionGuide(consultRequest);
     const consultationSummary = buildConsultationSummary(consultRequest, guidance);
     const conversationRecord = buildConversationRecord(consultRequest, guidance);
@@ -776,7 +799,7 @@ export async function POST(request) {
       savedAt: new Date().toISOString(),
     });
 
-    if (jsonMode) return NextResponse.json({ ok: true, guidance, backup, ...result });
+    if (jsonMode) return NextResponse.json({ ok: true, guidance, backup, aiUsage: aiAccess.usage, ...result });
 
     return redirectTo(request, 'success');
   } catch (error) {

@@ -155,7 +155,7 @@ export default async function PeExamFaqPage({
             <h2>비회원도 체대입시 상담 신청은 가능합니다.</h2>
             <p>
               희망 대학, 실기 종목, 현재 기록, 운동 가능 시간을 정리해 신청해 주세요.
-              상담 후 필요한 학생에게 NORE 이용 방법을 별도로 안내합니다.
+              상담 후 필요한 학생에게 내부 관리 방식을 별도로 안내합니다.
             </p>
           </div>
           <Link className="button primary" href="/apply?service=pe-exam">

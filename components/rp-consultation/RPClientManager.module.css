@@ -44,7 +44,8 @@
 }
 
 .primaryButton,
-.ghostButton {
+.ghostButton,
+.dangerButton {
   min-height: 42px;
   display: inline-flex;
   align-items: center;
@@ -70,8 +71,15 @@
   border-color: #d9ddd8;
 }
 
+.dangerButton {
+  background: #17191d;
+  color: #fff;
+  border-color: #17191d;
+}
+
 .primaryButton:disabled,
-.ghostButton:disabled {
+.ghostButton:disabled,
+.dangerButton:disabled {
   opacity: .48;
   cursor: not-allowed;
 }
@@ -171,6 +179,100 @@
   margin: 0 28px 18px;
   padding: 20px;
   box-shadow: 0 16px 42px rgba(23, 25, 29, .05);
+}
+
+.aiAccessPanel {
+  display: grid;
+  gap: 18px;
+  margin: 0 28px 18px;
+  padding: 20px;
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 42px rgba(23, 25, 29, .05);
+}
+
+.aiAccessHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e4df;
+}
+
+.aiAccessHeader h2 {
+  margin: 0 0 8px;
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.aiAccessHeader p:not(.eyebrow) {
+  max-width: 760px;
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.65;
+}
+
+.aiAccountGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aiAccountCard {
+  display: grid;
+  gap: 16px;
+  align-content: space-between;
+  min-height: 240px;
+  padding: 18px;
+  border: 1px solid #e2e4df;
+  border-radius: 8px;
+  background: #fbfbfa;
+}
+
+.aiAccountCard h3 {
+  margin: 12px 0 6px;
+  color: #17191d;
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.aiAccountCard p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.aiAccountCard dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.aiAccountCard dl div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.aiAccountCard dt {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.aiAccountCard dd {
+  margin: 0;
+  color: #17191d;
+  font-size: 14px;
+  font-weight: 850;
+  overflow-wrap: anywhere;
 }
 
 .addPanelHeader {
@@ -527,12 +629,17 @@
   .addForm {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .aiAccountGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
   .topbar,
   .detailHeader,
-  .addPanelHeader {
+  .addPanelHeader,
+  .aiAccessHeader {
     flex-direction: column;
     align-items: stretch;
   }
@@ -540,12 +647,14 @@
   .hero,
   .board,
   .topbar,
-  .addPanel {
+  .addPanel,
+  .aiAccessPanel {
     padding-left: 16px;
     padding-right: 16px;
   }
 
-  .addPanel {
+  .addPanel,
+  .aiAccessPanel {
     margin-left: 16px;
     margin-right: 16px;
   }
@@ -553,7 +662,9 @@
   .statGrid,
   .infoGrid,
   .twoColumn,
-  .addForm {
+  .addForm,
+  .aiAccountGrid,
+  .aiAccountCard dl {
     grid-template-columns: 1fr;
   }
 
@@ -562,7 +673,8 @@
   }
 
   .primaryButton,
-  .ghostButton {
+  .ghostButton,
+  .dangerButton {
     width: 100%;
   }
 }

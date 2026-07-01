@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 
 const CONFIRM_TOKEN = "APPLY_RP_DB_MIGRATION";
-const MIGRATION_FILE = "database/migrations/20260630_security_scale_baseline.sql";
+const MIGRATION_DIR = "database/migrations";
 
 function cleanValue(value) {
   return String(value || "").trim();
@@ -36,35 +36,46 @@ function getSslConfig(databaseUrl) {
   return { rejectUnauthorized: false };
 }
 
-function getMigration() {
-  const filePath = path.join(process.cwd(), MIGRATION_FILE);
-  const sql = fs.readFileSync(filePath, "utf8");
-  const hash = crypto.createHash("sha256").update(sql).digest("hex");
-  return { filePath, sql, hash };
+function getMigrations() {
+  const dirPath = path.join(process.cwd(), MIGRATION_DIR);
+  return fs.readdirSync(dirPath)
+    .filter((file) => file.endsWith(".sql"))
+    .sort((left, right) => left.localeCompare(right))
+    .map((file) => {
+      const filePath = path.join(dirPath, file);
+      const sql = fs.readFileSync(filePath, "utf8");
+      const hash = crypto.createHash("sha256").update(sql).digest("hex");
+      return { file, filePath, sql, hash };
+    });
 }
 
-function validateMigration(sql) {
+function validateMigrations(migrations) {
+  const combinedSql = migrations.map((migration) => migration.sql).join("\n\n");
   const requiredFragments = [
     "BEGIN;",
     "CREATE TABLE IF NOT EXISTS rp_auth_accounts",
     "CREATE TABLE IF NOT EXISTS rp_service_applications",
     "CREATE TABLE IF NOT EXISTS rp_rate_limit_buckets",
+    "CREATE TABLE IF NOT EXISTS rp_ai_usage_buckets",
     "CREATE INDEX IF NOT EXISTS rp_rate_limit_buckets_expires_at_idx",
+    "CREATE INDEX IF NOT EXISTS rp_ai_usage_buckets_usage_date_idx",
     "COMMIT;",
   ];
 
-  const missing = requiredFragments.filter((fragment) => !sql.includes(fragment));
+  const missing = requiredFragments.filter((fragment) => !combinedSql.includes(fragment));
   if (missing.length) {
-    throw new Error(`Migration file is missing required fragments: ${missing.join(", ")}`);
+    throw new Error(`Migration files are missing required fragments: ${missing.join(", ")}`);
   }
 }
 
-function printPlan(migration) {
+function printPlan(migrations) {
   console.log("RePERFORMANCE database migration apply");
-  console.log(`migration: ${MIGRATION_FILE}`);
-  console.log(`sha256: ${migration.hash}`);
-  console.log(`bytes: ${Buffer.byteLength(migration.sql, "utf8")}`);
-  console.log("\nThis command applies the baseline security/scale schema migration and then runs db:migration:check.");
+  for (const migration of migrations) {
+    console.log(`migration: ${MIGRATION_DIR}/${migration.file}`);
+    console.log(`sha256: ${migration.hash}`);
+    console.log(`bytes: ${Buffer.byteLength(migration.sql, "utf8")}`);
+  }
+  console.log("\nThis command applies all security/scale schema migrations and then runs db:migration:check.");
 }
 
 function assertApplyAllowed() {
@@ -74,7 +85,7 @@ function assertApplyAllowed() {
   }
 }
 
-async function applyMigration(migration, databaseUrl) {
+async function applyMigrations(migrations, databaseUrl) {
   const pg = await import("pg");
   const Pool = pg.Pool || pg.default?.Pool;
   const pool = new Pool({
@@ -87,7 +98,10 @@ async function applyMigration(migration, databaseUrl) {
 
   const client = await pool.connect();
   try {
-    await client.query(migration.sql);
+    for (const migration of migrations) {
+      console.log(`\n[apply] ${MIGRATION_DIR}/${migration.file}`);
+      await client.query(migration.sql);
+    }
   } catch (error) {
     try {
       await client.query("ROLLBACK");
@@ -128,9 +142,9 @@ Options:
 }
 
 try {
-  const migration = getMigration();
-  validateMigration(migration.sql);
-  printPlan(migration);
+  const migrations = getMigrations();
+  validateMigrations(migrations);
+  printPlan(migrations);
 
   if (hasArg("plan")) process.exit(0);
 
@@ -142,8 +156,8 @@ try {
   }
 
   assertApplyAllowed();
-  await applyMigration(migration, databaseUrl);
-  console.log("\nMigration applied.");
+  await applyMigrations(migrations, databaseUrl);
+  console.log("\nMigrations applied.");
 
   if (!hasArg("skip-post-check")) runPostCheck();
 } catch (error) {

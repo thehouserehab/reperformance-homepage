@@ -6,13 +6,13 @@ import { site } from "../../_components/siteData";
 export const metadata: Metadata = {
   title: "체대입시 상담·관리 안내 | RePERFORMANCE",
   description:
-    "입시 자료 제공, 개인별 운동·입시 상담, NORE 데이터 기반 케어로 이어지는 RePERFORMANCE 체대입시 안내 페이지입니다.",
+    "입시 자료 제공, 개인별 운동·입시 상담, 내부 기록 기반 케어로 이어지는 RePERFORMANCE 체대입시 안내 페이지입니다.",
 };
 
 const heroStats = [
   ["INFO", "입시 자료 제공", "대학별 정보와 전형 일정을 홈페이지에서 확인"],
   ["CONSULT", "개인별 상담", "목표 대학과 현재 기록에 맞춘 운동·입시 상담"],
-  ["NORE", "데이터 케어", "세션 기록, 컨디션, 피드백을 앱에서 관리"],
+  ["RECORD", "기록 관리", "세션 기록, 컨디션, 피드백을 상담 흐름 안에서 관리"],
 ] as const;
 
 const infoResources = [
@@ -34,7 +34,7 @@ const consultSteps = [
   ["01", "상담 신청", "목표 대학, 현재 기록, 준비 기간, 통증 여부처럼 상담에 필요한 정보를 남깁니다."],
   ["02", "현재 상태 확인", "운동 이력, 컨디션, 실기 종목, 생활 패턴을 함께 확인해 출발점을 정리합니다."],
   ["03", "개인별 방향 설정", "목표와 현재 상태의 차이를 기준으로 운동 계획과 입시 준비 우선순위를 세웁니다."],
-  ["04", "관리 방식 안내", "상담 후 필요한 학생은 NORE를 통해 세션 기록, 피드백, 메시지 소통을 이어갑니다."],
+  ["04", "관리 방식 안내", "상담 후 필요한 학생은 내부 상담관리 흐름에 맞춰 세션 기록, 피드백, 소통 방식을 안내받습니다."],
 ] as const;
 
 const noreCareItems = [
@@ -105,7 +105,7 @@ export default function PeExamServicePage() {
           <nav className="pe-standalone-actions" aria-label="체대입시 페이지 섹션">
             <Link href="#admission-info">입시자료</Link>
             <Link href="#consult-system">개인상담</Link>
-            <Link href="#nore-care">NORE 관리</Link>
+            <Link href="#care-system">상담 관리</Link>
             <Link href="#consult-flow">상담신청</Link>
           </nav>
         </div>
@@ -211,17 +211,17 @@ export default function PeExamServicePage() {
         </div>
       </section>
 
-      <section id="nore-care" className={cx("section", publicStyles.noreSystemSection)}>
+      <section id="care-system" className={cx("section", publicStyles.noreSystemSection)}>
         <div className="container">
           <div className={publicStyles.norePanel}>
             <div className={publicStyles.noreLead}>
-              <p className="eyebrow light-text">AI COACHING SYSTEM</p>
-              <h2>NORE로 매 세션을 데이터로 관리합니다.</h2>
+              <p className="eyebrow light-text">RECORD SYSTEM</p>
+              <h2>상담 이후의 기록을 내부 흐름으로 관리합니다.</h2>
               <p>
-                AI 코칭 시스템 NORE를 활용해 회원 개개인의 운동 이력, 컨디션, 목표를 매 세션
-                데이터로 관리합니다. 체대입시부터 공무원 체력시험, 선수 퍼포먼스까지 목표에
-                맞는 프로그램을 설계하고, 앱을 통해 세션 기록·피드백·메시지 소통을 하나로
-                연결합니다.
+                회원 개개인의 운동 이력, 컨디션, 목표를 매 세션
+                데이터로 정리합니다. 체대입시부터 공무원 체력시험, 선수 퍼포먼스까지 목표에
+                맞는 프로그램을 설계하고, 상담 기록·피드백·소통 방식을 하나의 흐름으로
+                정리합니다.
               </p>
               <strong>단순한 운동 지도가 아닌, 데이터 기반의 전문화된 케어를 경험해보세요.</strong>
             </div>
@@ -244,7 +244,7 @@ export default function PeExamServicePage() {
             <p className="eyebrow">START CONSULT</p>
             <h2>상담 신청 후 필요한 관리 방식까지 안내합니다.</h2>
             <p>
-              신청 내용을 확인한 뒤 학생에게 필요한 입시 자료, 운동 상담, NORE 관리 연결 여부를
+              신청 내용을 확인한 뒤 학생에게 필요한 입시 자료, 운동 상담, 내부 관리 연결 여부를
               정리해 안내합니다.
             </p>
           </div>

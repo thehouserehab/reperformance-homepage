@@ -326,7 +326,7 @@ export default function PeExamPage() {
             <article>
               <strong>CARE</strong>
               <h2>학생별 관리는 상담 후</h2>
-              <p>실제 기록, 수업 피드백, 개인 메모는 상담 이후 NORE에서 안내합니다.</p>
+              <p>실제 기록, 수업 피드백, 개인 메모는 상담 이후 내부 관리 흐름으로 안내합니다.</p>
             </article>
           </aside>
         </div>
@@ -672,7 +672,7 @@ export default function PeExamPage() {
             <h2>자료를 확인했다면 개인 준비 방향은 상담에서 정리합니다.</h2>
             <p>
               희망 대학, 현재 기록, 가능한 운동 시간, 몸 상태를 바탕으로 체대입시 운동·입시
-              상담을 진행합니다. 상담 이후 필요한 학생에게 NORE 이용 방법을 별도로 안내합니다.
+              상담을 진행합니다. 상담 이후 필요한 학생에게 내부 관리 방식을 별도로 안내합니다.
             </p>
           </div>
           <Link className="button primary" href="/apply?service=pe-exam">
