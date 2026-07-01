@@ -25,9 +25,9 @@ npm.cmd run db:migration:check
 
 The script also accepts `POSTGRES_URL` or `RP_DATABASE_URL`. It verifies:
 
-- required tables for auth, clients, consultations, applications, PE exam records, rate-limit buckets, and AI usage buckets
+- required tables for auth, clients, consultations, applications, PE exam records, rate-limit buckets, AI usage buckets, and security event logs
 - required columns added by checked-in SQL migrations, including AI approval fields
-- required indexes for customer lookup, application lookup, PE exam lookup, expired rate-limit cleanup, and AI usage lookup
+- required indexes for customer lookup, application lookup, PE exam lookup, expired rate-limit cleanup, AI usage lookup, and security event review
 - remaining legacy `password_plain` rows that already have `password_hash`
 - expired rate-limit bucket rows older than seven days
 
@@ -46,6 +46,7 @@ The script applies every `.sql` file in `database/migrations` in filename order,
 ```text
 database/migrations/20260630_security_scale_baseline.sql
 database/migrations/20260701_ai_access_controls.sql
+database/migrations/20260701_security_event_log.sql
 ```
 
 To inspect the migration metadata without connecting to a database:

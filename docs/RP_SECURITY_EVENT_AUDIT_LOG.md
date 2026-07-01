@@ -1,0 +1,62 @@
+# RePERFORMANCE Security Event Audit Log
+
+Last updated: 2026-07-01
+
+## Purpose
+
+`rp_security_events` gives the operator a minimal audit trail for sensitive account and AI-access actions without creating a new raw-PII store.
+
+## Covered Actions
+
+- Member login: `auth.login`
+- Admin login: `auth.admin_login`
+- Signup: `auth.signup`
+- Account recovery code request: `auth.account_recovery.request_code`
+- Account recovery code verification and ID lookup: `auth.account_recovery.verify_code`, `auth.account_recovery.find_id`
+- Password reset: `auth.account_recovery.reset_password`
+- Admin AI access approval changes: `admin.ai_access_update`
+
+## Stored Fields
+
+- `event_type`
+- `outcome`
+- `actor_hash`
+- `target_hash`
+- `ip_hash`
+- `ip_prefix`
+- `user_agent`
+- `route`
+- `metadata`
+- `created_at`
+
+Actor, target, and IP values are HMAC-hashed with `RP_SECURITY_EVENT_SECRET` when available. If that variable is not set, the app falls back to existing strong app secrets such as `RP_ADMIN_SESSION_SECRET`, `RP_API_SECRET`, or `RP_PASSWORD_HASH_SECRET`.
+
+## Non-Storage Rules
+
+Do not store these values in security event metadata:
+
+- passwords
+- verification codes
+- password hashes
+- session cookies
+- account recovery tokens
+- raw phone numbers
+- raw email verification tokens
+
+The `recordSecurityEvent` helper sanitizes metadata keys matching sensitive names, and route code should still avoid passing secrets to the helper in the first place.
+
+## Retention
+
+`npm run data:retention:audit` includes the `oldSecurityEvents` retention item. In apply mode, it deletes `rp_security_events` rows older than the configured security-event retention window.
+
+## Verification
+
+Run:
+
+```powershell
+npm.cmd run ops:audit
+npm.cmd run db:migration:check -- --allow-missing-database
+npm.cmd run data:retention:audit
+```
+
+For production, run `db:migration:check` with `DATABASE_URL`, `POSTGRES_URL`, or `RP_DATABASE_URL` configured.

@@ -29,6 +29,7 @@ const requiredTables = [
   "rp_pe_exam_ai_consults",
   "rp_rate_limit_buckets",
   "rp_ai_usage_buckets",
+  "rp_security_events",
 ];
 
 const requiredColumns = {
@@ -112,6 +113,19 @@ const requiredColumns = {
     "token_estimate",
     "updated_at",
   ],
+  rp_security_events: [
+    "id",
+    "event_type",
+    "outcome",
+    "actor_hash",
+    "target_hash",
+    "ip_hash",
+    "ip_prefix",
+    "user_agent",
+    "route",
+    "metadata",
+    "created_at",
+  ],
 };
 
 const requiredIndexes = [
@@ -127,6 +141,10 @@ const requiredIndexes = [
   "rp_pe_exam_ai_consults_created_at_idx",
   "rp_rate_limit_buckets_expires_at_idx",
   "rp_ai_usage_buckets_usage_date_idx",
+  "rp_security_events_created_at_idx",
+  "rp_security_events_event_type_idx",
+  "rp_security_events_target_hash_idx",
+  "rp_security_events_ip_hash_idx",
 ];
 
 const results = [];

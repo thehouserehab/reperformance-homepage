@@ -14,6 +14,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
+import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_ATTEMPT_LIMIT = 12;
@@ -82,6 +83,16 @@ function wantsJson(request) {
   return accept.includes('application/json') || contentType.includes('application/json');
 }
 
+function logLoginEvent(request, outcome, payload, metadata = {}) {
+  return recordSecurityEvent({
+    request,
+    eventType: 'auth.login',
+    outcome,
+    target: payload?.username || '',
+    metadata,
+  });
+}
+
 export async function POST(request) {
   const originCheck = checkSameOriginRequest(request);
   if (!originCheck.ok) return buildForbiddenOriginResponse();
@@ -100,24 +111,30 @@ export async function POST(request) {
   });
 
   if (retryAfterSeconds) {
+    await logLoginEvent(request, 'rate_limited', payload, { retryAfterSeconds });
     if (wantsJson(request)) return buildRateLimitResponse(retryAfterSeconds);
     return redirectToLogin(request, payload.next, 'rate-limited');
   }
 
   const account = await findAuthAccountFromStores(payload.username, payload.password);
 
-  if (!account) return redirectToLogin(request, payload.next, 'invalid');
+  if (!account) {
+    await logLoginEvent(request, 'failure', payload, { reason: 'invalid_credentials' });
+    return redirectToLogin(request, payload.next, 'invalid');
+  }
 
   let session;
   try {
     session = await createAdminSession(account);
   } catch (_) {
+    await logLoginEvent(request, 'failure', payload, { reason: 'session_config' });
     return redirectToLogin(request, payload.next, 'config');
   }
 
   const nextPath = sanitizeNext(payload.next, account);
   const response = NextResponse.redirect(new URL(nextPath, request.url), { status: 303 });
   response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions());
+  await logLoginEvent(request, 'success', payload, { role: account.role, nextPath });
 
   return response;
 }

@@ -57,8 +57,10 @@ function validateMigrations(migrations) {
     "CREATE TABLE IF NOT EXISTS rp_service_applications",
     "CREATE TABLE IF NOT EXISTS rp_rate_limit_buckets",
     "CREATE TABLE IF NOT EXISTS rp_ai_usage_buckets",
+    "CREATE TABLE IF NOT EXISTS rp_security_events",
     "CREATE INDEX IF NOT EXISTS rp_rate_limit_buckets_expires_at_idx",
     "CREATE INDEX IF NOT EXISTS rp_ai_usage_buckets_usage_date_idx",
+    "CREATE INDEX IF NOT EXISTS rp_security_events_created_at_idx",
     "COMMIT;",
   ];
 

@@ -14,6 +14,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
+import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,6 +86,16 @@ function buildSafeRecord(record) {
   return safeRecord;
 }
 
+function logSignupEvent(request, outcome, payload, metadata = {}) {
+  return recordSecurityEvent({
+    request,
+    eventType: 'auth.signup',
+    outcome,
+    target: payload?.username || payload?.verificationContact || payload?.phone || payload?.email || '',
+    metadata,
+  });
+}
+
 async function saveAuthSignup(record) {
   if (isDatabaseConfigured()) {
     try {
@@ -148,6 +159,7 @@ export async function POST(request) {
   });
 
   if (retryAfterSeconds) {
+    await logSignupEvent(request, 'rate_limited', payload, { retryAfterSeconds });
     if (wantsJson) return buildRateLimitResponse(retryAfterSeconds);
     return buildRedirect(request, 'rate-limited', role);
   }
@@ -189,21 +201,25 @@ export async function POST(request) {
   };
 
   if (!identityMatches) {
+    await logSignupEvent(request, 'failure', payload, { reason: 'identity_mismatch', verificationMethod });
     if (wantsJson) return jsonResponse({ ok: false, error: '본인 인증을 먼저 완료해주세요.' }, 400);
     return buildRedirect(request, 'invalid', role);
   }
 
   if (!record.name || !record.username || !record.verifiedContact || !record.password) {
+    await logSignupEvent(request, 'failure', payload, { reason: 'missing_required_fields', verificationMethod });
     if (wantsJson) return jsonResponse({ ok: false, error: '이름, 아이디, 연락처, 비밀번호는 필수입니다.' }, 400);
     return buildRedirect(request, 'invalid', role);
   }
 
   if (record.password.length < MIN_PASSWORD_LENGTH) {
+    await logSignupEvent(request, 'failure', payload, { reason: 'weak_password', verificationMethod });
     if (wantsJson) return jsonResponse({ ok: false, error: `비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.` }, 400);
     return buildRedirect(request, 'invalid', role);
   }
 
   if (record.passwordConfirm && record.password !== record.passwordConfirm) {
+    await logSignupEvent(request, 'failure', payload, { reason: 'password_mismatch', verificationMethod });
     if (wantsJson) return jsonResponse({ ok: false, error: '비밀번호 확인이 일치하지 않습니다.' }, 400);
     return buildRedirect(request, 'invalid', role);
   }
@@ -211,6 +227,12 @@ export async function POST(request) {
   try {
     const result = await saveAuthSignup(record);
     const safeRecord = buildSafeRecord(record);
+    await logSignupEvent(request, 'success', payload, {
+      primary: result.primary,
+      autoApproved: Boolean(result.autoApproved),
+      role,
+      verificationMethod,
+    });
 
     if (isMember) {
       const account = result.account || { username: record.username, name: record.name, role: 'member' };
@@ -229,6 +251,7 @@ export async function POST(request) {
     return buildRedirect(request, 'pending', role);
   } catch (error) {
     const status = getFailureStatus(error);
+    await logSignupEvent(request, 'failure', payload, { reason: status, role, verificationMethod });
     if (wantsJson) {
       return jsonResponse({ ok: false, error: error?.message || '가입 처리 중 오류가 발생했습니다.' }, 500);
     }

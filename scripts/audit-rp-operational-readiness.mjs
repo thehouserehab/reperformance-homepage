@@ -112,6 +112,17 @@ addCheck(
 );
 addCheck(
   "security",
+  "Sensitive auth actions write hashed security events",
+  includesAll("lib/rpDatabase.js", ["rp_security_events", "recordDatabaseSecurityEvent"])
+    && includesAll("lib/rpSecurityEvents.js", ["recordSecurityEvent", "createHmac", "SENSITIVE_KEY_PATTERN"])
+    && includesAll("app/api/auth/login/route.js", ["auth.login", "recordSecurityEvent"])
+    && includesAll("app/api/admin/login/route.js", ["auth.admin_login", "recordSecurityEvent"])
+    && includesAll("app/api/rp/signup/route.js", ["auth.signup", "recordSecurityEvent"])
+    && includesAll("app/api/auth/account-recovery/route.js", ["auth.account_recovery", "recordSecurityEvent"])
+    && includesAll("app/api/rp/auth-accounts/route.js", ["admin.ai_access_update", "recordSecurityEvent"]),
+);
+addCheck(
+  "security",
   "Member-facing AI consult route is gated by approval and daily usage",
   includesAll("app/api/rp/pe-exam-ai-consult/route.js", ["checkAiServiceAccess", "AI_DAILY_LIMIT_REACHED", "aiUsage"]),
 );
@@ -148,6 +159,16 @@ addCheck(
   includesAll("database/migrations/20260701_ai_access_controls.sql", ["ai_approved", "rp_ai_usage_buckets", "rp_ai_usage_buckets_usage_date_idx"]),
 );
 addCheck(
+  "security",
+  "Security event SQL migration exists",
+  includesAll("database/migrations/20260701_security_event_log.sql", ["rp_security_events", "actor_hash", "target_hash", "ip_hash"]),
+);
+addCheck(
+  "security",
+  "Security event audit log documentation exists",
+  includesAll("docs/RP_SECURITY_EVENT_AUDIT_LOG.md", ["rp_security_events", "Non-Storage Rules", "oldSecurityEvents"]),
+);
+addCheck(
   "data",
   "Data retention audit command exists",
   Boolean(scripts["data:retention:audit"]) && includesAll("scripts/audit-rp-data-retention.mjs", ["RP_RETENTION_ALLOW_APPLY", "RETENTION_CONFIRM_TOKEN"]),
@@ -155,7 +176,7 @@ addCheck(
 addCheck(
   "data",
   "Retention audit covers sensitive broad payloads",
-  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "legacyPlainPasswords"]),
+  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "oldSecurityEvents", "legacyPlainPasswords"]),
 );
 addCheck(
   "data",

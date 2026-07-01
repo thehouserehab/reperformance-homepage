@@ -11,6 +11,7 @@ import {
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
 import { safeEqual } from '../../../../lib/rpSecurity';
+import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
 export const dynamic = 'force-dynamic';
 
@@ -139,6 +140,16 @@ function maskUsername(username) {
   return `${value.slice(0, 2)}${'*'.repeat(Math.max(2, value.length - 2))}`;
 }
 
+function logRecoveryEvent(request, eventType, outcome, target = '', metadata = {}) {
+  return recordSecurityEvent({
+    request,
+    eventType,
+    outcome,
+    target,
+    metadata,
+  });
+}
+
 async function readPayload(request) {
   const contentType = request.headers.get('content-type') || '';
   if (contentType.includes('application/json')) return request.json().catch(() => ({}));
@@ -209,7 +220,10 @@ async function handleRequestCode(payload, request) {
     ipLimit: IP_REQUEST_LIMIT,
     windowMs: REQUEST_WINDOW_MS,
   });
-  if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
+  if (retryAfterSeconds) {
+    await logRecoveryEvent(request, 'auth.account_recovery.request_code', 'rate_limited', phone, { purpose, retryAfterSeconds });
+    return buildRateLimitResponse(retryAfterSeconds);
+  }
 
   const { account, source, passwordResetSupported } = await findAuthAccountByIdentityFromStores(
     name,
@@ -218,6 +232,7 @@ async function handleRequestCode(payload, request) {
   );
 
   if (!account) {
+    await logRecoveryEvent(request, 'auth.account_recovery.request_code', 'failure', phone, { purpose, reason: 'account_not_found' });
     return Response.json({ ok: false, error: '입력한 정보와 일치하는 계정을 찾지 못했습니다.' }, { status: 404 });
   }
 
@@ -237,6 +252,13 @@ async function handleRequestCode(payload, request) {
     exp: Date.now() + CODE_TTL_SECONDS * 1000,
   });
   const sms = await sendRecoveryCode({ phone, code, purpose });
+  await logRecoveryEvent(request, 'auth.account_recovery.request_code', 'success', account.username, {
+    purpose,
+    source,
+    passwordResetSupported,
+    smsSent: Boolean(sms.sent),
+    smsSetupRequired: Boolean(sms.setupRequired),
+  });
 
   return Response.json({
     ok: true,
@@ -261,20 +283,26 @@ async function handleVerifyCode(payload, request) {
     ipLimit: VERIFY_ATTEMPT_LIMIT,
     windowMs: VERIFY_WINDOW_MS,
   });
-  if (verifyRetryAfter) return buildRateLimitResponse(verifyRetryAfter);
+  if (verifyRetryAfter) {
+    await logRecoveryEvent(request, 'auth.account_recovery.verify_code', 'rate_limited', '', { purpose, retryAfterSeconds: verifyRetryAfter });
+    return buildRateLimitResponse(verifyRetryAfter);
+  }
 
   const tokenPayload = await verifyToken(verificationToken);
 
   if (!tokenPayload || tokenPayload.type !== 'account-recovery-code' || tokenPayload.purpose !== purpose) {
+    await logRecoveryEvent(request, 'auth.account_recovery.verify_code', 'failure', '', { purpose, reason: 'invalid_token' });
     return Response.json({ ok: false, error: '인증 시간이 만료되었거나 요청이 올바르지 않습니다.' }, { status: 400 });
   }
 
   const attemptedHash = await hashCode(code, tokenPayload.salt);
   if (!code || !safeEqual(attemptedHash, tokenPayload.codeHash)) {
+    await logRecoveryEvent(request, 'auth.account_recovery.verify_code', 'failure', tokenPayload.username, { purpose, reason: 'invalid_code' });
     return Response.json({ ok: false, error: '인증번호가 일치하지 않습니다.' }, { status: 400 });
   }
 
   if (purpose === 'find-id') {
+    await logRecoveryEvent(request, 'auth.account_recovery.find_id', 'success', tokenPayload.username, { source: tokenPayload.source });
     return Response.json({
       ok: true,
       username: tokenPayload.username,
@@ -286,12 +314,15 @@ async function handleVerifyCode(payload, request) {
   const newPassword = cleanValue(payload.newPassword);
   const passwordConfirm = cleanValue(payload.passwordConfirm || payload.confirmPassword);
   if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    await logRecoveryEvent(request, 'auth.account_recovery.reset_password', 'failure', tokenPayload.username, { reason: 'weak_password' });
     return Response.json({ ok: false, error: `새 비밀번호는 ${MIN_PASSWORD_LENGTH}자 이상이어야 합니다.` }, { status: 400 });
   }
   if (passwordConfirm && newPassword !== passwordConfirm) {
+    await logRecoveryEvent(request, 'auth.account_recovery.reset_password', 'failure', tokenPayload.username, { reason: 'password_mismatch' });
     return Response.json({ ok: false, error: '새 비밀번호 확인이 일치하지 않습니다.' }, { status: 400 });
   }
   if (!tokenPayload.passwordResetSupported) {
+    await logRecoveryEvent(request, 'auth.account_recovery.reset_password', 'failure', tokenPayload.username, { reason: 'unsupported_store' });
     return Response.json({
       ok: false,
       error: '현재 계정 저장소에서는 자동 비밀번호 변경을 지원하지 않습니다. 관리자에게 임시 비밀번호 발급을 요청해주세요.',
@@ -305,8 +336,11 @@ async function handleVerifyCode(payload, request) {
   );
 
   if (!account) {
+    await logRecoveryEvent(request, 'auth.account_recovery.reset_password', 'failure', tokenPayload.username, { reason: 'update_failed' });
     return Response.json({ ok: false, error: '비밀번호를 변경하지 못했습니다.' }, { status: 500 });
   }
+
+  await logRecoveryEvent(request, 'auth.account_recovery.reset_password', 'success', account.username, { source: tokenPayload.source });
 
   return Response.json({
     ok: true,

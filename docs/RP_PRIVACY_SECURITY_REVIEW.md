@@ -39,6 +39,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Global security headers are configured in `next.config.js`.
 - PE exam source data refresh is available through `npm run pe-exam:data:refresh`, followed by freshness and coverage auditing.
 - Customer data retention dry-run is available through `npm run data:retention:audit`.
+- Sensitive auth and AI-approval actions now write hashed security events to `rp_security_events`; see `docs/RP_SECURITY_EVENT_AUDIT_LOG.md`.
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. It runs dry-run by default and applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
 - The deprecated interactive `next lint` script was replaced with an explicit nonconfigured message, and `npm run typecheck` was added.
@@ -64,6 +65,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Use `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` if backup access or retention policy is not ready.
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
+- Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
 - Run `npm run pe-exam:data:freshness` before admission-season traffic or paid PE exam campaigns.

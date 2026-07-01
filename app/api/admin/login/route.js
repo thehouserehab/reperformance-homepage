@@ -15,6 +15,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
+import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
 const ADMIN_LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const ADMIN_LOGIN_ATTEMPT_LIMIT = 10;
@@ -53,6 +54,16 @@ function wantsJson(request) {
   return accept.includes('application/json') || contentType.includes('application/json');
 }
 
+function logAdminLoginEvent(request, outcome, payload, metadata = {}) {
+  return recordSecurityEvent({
+    request,
+    eventType: 'auth.admin_login',
+    outcome,
+    target: payload?.username || '',
+    metadata,
+  });
+}
+
 export async function POST(request) {
   const originCheck = checkSameOriginRequest(request);
   if (!originCheck.ok) return buildForbiddenOriginResponse();
@@ -72,24 +83,33 @@ export async function POST(request) {
   });
 
   if (retryAfterSeconds) {
+    await logAdminLoginEvent(request, 'rate_limited', payload, { retryAfterSeconds });
     if (wantsJson(request)) return buildRateLimitResponse(retryAfterSeconds);
     return redirectToLogin(request, nextPath, 'rate-limited');
   }
 
   const account = await findAuthAccountFromStores(payload.username, payload.password);
 
-  if (!account) return redirectToLogin(request, nextPath, 'invalid');
-  if (!hasStaffRole(account.role)) return redirectToLogin(request, nextPath, 'forbidden');
+  if (!account) {
+    await logAdminLoginEvent(request, 'failure', payload, { reason: 'invalid_credentials' });
+    return redirectToLogin(request, nextPath, 'invalid');
+  }
+  if (!hasStaffRole(account.role)) {
+    await logAdminLoginEvent(request, 'forbidden', payload, { role: account.role });
+    return redirectToLogin(request, nextPath, 'forbidden');
+  }
 
   let session;
   try {
     session = await createAdminSession(account);
   } catch (_) {
+    await logAdminLoginEvent(request, 'failure', payload, { reason: 'session_config' });
     return redirectToLogin(request, nextPath, 'config');
   }
 
   const response = NextResponse.redirect(new URL(nextPath, request.url), { status: 303 });
   response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions());
+  await logAdminLoginEvent(request, 'success', payload, { role: account.role, nextPath });
 
   return response;
 }

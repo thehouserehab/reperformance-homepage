@@ -18,6 +18,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
+import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
 export const dynamic = 'force-dynamic';
 
@@ -110,8 +111,25 @@ export async function PATCH(request) {
   const account = await updateDatabaseAuthAccountAiApproval(username, Boolean(payload.aiApproved), session.sub);
 
   if (!account) {
+    await recordSecurityEvent({
+      request,
+      eventType: 'admin.ai_access_update',
+      outcome: 'failure',
+      actor: session.sub,
+      target: username,
+      metadata: { reason: 'account_not_found', aiApproved: Boolean(payload.aiApproved) },
+    });
     return NextResponse.json({ ok: false, error: 'Account not found.' }, { status: 404 });
   }
+
+  await recordSecurityEvent({
+    request,
+    eventType: 'admin.ai_access_update',
+    outcome: account.aiApproved ? 'approved' : 'revoked',
+    actor: session.sub,
+    target: username,
+    metadata: { aiApproved: account.aiApproved, accountRole: account.role },
+  });
 
   return NextResponse.json({ ok: true, account });
 }
