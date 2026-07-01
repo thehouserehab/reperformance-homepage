@@ -92,12 +92,34 @@ addCheck(
 addCheck(
   "data",
   "Data retention audit command exists",
-  Boolean(scripts["data:retention:audit"]) && includesAll("scripts/audit-rp-data-retention.mjs", ["RP_RETENTION_ALLOW_APPLY", "APPLY_RP_RETENTION"]),
+  Boolean(scripts["data:retention:audit"]) && includesAll("scripts/audit-rp-data-retention.mjs", ["RP_RETENTION_ALLOW_APPLY", "RETENTION_CONFIRM_TOKEN"]),
 );
 addCheck(
   "data",
   "Retention audit covers sensitive broad payloads",
-  includesAll("scripts/audit-rp-data-retention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "legacyPlainPasswords"]),
+  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "legacyPlainPasswords"]),
+);
+addCheck(
+  "data",
+  "Retention logic is shared by CLI and cron",
+  includesAll("scripts/audit-rp-data-retention.mjs", ["runDataRetention", "summarizeRetentionResult", "RETENTION_CONFIRM_TOKEN"])
+    && includesAll("app/api/rp/maintenance/retention/route.js", ["runDataRetention", "summarizeRetentionResult", "RP_RETENTION_CRON_APPLY"]),
+);
+addCheck(
+  "data",
+  "Retention apply mode is transactional",
+  includesAll("lib/rpDataRetention.mjs", ["BEGIN", "COMMIT", "ROLLBACK"]),
+);
+addCheck(
+  "data",
+  "Retention cron route is bearer-secret protected",
+  includesAll("app/api/rp/maintenance/retention/route.js", ["CRON_SECRET", "RP_MAINTENANCE_CRON_SECRET", "safeEqual", "authorization", "Bearer "]),
+);
+addCheck(
+  "data",
+  "Vercel retention cron is configured",
+  fileExists("vercel.json")
+    && includesAll("vercel.json", ["\"crons\"", "\"/api/rp/maintenance/retention\"", "\"0 18 1 * *\""]),
 );
 addCheck(
   "traffic",

@@ -54,6 +54,8 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
 - Google Drive/Sheets backup is restricted to trusted staff, or disabled with `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false`.
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.
+- Vercel Cron has `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` configured for `/api/rp/maintenance/retention`.
+- Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and retention approval are confirmed.
 
 To check Vercel directly without the full campaign command:
 
@@ -89,6 +91,7 @@ Before the campaign:
 - Run `npm.cmd run db:migration:check` with a production database URL.
 - Run `npm.cmd run data:retention:audit`.
 - Review old broad payload counts for `rp_service_applications` and `rp_pe_exam_ai_consults`.
+- Confirm the monthly retention cron is reporting candidate counts, or run the endpoint manually with `Authorization: Bearer <secret>`.
 - Apply retention only after backup and restore readiness is confirmed:
 
 ```powershell

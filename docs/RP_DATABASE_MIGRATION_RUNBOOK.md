@@ -76,6 +76,8 @@ $env:RP_RETENTION_ALLOW_APPLY="true"
 node scripts/audit-rp-data-retention.mjs --apply --confirm=APPLY_RP_RETENTION
 ```
 
+The deployed Vercel cron route `/api/rp/maintenance/retention` uses the same retention logic as the CLI. Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before relying on the cron result, and keep `RP_RETENTION_CRON_APPLY` disabled until the production migration check, backup restore test, and deletion approval are complete.
+
 If the migration check reports legacy plaintext passwords with hashes, prioritize normal login migration or an admin-approved cleanup that sets `password_plain = NULL` only after `password_hash` is confirmed.
 
 ## 5. Campaign command

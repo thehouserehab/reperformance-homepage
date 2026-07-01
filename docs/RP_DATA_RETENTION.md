@@ -39,10 +39,35 @@ Apply mode:
 - deletes expired rate limit buckets
 - clears `password_plain` only when `password_hash` already exists
 - does not delete client profiles or PE exam question rows automatically
+- runs the apply queries inside a transaction so a failed table cleanup rolls the apply batch back
+
+## Automated Vercel cron
+
+Production includes a monthly Vercel Cron entry in `vercel.json`:
+
+```json
+{
+  "path": "/api/rp/maintenance/retention",
+  "schedule": "0 18 1 * *"
+}
+```
+
+The endpoint is protected by `Authorization: Bearer <secret>` and accepts either:
+
+- `CRON_SECRET`
+- `RP_MAINTENANCE_CRON_SECRET`
+
+Cron mode is intentionally dry-run by default. It reports candidate counts and fails with `503` if no production database URL is configured. To allow the cron endpoint to prune broad payloads and old operational buckets, set:
+
+```txt
+RP_RETENTION_CRON_APPLY=true
+```
+
+Keep this disabled until backup/restore readiness, production DB migration state, and staff approval are confirmed.
 
 ## Review cadence
 
-- Monthly: run `npm.cmd run data:retention:audit`
+- Monthly: review the Vercel cron result and run `npm.cmd run data:retention:audit` when local DB credentials are available
 - Quarterly: review candidate counts and apply pruning after backup/restore readiness is confirmed
 - Before large campaigns: run `npm.cmd run ops:campaign:check -- --build --typecheck`
 
