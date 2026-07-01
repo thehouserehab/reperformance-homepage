@@ -1,6 +1,6 @@
 # RePERFORMANCE 보안, 데이터, 확장 운영 대책
 
-Last updated: 2026-06-30
+Last updated: 2026-07-01
 
 이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
 
@@ -17,7 +17,7 @@ Last updated: 2026-06-30
 
 ## 2. 회원가입 / 로그인 보안 강화
 
-적용된 1차 방어는 앱 인스턴스 메모리 기반 rate limit입니다. 서버리스 인스턴스가 늘어나면 인스턴스별로 적용되므로, 대규모 운영 전에는 Vercel Firewall 또는 Upstash Redis 같은 공유 저장소 기반 rate limit으로 교체합니다.
+적용된 1차 방어는 PostgreSQL이 설정된 경우 `rp_rate_limit_buckets`를 사용하는 공유 rate limit입니다. DB가 없는 로컬/비상 상황에서는 인스턴스 메모리 제한으로 fallback하므로, 대규모 운영 전에는 production DB와 Vercel Firewall을 함께 확인합니다.
 
 - `/api/auth/login`: 아이디 기준 15분 12회, IP 기준 15분 40회 제한.
 - `/api/admin/login`: 아이디 기준 15분 10회, IP 기준 15분 30회 제한.
@@ -26,6 +26,8 @@ Last updated: 2026-06-30
 - `/api/rp/service-application`: 연락처 기준 1시간 8회, IP 기준 1시간 50회 제한.
 - `/api/auth/account-recovery`: 전화번호 15분 5회, IP 15분 20회, 인증 확인 5분 8회 제한.
 - 신규 회원가입과 비밀번호 재설정의 최소 비밀번호 길이는 8자입니다.
+- 토큰을 사용하는 AI 기능은 별도 승인 플래그(`rp_auth_accounts.ai_approved`)와 일일 사용량 버킷(`rp_ai_usage_buckets`)으로 제한합니다.
+- 회원은 홈페이지와 일반 로그인은 이용할 수 있지만, AI 서비스는 관리자 승인 후에만 이용할 수 있습니다.
 - 전역 보안 헤더: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
 
 운영 전 필수값:
@@ -43,12 +45,15 @@ RP_ACCOUNT_RECOVERY_SECRET=긴 랜덤 문자열
 
 ```powershell
 npm run pe-exam:data:refresh
+npm run pe-exam:data:freshness
+npm run pe-exam:data:audit
 ```
 
 이 명령은 KUSF 수시 요약, KUSF 상세, ADIGA 정시 전형, ADIGA 입결 데이터를 순서대로 갱신하고 마지막에 누락 감사를 실행합니다.
 
 운영 기준:
 
+- `npm run pe-exam:data:freshness`로 생성일, 원천 학년도, 최소 데이터량을 확인합니다.
 - 데이터 갱신 후 `npm run pe-exam:data:audit` 결과에서 신규 누락 대학이 없는지 확인합니다.
 - `npm run build`로 486개 이상의 정적 체대입시 상세 페이지가 생성되는지 확인합니다.
 - 공식 원천에 없는 등급컷/기록 기준은 임의 작성하지 않고 “공식 모집요강 확인”으로 표시합니다.
@@ -61,6 +66,7 @@ npm run pe-exam:data:refresh
 
 - 공개 정적 페이지: Vercel CDN 캐시와 SSG를 유지합니다.
 - 공개 POST API: 상담 신청, 회원가입, 인증번호 발송에 rate limit을 적용합니다.
+- 토큰 사용 API: 체대입시 AI 상담, 상담 요약은 승인/권한과 일일 사용량 제한을 함께 적용합니다.
 - DB 연결: `RP_DATABASE_POOL_MAX` 기본 5를 유지하고, 관리형 PostgreSQL 커넥션 제한에 맞춰 조정합니다.
 - 봇/스팸 급증: Vercel Firewall에서 `/api/auth/*`, `/api/rp/signup`, `/api/rp/service-application`에 IP/ASN/국가/속도 제한 규칙을 추가합니다.
 - 장애 대응: 신청 저장소 장애 시 공개 응답은 setup/error 상태만 노출하고 민감 payload를 반환하지 않습니다.
@@ -85,3 +91,4 @@ npm run pe-exam:data:refresh
 - 인증번호 반복 요청 시 429 응답 확인
 - 상담 신청 반복 제출 시 429 응답 또는 `rate-limited` 상태 확인
 - `npm run pe-exam:data:audit`로 대학 누락 감사
+- `npm run pe-exam:data:freshness`로 원천 학년도/생성일/최소 데이터량 확인

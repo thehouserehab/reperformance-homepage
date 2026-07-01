@@ -67,12 +67,20 @@ DB와 백업 저장소에는 원본 데이터가 쌓이고, 실제 상담자가 
 
 ### 로그인 요청 제한
 
-로그인 남용을 줄이기 위해 앱 인스턴스 기준 rate limit이 적용됩니다.
+로그인 남용을 줄이기 위해 PostgreSQL이 설정된 운영 환경에서는 `rp_rate_limit_buckets` 기반 shared rate limit이 적용됩니다. DB가 없는 로컬/비상 환경에서는 인스턴스 메모리 제한으로 fallback합니다.
 
 - 일반 로그인: 아이디 기준 15분 12회, IP 기준 15분 40회
 - 관리자 로그인: 아이디 기준 15분 10회, IP 기준 15분 30회
 
-이 제한은 서버리스 인스턴스별 1차 방어입니다. 대규모 이벤트 전에는 Vercel Firewall 또는 Redis 기반 공유 rate limit으로 확장해야 합니다.
+대규모 이벤트 전에는 shared DB rate limit에 더해 Vercel Firewall 같은 edge 계층 제한을 함께 켭니다.
+
+### AI 서비스 이용 제한
+
+회원 계정은 홈페이지와 일반 자료를 이용할 수 있지만, 토큰을 사용하는 AI 서비스는 관리자 승인 후에만 이용할 수 있습니다.
+
+- 승인 플래그: `rp_auth_accounts.ai_approved`
+- 일일 사용량 버킷: `rp_ai_usage_buckets`
+- 관리자 위치: `/admin/clients`의 AI ACCESS CONTROL 패널
 
 ## 3. 회원가입 방식
 

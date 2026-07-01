@@ -15,6 +15,7 @@
     "ops:campaign:check": "node scripts/check-rp-campaign-readiness.mjs",
     "ops:vercel:check": "node scripts/check-rp-vercel-production.mjs",
     "pe-exam:data:audit": "node scripts/audit-pe-exam-university-coverage.mjs",
+    "pe-exam:data:freshness": "node scripts/check-pe-exam-data-freshness.mjs",
     "pe-exam:data:refresh": "node scripts/fetch-kusf-pe-exam-data.mjs && node scripts/fetch-kusf-pe-exam-detail-data.mjs && node scripts/fetch-adiga-pe-exam-regular-data.mjs && node scripts/fetch-adiga-pe-exam-selection-data.mjs && npm run pe-exam:data:audit"
   },
   "dependencies": {

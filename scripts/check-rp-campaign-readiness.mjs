@@ -17,6 +17,10 @@ const steps = [
     command: [npmCommand, "run", "data:retention:audit"],
   },
   {
+    name: "PE exam source freshness",
+    command: [npmCommand, "run", "pe-exam:data:freshness"],
+  },
+  {
     name: "PE exam source coverage",
     command: [npmCommand, "run", "pe-exam:data:audit"],
   },
@@ -100,7 +104,7 @@ if (!ok) {
 
 console.log(`
 Manual gates before a high-traffic campaign:
-- Apply database/migrations/20260630_security_scale_baseline.sql with npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION and confirm no pending migration drift.
+- Apply all checked-in SQL files in database/migrations with npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION and confirm no pending migration drift.
 - Run npm.cmd run db:migration:check against production PostgreSQL.
 - Verify /api/rp/system-status with a staff session in production.
 - Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-ai-consult, and /api/rp/clients.

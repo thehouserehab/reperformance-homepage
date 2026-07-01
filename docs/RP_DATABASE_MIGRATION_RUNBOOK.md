@@ -25,15 +25,15 @@ npm.cmd run db:migration:check
 
 The script also accepts `POSTGRES_URL` or `RP_DATABASE_URL`. It verifies:
 
-- required tables for auth, clients, consultations, applications, PE exam records, and rate-limit buckets
-- required columns added by `database/migrations/20260630_security_scale_baseline.sql`
-- required indexes for customer lookup, application lookup, PE exam lookup, and expired rate-limit cleanup
+- required tables for auth, clients, consultations, applications, PE exam records, rate-limit buckets, and AI usage buckets
+- required columns added by checked-in SQL migrations, including AI approval fields
+- required indexes for customer lookup, application lookup, PE exam lookup, expired rate-limit cleanup, and AI usage lookup
 - remaining legacy `password_plain` rows that already have `password_hash`
 - expired rate-limit bucket rows older than seven days
 
-## 3. Apply baseline migration
+## 3. Apply checked-in migrations
 
-Apply the checked-in migration with the guarded script:
+Apply all checked-in SQL migrations with the guarded script:
 
 ```powershell
 $env:DATABASE_URL="postgres://..."
@@ -41,10 +41,11 @@ $env:RP_DATABASE_MIGRATION_ALLOW_APPLY="true"
 npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION
 ```
 
-The script applies this file and then runs `npm.cmd run db:migration:check` automatically:
+The script applies every `.sql` file in `database/migrations` in filename order, then runs `npm.cmd run db:migration:check` automatically. Current files:
 
 ```text
 database/migrations/20260630_security_scale_baseline.sql
+database/migrations/20260701_ai_access_controls.sql
 ```
 
 To inspect the migration metadata without connecting to a database:

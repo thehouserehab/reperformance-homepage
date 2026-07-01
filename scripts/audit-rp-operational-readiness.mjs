@@ -183,6 +183,19 @@ addCheck(
     && includesAll("scripts/check-rp-campaign-readiness.mjs", ["--build", "--typecheck", "--database", "--vercel", "Manual gates before a high-traffic campaign"]),
 );
 addCheck(
+  "pe-data",
+  "PE exam data freshness gate exists",
+  Boolean(scripts["pe-exam:data:freshness"])
+    && includesAll("scripts/check-pe-exam-data-freshness.mjs", [
+      "schoolYear",
+      "generatedAt",
+      "min-kusf-year",
+      "min-adiga-year",
+      "max-age-days",
+    ])
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["pe-exam:data:freshness", "PE exam source freshness"]),
+);
+addCheck(
   "data",
   "Database migration check command exists",
   Boolean(scripts["db:migration:check"])

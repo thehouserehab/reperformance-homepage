@@ -37,7 +37,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Session signatures, verification-code hashes, and password fallbacks now use a shared constant-time-style comparison helper.
 - PostgreSQL legacy `password_plain` fallback is automatically migrated to `password_hash` and cleared after a successful login.
 - Global security headers are configured in `next.config.js`.
-- PE exam source data refresh is available through `npm run pe-exam:data:refresh`, followed by coverage auditing.
+- PE exam source data refresh is available through `npm run pe-exam:data:refresh`, followed by freshness and coverage auditing.
 - Customer data retention dry-run is available through `npm run data:retention:audit`.
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. It runs dry-run by default and applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
@@ -51,14 +51,14 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - App-level rate limits now share `rp_rate_limit_buckets` through PostgreSQL when configured. Add Vercel Firewall or Redis/edge rate limiting before major campaigns so abusive traffic is blocked before it reaches the app and DB.
 - Google Drive/Sheets backup duplicates sensitive consultation data. Use it only as a transition/backup path, restrict sheet access, and mirror the retention process in `docs/RP_DATA_RETENTION.md`.
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
-- PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Record the source year whenever generated data is updated.
+- PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Run `npm run pe-exam:data:freshness` to verify source year, generated date, and minimum data volume whenever generated data is updated.
 - AI consult output must remain a preparation guide, not final admissions, medical, or legal advice.
 
 ## Operational Checklist
 
 - Keep `DATABASE_URL` or `RP_DATABASE_URL` configured in production.
-- Apply `database/migrations/20260630_security_scale_baseline.sql` before high-traffic production use, then keep runtime schema creation as a safety net only.
-- Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying the baseline migration.
+- Apply all checked-in SQL files in `database/migrations` before high-traffic production use, then keep runtime schema creation as a safety net only.
+- Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying migrations.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
 - Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
@@ -66,6 +66,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
+- Run `npm run pe-exam:data:freshness` before admission-season traffic or paid PE exam campaigns.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
 - When `DATABASE_URL` and `VERCEL_TOKEN` are available, run `npm run ops:campaign:check -- --build --typecheck --database --vercel` to include database and production Vercel gates.
 - Review `docs/RP_SHARED_RATE_LIMITING.md` before campaign traffic or paid advertising bursts.
