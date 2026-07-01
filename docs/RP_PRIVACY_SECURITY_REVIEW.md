@@ -27,7 +27,10 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
+- Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
 - Public and expensive POST routes reject oversized request bodies before parsing.
+- Customer client writes reject oversized request bodies before parsing.
+- `/api/*` responses are marked `private, no-store` with noindex headers so customer/auth data is not cached by browsers or intermediaries.
 - Consultation summary generation now requires a valid staff session before any OpenAI call.
 - New signup and password reset inputs require at least 8 characters.
 - Session signatures, verification-code hashes, and password fallbacks now use a shared constant-time-style comparison helper.
@@ -57,7 +60,14 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Use `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` if backup access or retention policy is not ready.
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
+- Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
+- Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
+- When `DATABASE_URL` and `VERCEL_TOKEN` are available, run `npm run ops:campaign:check -- --build --typecheck --database --vercel` to include database and production Vercel gates.
 - Review `docs/RP_SHARED_RATE_LIMITING.md` before campaign traffic or paid advertising bursts.
-- Verify `/api/rp/system-status` after deploy.
+- Complete the manual gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.
+- Use `docs/RP_DATABASE_MIGRATION_RUNBOOK.md` for schema, index, legacy password, and retention sequencing.
+- Use `docs/RP_VERCEL_FIREWALL_RULES.md` for edge rule setup and `docs/RP_VERCEL_PRODUCTION_AUDIT.md` for the latest recorded Vercel evidence.
+- Verify `/api/rp/system-status` after deploy with a staff session.
+- Verify `/api/rp/clients` rejects unauthenticated requests before exposing customer data.
 - Run `npm run ops:audit` to confirm the repo-level security, traffic, and PE exam data readiness checks.
 - Run `npm run build` before deploy and treat `npm run lint` as intentionally unavailable until ESLint is configured.

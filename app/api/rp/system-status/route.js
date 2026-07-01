@@ -6,8 +6,12 @@ import {
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
 import { isDatabaseConfigured, isDatabaseOnlyMode } from '../../../../lib/rpDatabase';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 
 export const dynamic = 'force-dynamic';
+
+const STATUS_LIMIT = 120;
+const STATUS_WINDOW_MS = 15 * 60 * 1000;
 
 function cleanEnvValue(value) {
   return String(value || '')
@@ -82,7 +86,7 @@ function buildStatus() {
   };
 }
 
-export async function GET() {
+export async function GET(request) {
   const cookieStore = await cookies();
   const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
@@ -93,6 +97,16 @@ export async function GET() {
   if (!hasStaffAccess(session)) {
     return Response.json({ ok: false, error: '관리자 또는 트레이너 권한이 필요합니다.' }, { status: 403 });
   }
+
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
+    request,
+    scope: 'rp-system-status',
+    identifier: session.sub,
+    limit: STATUS_LIMIT,
+    ipLimit: STATUS_LIMIT * 2,
+    windowMs: STATUS_WINDOW_MS,
+  });
+  if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
 
   return Response.json(buildStatus());
 }

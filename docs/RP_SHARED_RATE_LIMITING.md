@@ -17,6 +17,8 @@ Protected flows:
 - `/api/rp/pe-exam-question`
 - `/api/rp/pe-exam-ai-consult`
 - `/api/rp/consultation-summary`
+- `/api/rp/clients`
+- `/api/rp/system-status`
 
 The shared limiter writes fixed-window counters to `rp_rate_limit_buckets` using an atomic `INSERT ... ON CONFLICT ... DO UPDATE` query. This means multiple serverless instances see the same counters instead of each instance keeping a separate memory-only count.
 
@@ -29,8 +31,19 @@ The PostgreSQL limiter is a practical app-layer guard, but it still consumes app
 - `/api/auth/*`
 - `/api/rp/signup`
 - `/api/rp/service-application`
+- `/api/rp/pe-exam-ai-consult`
+- `/api/rp/pe-exam-question`
+- `/api/rp/clients`
 
 Use the DB limiter for correctness across app instances, and edge/WAF controls to reject abusive traffic before it reaches the app or database.
+
+For campaign preparation, run:
+
+```powershell
+npm.cmd run ops:campaign:check -- --build --typecheck
+```
+
+Then complete the manual edge and production database gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.
 
 ## Verification
 

@@ -1,4 +1,10 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import {
+  ADMIN_COOKIE_NAME,
+  hasStaffAccess,
+  verifyAdminSessionCookie,
+} from '../../../../lib/rpAdminAuth';
 import {
   isDatabaseConfigured,
   isDatabaseOnlyMode,
@@ -7,11 +13,54 @@ import {
   saveDatabaseConsultation,
 } from '../../../../lib/rpDatabase';
 import { shouldSendGoogleDriveSecretInQuery } from '../../../../lib/rpGoogleDriveBackup';
+import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRequestTooLargeResponse,
+  checkRequestBodySize,
+  REQUEST_SIZE_LIMITS,
+} from '../../../../lib/rpRequestGuards';
 
 export const dynamic = 'force-dynamic';
 
+const CLIENTS_READ_LIMIT = 120;
+const CLIENTS_WRITE_LIMIT = 60;
+const CLIENTS_WINDOW_MS = 15 * 60 * 1000;
 const DEFAULT_SHEET_ID = '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E';
 const DEFAULT_MEMBERS_GID = '122819871';
+
+async function requireStaffSession() {
+  const cookieStore = await cookies();
+  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+
+  if (!session) {
+    return {
+      response: NextResponse.json({ ok: false, error: 'Staff login required.' }, { status: 401 }),
+    };
+  }
+
+  if (!hasStaffAccess(session)) {
+    return {
+      response: NextResponse.json({ ok: false, error: 'Staff permission required.' }, { status: 403 }),
+    };
+  }
+
+  return { session };
+}
+
+async function checkClientsLimit(request, session, action) {
+  const retryAfterSeconds = await checkSharedRequestRateLimit({
+    request,
+    scope: `rp-clients:${action}`,
+    identifier: session.sub,
+    limit: action === 'write' ? CLIENTS_WRITE_LIMIT : CLIENTS_READ_LIMIT,
+    ipLimit: action === 'write' ? CLIENTS_WRITE_LIMIT * 2 : CLIENTS_READ_LIMIT * 2,
+    windowMs: CLIENTS_WINDOW_MS,
+  });
+
+  return retryAfterSeconds
+    ? buildRateLimitResponse(retryAfterSeconds, 'Too many customer data requests. Please try again later.')
+    : null;
+}
 
 function cleanEnvValue(value) {
   const text = String(value || '').trim();
@@ -463,7 +512,13 @@ async function saveConsultationToPreferredStore(record) {
   return { source: 'apps-script', action: 'saveConsultation', ...data };
 }
 
-export async function GET() {
+export async function GET(request) {
+  const auth = await requireStaffSession();
+  if (auth.response) return auth.response;
+
+  const rateLimitResponse = await checkClientsLimit(request, auth.session, 'read');
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const data = await listClientsFromPreferredStore();
     return NextResponse.json({ ok: true, source: data.source, action: data.action, method: data.method, clients: data.clients, count: data.clients.length });
@@ -481,6 +536,15 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.large);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
+  const auth = await requireStaffSession();
+  if (auth.response) return auth.response;
+
+  const rateLimitResponse = await checkClientsLimit(request, auth.session, 'write');
+  if (rateLimitResponse) return rateLimitResponse;
+
   try {
     const payload = await request.json();
     const action = payload?.action || 'saveConsultation';

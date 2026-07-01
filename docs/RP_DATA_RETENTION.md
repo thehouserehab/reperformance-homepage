@@ -44,6 +44,6 @@ Apply mode:
 
 - Monthly: run `npm.cmd run data:retention:audit`
 - Quarterly: review candidate counts and apply pruning after backup/restore readiness is confirmed
-- Before large campaigns: run `npm.cmd run ops:audit`, `npm.cmd run build`, and the retention audit
+- Before large campaigns: run `npm.cmd run ops:campaign:check -- --build --typecheck`
 
 Google Drive/Sheets backups are outside this script. If backup is enabled, apply the same retention decisions to the backup sheet/drive permissions and rows.

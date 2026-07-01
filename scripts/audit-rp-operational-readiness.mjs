@@ -61,6 +61,11 @@ addCheck(
 );
 addCheck(
   "security",
+  "API responses are marked no-store",
+  includesAll("next.config.js", ["source: '/api/:path*'", "Cache-Control", "no-store", "X-Robots-Tag"]),
+);
+addCheck(
+  "security",
   "Shared rate limit helper exists",
   includesAll("lib/rpRateLimit.js", ["checkSharedRequestRateLimit", "checkDatabaseRateLimit", "checkRateLimit(key"]),
 );
@@ -89,6 +94,39 @@ addCheck(
   "Retention audit covers sensitive broad payloads",
   includesAll("scripts/audit-rp-data-retention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "legacyPlainPasswords"]),
 );
+addCheck(
+  "traffic",
+  "Campaign readiness command exists",
+  Boolean(scripts["ops:campaign:check"])
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["--build", "--typecheck", "--database", "--vercel", "Manual gates before a high-traffic campaign"]),
+);
+addCheck(
+  "data",
+  "Database migration check command exists",
+  Boolean(scripts["db:migration:check"])
+    && includesAll("scripts/check-rp-database-migration.mjs", ["rp_auth_accounts", "rp_rate_limit_buckets", "requiredIndexes", "--allow-missing-database"]),
+);
+addCheck(
+  "traffic",
+  "Vercel production check command exists",
+  Boolean(scripts["ops:vercel:check"])
+    && includesAll("scripts/check-rp-vercel-production.mjs", ["VERCEL_TOKEN", "/v9/projects", "/v13/deployments", "/v1/security/firewall/config/active"]),
+);
+addCheck(
+  "traffic",
+  "High-traffic campaign runbook exists",
+  includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", ["Vercel Firewall", "npm.cmd run ops:campaign:check", "PE exam data freshness"]),
+);
+addCheck(
+  "traffic",
+  "Vercel production audit document exists",
+  includesAll("docs/RP_VERCEL_PRODUCTION_AUDIT.md", ["Project ID", "Latest production deployment", "Known gaps"]),
+);
+addCheck(
+  "traffic",
+  "Vercel firewall rule checklist exists",
+  includesAll("docs/RP_VERCEL_FIREWALL_RULES.md", ["/api/auth/login", "/api/rp/service-application", "/api/rp/clients"]),
+);
 addCheck("security", "Shared safe comparison helper exists", fileExists("lib/rpSecurity.js") && readFile("lib/rpSecurity.js").includes("safeEqual"));
 addCheck(
   "security",
@@ -111,6 +149,8 @@ const rateLimitedRoutes = [
   "app/api/rp/pe-exam-question/route.js",
   "app/api/rp/pe-exam-ai-consult/route.js",
   "app/api/rp/consultation-summary/route.js",
+  "app/api/rp/clients/route.js",
+  "app/api/rp/system-status/route.js",
 ];
 
 for (const route of rateLimitedRoutes) {
@@ -127,6 +167,7 @@ const bodyLimitedRoutes = [
   "app/api/rp/pe-exam-question/route.js",
   "app/api/rp/pe-exam-ai-consult/route.js",
   "app/api/rp/consultation-summary/route.js",
+  "app/api/rp/clients/route.js",
 ];
 
 for (const route of bodyLimitedRoutes) {
@@ -137,6 +178,18 @@ addCheck(
   "traffic",
   "Consultation summary requires staff session",
   includesAll("app/api/rp/consultation-summary/route.js", ["verifyAdminSessionCookie", "hasStaffRole", "OPENAI_API_KEY"]),
+);
+
+addCheck(
+  "traffic",
+  "Customer clients API requires staff session",
+  includesAll("app/api/rp/clients/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+);
+
+addCheck(
+  "traffic",
+  "System status API requires staff session",
+  includesAll("app/api/rp/system-status/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(
