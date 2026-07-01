@@ -7,7 +7,9 @@ import {
 } from '../../../../lib/rpAdminAuth';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
+  buildForbiddenOriginResponse,
   buildRequestTooLargeResponse,
+  checkSameOriginRequest,
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
@@ -216,6 +218,9 @@ async function callOpenAI({ client, record, phase }) {
 }
 
 export async function POST(request) {
+  const originCheck = checkSameOriginRequest(request);
+  if (!originCheck.ok) return buildForbiddenOriginResponse();
+
   const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.medium);
   if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
 

@@ -50,6 +50,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
+- State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
 - Google Drive/Sheets backup is restricted to trusted staff, or disabled with `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false`.
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.

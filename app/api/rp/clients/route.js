@@ -15,7 +15,9 @@ import {
 import { shouldSendGoogleDriveSecretInQuery } from '../../../../lib/rpGoogleDriveBackup';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
+  buildForbiddenOriginResponse,
   buildRequestTooLargeResponse,
+  checkSameOriginRequest,
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
@@ -536,6 +538,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  const originCheck = checkSameOriginRequest(request);
+  if (!originCheck.ok) return buildForbiddenOriginResponse();
+
   const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.large);
   if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
 

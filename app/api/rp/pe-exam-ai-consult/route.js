@@ -13,7 +13,9 @@ import {
 } from '../../../../lib/rpGoogleDriveBackup';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
+  buildForbiddenOriginResponse,
   buildRequestTooLargeResponse,
+  checkSameOriginRequest,
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
@@ -712,6 +714,9 @@ function buildRequest(payload = {}, session) {
 
 export async function POST(request) {
   const jsonMode = wantsJson(request);
+  const originCheck = checkSameOriginRequest(request);
+  if (!originCheck.ok) return buildForbiddenOriginResponse();
+
   const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.medium);
   if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
 

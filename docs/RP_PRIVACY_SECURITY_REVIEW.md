@@ -30,6 +30,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
 - Public and expensive POST routes reject oversized request bodies before parsing.
 - Customer client writes reject oversized request bodies before parsing.
+- Login, logout, signup, identity verification, account recovery, service application, customer write, consultation summary, PE exam question, and PE exam AI consult POST routes now reject foreign `Origin`/`Referer` values before parsing or rate-limit work.
 - `/api/*` responses are marked `private, no-store` with noindex headers so customer/auth data is not cached by browsers or intermediaries.
 - Consultation summary generation now requires a valid staff session before any OpenAI call.
 - New signup and password reset inputs require at least 8 characters.
@@ -58,6 +59,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Apply `database/migrations/20260630_security_scale_baseline.sql` before high-traffic production use, then keep runtime schema creation as a safety net only.
 - Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying the baseline migration.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
+- Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Use `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` if backup access or retention policy is not ready.
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.

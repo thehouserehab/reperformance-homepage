@@ -76,6 +76,11 @@ addCheck(
 );
 addCheck(
   "security",
+  "Same-origin state-change guard exists",
+  includesAll("lib/rpRequestGuards.js", ["checkSameOriginRequest", "buildForbiddenOriginResponse", "RP_ALLOWED_ORIGINS", "NEXT_PUBLIC_SITE_URL"]),
+);
+addCheck(
+  "security",
   "PostgreSQL shared rate limit buckets are available",
   includesAll("lib/rpDatabase.js", ["rp_rate_limit_buckets", "checkDatabaseRateLimit", "ON CONFLICT (rate_key, window_start)"]),
 );
@@ -178,6 +183,16 @@ const bodyLimitedRoutes = [
 
 for (const route of bodyLimitedRoutes) {
   addCheck("traffic", `${route} enforces request body size`, includesAll(route, ["checkRequestBodySize", "buildRequestTooLargeResponse"]));
+}
+
+const originProtectedRoutes = [
+  ...bodyLimitedRoutes,
+  "app/api/auth/logout/route.js",
+  "app/api/admin/logout/route.js",
+];
+
+for (const route of originProtectedRoutes) {
+  addCheck("security", `${route} rejects foreign origins`, includesAll(route, ["checkSameOriginRequest", "buildForbiddenOriginResponse"]));
 }
 
 addCheck(
