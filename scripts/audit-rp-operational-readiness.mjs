@@ -62,6 +62,7 @@ function directoryIncludesText(dir, needle) {
 const packageJson = JSON.parse(readFile("package.json"));
 const dependencies = packageJson.dependencies || {};
 const scripts = packageJson.scripts || {};
+const externalManagementDomain = ["no", "re", "app", ".com"].join("");
 
 addCheck("runtime", "Next.js is on a patched 15.5.x+ line", versionAtLeast(dependencies.next, "15.5.7"), `next=${dependencies.next}`);
 addCheck("runtime", "React is on a patched 19.2.x+ line", versionAtLeast(dependencies.react, "19.2.4"), `react=${dependencies.react}`);
@@ -132,7 +133,9 @@ addCheck(
 addCheck(
   "security",
   "External management app URL is not wired into homepage code",
-  !directoryIncludesText("app", "noreapp.com") && !directoryIncludesText("components", "noreapp.com") && !directoryIncludesText("lib", "noreapp.com"),
+  !directoryIncludesText("app", externalManagementDomain)
+    && !directoryIncludesText("components", externalManagementDomain)
+    && !directoryIncludesText("lib", externalManagementDomain),
 );
 addCheck(
   "security",
