@@ -1,8 +1,18 @@
 import { spawnSync } from "node:child_process";
 
 const DEFAULT_TEAM_ID = "team_EfbUpj6INJBMbI08rWAvGdof";
-const DEFAULT_PROJECT_ID = "prj_W2sXR8dobiMSH9QGksPYnwbhX03Z";
-const DEFAULT_PROJECT_NAME = "reperformance-homepage";
+const DEFAULT_PROJECTS = [
+  {
+    id: "prj_W2sXR8dobiMSH9QGksPYnwbhX03Z",
+    name: "reperformance-homepage",
+    label: "reperformance-homepage.vercel.app",
+  },
+  {
+    id: "prj_VOlVshBafX9Njmw5ZzgVDc9b2syC",
+    name: "project-7r7l8",
+    label: "reperformance.the-house-exercise.com",
+  },
+];
 const API_BASE = "https://api.vercel.com";
 
 const args = process.argv.slice(2);
@@ -18,7 +28,6 @@ const namedArgs = new Map(
 
 const token = process.env.VERCEL_TOKEN || process.env.RP_VERCEL_TOKEN || "";
 const teamId = namedArgs.get("team-id") || process.env.RP_VERCEL_TEAM_ID || DEFAULT_TEAM_ID;
-const projectId = namedArgs.get("project-id") || process.env.RP_VERCEL_PROJECT_ID || DEFAULT_PROJECT_ID;
 const allowMissingToken = flags.has("--allow-missing-token");
 const requireCommitMatch = flags.has("--require-commit-match");
 const expectedCommit = namedArgs.get("expected-commit") || getGitHead();
@@ -44,6 +53,10 @@ const requiredEnvGroups = [
     name: "account recovery secret",
     anyOf: ["RP_ACCOUNT_RECOVERY_SECRET", "RP_ADMIN_SESSION_SECRET", "RP_API_SECRET"],
   },
+  {
+    name: "maintenance cron secret",
+    anyOf: ["CRON_SECRET", "RP_MAINTENANCE_CRON_SECRET"],
+  },
 ];
 
 const recommendedFirewallTerms = [
@@ -59,6 +72,36 @@ const results = [];
 function addResult(area, name, ok, detail = "") {
   results.push({ area, name, ok: Boolean(ok), detail });
 }
+
+function splitCsv(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function buildProjectTargets() {
+  const configuredIds = splitCsv(
+    namedArgs.get("project-ids")
+      || namedArgs.get("project-id")
+      || process.env.RP_VERCEL_PROJECT_IDS
+      || process.env.RP_VERCEL_PROJECT_ID,
+  );
+
+  if (!configuredIds.length) return DEFAULT_PROJECTS;
+
+  const configuredName = namedArgs.get("project-name") || process.env.RP_VERCEL_PROJECT_NAME || "";
+  return configuredIds.map((id, index) => {
+    const known = DEFAULT_PROJECTS.find((project) => project.id === id);
+    return {
+      id,
+      name: known?.name || (configuredIds.length === 1 ? configuredName : ""),
+      label: known?.label || `project ${index + 1}`,
+    };
+  });
+}
+
+const projectTargets = buildProjectTargets();
 
 function getGitHead() {
   const result = spawnSync("git", ["rev-parse", "HEAD"], {
@@ -126,53 +169,61 @@ function summarizeFirewall(config) {
   return JSON.stringify(config || {}).toLowerCase();
 }
 
-async function checkProject() {
-  const project = await requestJson(`/v9/projects/${projectId}`);
-  addResult("vercel", "Project exists", project?.id === projectId, `${project?.name || "unknown"} (${project?.framework || "unknown"})`);
-  addResult("vercel", "Project name matches", project?.name === DEFAULT_PROJECT_NAME, project?.name || "missing");
-  addResult("vercel", "Next.js framework configured", project?.framework === "nextjs", project?.framework || "missing");
+async function checkProject(projectTarget) {
+  const project = await requestJson(`/v9/projects/${projectTarget.id}`);
+  const prefix = projectTarget.label;
+  addResult("vercel", `${prefix} project exists`, project?.id === projectTarget.id, `${project?.name || "unknown"} (${project?.framework || "unknown"})`);
+  if (projectTarget.name) {
+    addResult("vercel", `${prefix} project name matches`, project?.name === projectTarget.name, project?.name || "missing");
+  } else {
+    addResult("vercel", `${prefix} project name is recorded`, Boolean(project?.name), project?.name || "missing");
+  }
+  addResult("vercel", `${prefix} Next.js framework configured`, project?.framework === "nextjs", project?.framework || "missing");
 }
 
-async function checkDeployment() {
+async function checkDeployment(projectTarget) {
   const deployments = await requestJson("/v13/deployments", {
-    projectId,
+    projectId: projectTarget.id,
     target: "production",
     limit: "1",
   });
   const latest = deployments?.deployments?.[0];
   const sha = latest?.meta?.githubCommitSha || "";
+  const prefix = projectTarget.label;
 
-  addResult("deployment", "Latest production deployment exists", Boolean(latest?.id), latest?.id || "missing");
-  addResult("deployment", "Latest production deployment is READY", latest?.state === "READY" || latest?.readyState === "READY", latest?.state || latest?.readyState || "missing");
-  addResult("deployment", "Latest deployment is from main", latest?.meta?.githubCommitRef === "main", latest?.meta?.githubCommitRef || "missing");
+  addResult("deployment", `${prefix} latest production deployment exists`, Boolean(latest?.id), latest?.id || "missing");
+  addResult("deployment", `${prefix} latest production deployment is READY`, latest?.state === "READY" || latest?.readyState === "READY", latest?.state || latest?.readyState || "missing");
+  addResult("deployment", `${prefix} latest deployment is from main`, latest?.meta?.githubCommitRef === "main", latest?.meta?.githubCommitRef || "missing");
 
   if (requireCommitMatch) {
-    addResult("deployment", "Latest deployment commit matches expected", sha === expectedCommit, `latest=${sha || "missing"} expected=${expectedCommit || "missing"}`);
+    addResult("deployment", `${prefix} latest deployment commit matches expected`, sha === expectedCommit, `latest=${sha || "missing"} expected=${expectedCommit || "missing"}`);
   } else {
-    addResult("deployment", "Latest deployment commit recorded", Boolean(sha), sha || "missing");
+    addResult("deployment", `${prefix} latest deployment commit recorded`, Boolean(sha), sha || "missing");
   }
 }
 
-async function checkEnvironment() {
-  const envResponse = await requestJson(`/v9/projects/${projectId}/env`);
+async function checkEnvironment(projectTarget) {
+  const envResponse = await requestJson(`/v9/projects/${projectTarget.id}/env`);
   const keys = envKeys(envResponse);
+  const prefix = projectTarget.label;
 
   for (const group of requiredEnvGroups) {
     const present = group.anyOf.filter((key) => keys.has(key));
-    addResult("env", `Production env has ${group.name}`, present.length > 0, present.length ? present.join(", ") : `missing one of ${group.anyOf.join(", ")}`);
+    addResult("env", `${prefix} production env has ${group.name}`, present.length > 0, present.length ? present.join(", ") : `missing one of ${group.anyOf.join(", ")}`);
   }
 }
 
-async function checkFirewall() {
+async function checkFirewall(projectTarget) {
   try {
-    const config = await requestJson("/v1/security/firewall/config/active", { projectId });
+    const config = await requestJson("/v1/security/firewall/config/active", { projectId: projectTarget.id });
     const text = summarizeFirewall(config);
     const hasAnyRecommendedPath = recommendedFirewallTerms.some((term) => text.includes(term.toLowerCase()));
+    const prefix = projectTarget.label;
 
-    addResult("firewall", "Firewall config is readable", true, "active config returned");
-    addResult("firewall", "Firewall references protected RP routes", hasAnyRecommendedPath, hasAnyRecommendedPath ? "protected route term found" : "no protected route term found");
+    addResult("firewall", `${prefix} firewall config is readable`, true, "active config returned");
+    addResult("firewall", `${prefix} firewall references protected RP routes`, hasAnyRecommendedPath, hasAnyRecommendedPath ? "protected route term found" : "no protected route term found");
   } catch (error) {
-    addResult("firewall", "Firewall config is readable", false, `${error.status || "error"} ${error.message}`);
+    addResult("firewall", `${projectTarget.label} firewall config is readable`, false, `${error.status || "error"} ${error.message}`);
   }
 }
 
@@ -185,7 +236,7 @@ function printResults() {
 
   console.log("RePERFORMANCE Vercel production check");
   console.log(`teamId=${teamId}`);
-  console.log(`projectId=${projectId}`);
+  console.log(`projects=${projectTargets.map((project) => `${project.label}:${project.id}`).join(", ")}`);
 
   for (const [area, areaResults] of byArea.entries()) {
     console.log(`\n[${area}]`);
@@ -209,10 +260,12 @@ async function main() {
     return;
   }
 
-  await checkProject();
-  await checkDeployment();
-  await checkEnvironment();
-  await checkFirewall();
+  for (const projectTarget of projectTargets) {
+    await checkProject(projectTarget);
+    await checkDeployment(projectTarget);
+    await checkEnvironment(projectTarget);
+    await checkFirewall(projectTarget);
+  }
   printResults();
 }
 

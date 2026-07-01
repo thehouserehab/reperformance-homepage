@@ -4,50 +4,63 @@ Last checked: 2026-07-01
 
 This records the live Vercel state that was verifiable through the connected Vercel app. It is evidence for deployment/runtime status, not a substitute for the manual firewall and environment-variable checks in the campaign runbook.
 
-## Project
+## Production projects
 
 - Team: `thehouserehab-9727s-projects`
 - Team ID: `team_EfbUpj6INJBMbI08rWAvGdof`
+
+### `reperformance-homepage.vercel.app`
+
 - Project: `reperformance-homepage`
 - Project ID: `prj_W2sXR8dobiMSH9QGksPYnwbhX03Z`
 - Framework: `nextjs`
-- Node runtime setting: `24.x`
-
-## Latest production deployment
-
-- Deployment ID: `dpl_Ep9FSBwrp2szwu6c7BZn1gywwhbb`
+- Latest deployment ID: `dpl_7SQ3VSMmS61o7NLnJ7rgo6RbvRm8`
 - State: `READY`
 - Target: `production`
 - Source: GitHub `thehouserehab/reperformance-homepage`
 - Branch: `main`
-- Commit: `02587ec59c7f23ceeaa73b9398d3dfda8c3c3945`
-- Commit message: `Strengthen security and operational readiness`
+- Commit: `f41f0997735dc53966312eefa59598f3790b6ede`
+- Commit message: `Add guarded retention maintenance cron`
 - Region: `iad1`
-
-Aliases reported by Vercel:
-
 - `reperformance-homepage.vercel.app`
 - `reperformance-homepage-thehouserehab-9727s-projects.vercel.app`
 - `reperformance-homepage-git-main-thehouserehab-9727s-projects.vercel.app`
+
+### `reperformance.the-house-exercise.com`
+
+- Project: `project-7r7l8`
+- Project ID: `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`
+- Framework: `nextjs`
+- Latest deployment ID: `dpl_6qETkfFeFnStXHDKQbxc9aRjLBUd`
+- State: `READY`
+- Target: `production`
+- Source: GitHub `thehouserehab/reperformance-homepage`
+- Branch: `main`
+- Commit: `f41f0997735dc53966312eefa59598f3790b6ede`
+- Commit message: `Add guarded retention maintenance cron`
+- Region: `iad1`
+- `reperformance.the-house-exercise.com`
+- `project-7r7l8-thehouserehab-9727s-projects.vercel.app`
+- `project-7r7l8-git-main-thehouserehab-9727s-projects.vercel.app`
 
 ## Runtime health
 
 - Vercel runtime error clusters: none found for the queried range.
 - Runtime logs, recent 1-hour 5xx filter: no matching logs found.
 - Runtime logs, recent 1-hour 429 filter: no matching logs found.
+- `/pe-exam` returned `200 OK` on both production domains after the `f41f099` deployment.
+- `/api/rp/maintenance/retention` is deployed on both projects and currently returns `503 Maintenance cron secret is not configured.`, which confirms the route is live and the production cron secret still needs to be set.
 
 ## Known gaps
 
-- Current local security/campaign-readiness changes are not yet deployed until committed and pushed.
-- The connected Vercel app tools exposed in this Codex session did not include direct environment-variable or firewall-config reads.
+- `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` must be configured in both production Vercel projects before relying on the monthly retention cron.
 - Vercel CLI is installed, but local CLI login is not currently usable in this shell session.
 - Production `DATABASE_URL`/`RP_DATABASE_URL`, migration state, and Firewall rules still require dashboard, REST API token, or CLI verification.
+- Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and deletion approval are complete.
 
 ## Required follow-up
 
-- Commit and push local readiness changes when approved.
-- Verify the next production deployment points at the new commit.
-- Confirm production environment variables in the Vercel dashboard.
+- Confirm production environment variables in both Vercel projects.
 - Confirm firewall rules using `docs/RP_VERCEL_FIREWALL_RULES.md`.
 - Verify `/api/rp/system-status` with a staff session after deploy.
 
@@ -66,4 +79,4 @@ For final campaign readiness:
 npm.cmd run ops:campaign:check -- --build --typecheck --vercel
 ```
 
-The check reads the Vercel project, latest production deployment, production env keys, and active Firewall config. It does not print secret values.
+The check reads both default production Vercel projects, latest production deployments, production env keys, and active Firewall config. It does not print secret values. To check a custom subset, pass `--project-id=...` or set comma-separated `RP_VERCEL_PROJECT_IDS`.

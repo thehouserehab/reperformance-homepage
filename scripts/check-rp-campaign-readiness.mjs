@@ -105,7 +105,7 @@ Manual gates before a high-traffic campaign:
 - Verify /api/rp/system-status with a staff session in production.
 - Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-ai-consult, and /api/rp/clients.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
-- Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention.
+- Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention in both production Vercel projects.
 - Keep RP_RETENTION_CRON_APPLY disabled until backup/restore readiness and deletion approval are confirmed.
 - Run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup access is restricted or disable it with RP_GOOGLE_DRIVE_BACKUP_ENABLED=false.

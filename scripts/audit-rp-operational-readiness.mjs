@@ -143,7 +143,16 @@ addCheck(
   "traffic",
   "Vercel production check command exists",
   Boolean(scripts["ops:vercel:check"])
-    && includesAll("scripts/check-rp-vercel-production.mjs", ["VERCEL_TOKEN", "/v9/projects", "/v13/deployments", "/v1/security/firewall/config/active"]),
+    && includesAll("scripts/check-rp-vercel-production.mjs", [
+      "VERCEL_TOKEN",
+      "DEFAULT_PROJECTS",
+      "RP_VERCEL_PROJECT_IDS",
+      "CRON_SECRET",
+      "RP_MAINTENANCE_CRON_SECRET",
+      "/v9/projects",
+      "/v13/deployments",
+      "/v1/security/firewall/config/active",
+    ]),
 );
 addCheck(
   "traffic",
@@ -153,7 +162,13 @@ addCheck(
 addCheck(
   "traffic",
   "Vercel production audit document exists",
-  includesAll("docs/RP_VERCEL_PRODUCTION_AUDIT.md", ["Project ID", "Latest production deployment", "Known gaps"]),
+  includesAll("docs/RP_VERCEL_PRODUCTION_AUDIT.md", [
+    "Production projects",
+    "prj_W2sXR8dobiMSH9QGksPYnwbhX03Z",
+    "prj_VOlVshBafX9Njmw5ZzgVDc9b2syC",
+    "CRON_SECRET",
+    "Known gaps",
+  ]),
 );
 addCheck(
   "traffic",
