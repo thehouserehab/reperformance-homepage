@@ -3710,8 +3710,7 @@
 }
 
 .kusfDataHead :global(.eyebrow),
-.trackSummaryHead :global(.eyebrow),
-.noreLead :global(.eyebrow) {
+.trackSummaryHead :global(.eyebrow) {
   display: inline-flex;
   width: fit-content;
   min-height: 34px;

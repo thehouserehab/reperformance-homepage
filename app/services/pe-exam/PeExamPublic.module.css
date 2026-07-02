@@ -172,7 +172,7 @@
 
 .publicInfoSection,
 .consultationSection,
-.noreSystemSection,
+.careSystemSection,
 .finalCtaSection {
   display: block;
   padding-top: clamp(72px, 8vw, 104px);
@@ -382,23 +382,23 @@
   line-height: 1.68;
 }
 
-.noreSystemSection {
+.careSystemSection {
   background: #10141d;
   color: #fff;
 }
 
-.norePanel {
+.carePanel {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: clamp(24px, 5vw, 56px);
   align-items: start;
 }
 
-.noreLead {
+.careLead {
   min-width: 0;
 }
 
-.noreLead h2 {
+.careLead h2 {
   margin-bottom: 16px;
   color: #fff;
   font-size: clamp(32px, 4vw, 50px);
@@ -406,13 +406,13 @@
   text-wrap: balance;
 }
 
-.noreLead p:not(:global(.eyebrow)) {
+.careLead p:not(:global(.eyebrow)) {
   color: rgba(255, 255, 255, 0.76);
   font-size: 17px;
   line-height: 1.78;
 }
 
-.noreLead strong {
+.careLead strong {
   display: block;
   margin-top: 22px;
   color: #ffb15f;
@@ -420,14 +420,14 @@
   line-height: 1.55;
 }
 
-.noreCareGrid {
+.careRecordGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
   min-width: 0;
 }
 
-.noreCareCard {
+.careRecordCard {
   min-width: 0;
   min-height: 176px;
   padding: 22px;
@@ -436,14 +436,14 @@
   background: rgba(255, 255, 255, 0.07);
 }
 
-.noreCareCard h3 {
+.careRecordCard h3 {
   margin-bottom: 10px;
   color: #fff;
   font-size: 24px;
   line-height: 1.3;
 }
 
-.noreCareCard p {
+.careRecordCard p {
   margin: 0;
   color: rgba(255, 255, 255, 0.72);
   line-height: 1.68;
@@ -523,7 +523,7 @@
 @media (max-width: 1020px) {
   .publicHeroInner,
   .infoResourceLayout,
-  .norePanel,
+  .carePanel,
   .finalCtaInner {
     grid-template-columns: 1fr;
   }
@@ -585,7 +585,7 @@
 
   .heroStats,
   .consultStepList,
-  .noreCareGrid {
+  .careRecordGrid {
     grid-template-columns: 1fr;
   }
 
@@ -635,7 +635,7 @@
 
   .publicHeroText p:not(:global(.eyebrow)),
   .sectionHead p:not(:global(.eyebrow)),
-  .noreLead p:not(:global(.eyebrow)),
+  .careLead p:not(:global(.eyebrow)),
   .finalCtaCopy p:not(:global(.eyebrow)) {
     font-size: 16px;
   }

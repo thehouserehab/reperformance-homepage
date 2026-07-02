@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const noreItems = ["수업 기록", "개인운동", "식단 기록", "메모", "계약", "일정 관리", "AI 채팅·피드백"] as const;
+const managedItems = ["수업 기록", "개인운동", "식단 기록", "메모", "계약", "일정 관리", "AI 채팅·피드백"] as const;
 
 const websiteItems = ["서비스 안내", "상담 신청", "위치·프로그램 확인", "체대입시 정보 제공"] as const;
 
@@ -54,7 +54,7 @@ export default function MemberPage() {
             <p>개인별 정보와 수업 이후의 관리 항목은 상담을 마친 뒤 내부 기록 흐름에 맞춰 안내합니다.</p>
           </div>
           <div className={styles.managedGrid}>
-            {noreItems.map((item) => (
+            {managedItems.map((item) => (
               <article className={styles.managedCard} key={item}>
                 <span>관리</span>
                 <h3>{item}</h3>
@@ -80,7 +80,7 @@ export default function MemberPage() {
                 ))}
               </ul>
             </article>
-            <article className={`${styles.roleCard} ${styles.noreCard}`}>
+            <article className={`${styles.roleCard} ${styles.managementCard}`}>
               <p>내부 관리</p>
               <h3>수업 이후의 회원 관리</h3>
               <ul>

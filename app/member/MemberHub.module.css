@@ -168,24 +168,24 @@
   background: var(--teal);
 }
 
-.noreCard {
+.managementCard {
   border-color: #1f3641;
   background: #16242a;
 }
 
-.noreCard p {
+.managementCard p {
   color: #8fe3d9;
 }
 
-.noreCard h3 {
+.managementCard h3 {
   color: #fff;
 }
 
-.noreCard li {
+.managementCard li {
   color: rgba(255, 255, 255, 0.75);
 }
 
-.noreCard li::before {
+.managementCard li::before {
   background: #8fe3d9;
 }
 

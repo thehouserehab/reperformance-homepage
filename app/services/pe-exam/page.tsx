@@ -37,7 +37,7 @@ const consultSteps = [
   ["04", "관리 방식 안내", "상담 후 필요한 학생은 내부 상담관리 흐름에 맞춰 세션 기록, 피드백, 소통 방식을 안내받습니다."],
 ] as const;
 
-const noreCareItems = [
+const careRecordItems = [
   {
     title: "운동 이력",
     text: "매 세션 수행 내용과 변화 흐름을 기록해 다음 수업의 기준으로 사용합니다.",
@@ -211,10 +211,10 @@ export default function PeExamServicePage() {
         </div>
       </section>
 
-      <section id="care-system" className={cx("section", publicStyles.noreSystemSection)}>
+      <section id="care-system" className={cx("section", publicStyles.careSystemSection)}>
         <div className="container">
-          <div className={publicStyles.norePanel}>
-            <div className={publicStyles.noreLead}>
+          <div className={publicStyles.carePanel}>
+            <div className={publicStyles.careLead}>
               <p className="eyebrow light-text">RECORD SYSTEM</p>
               <h2>상담 이후의 기록을 내부 흐름으로 관리합니다.</h2>
               <p>
@@ -226,9 +226,9 @@ export default function PeExamServicePage() {
               <strong>단순한 운동 지도가 아닌, 데이터 기반의 전문화된 케어를 경험해보세요.</strong>
             </div>
 
-            <div className={publicStyles.noreCareGrid}>
-              {noreCareItems.map((item) => (
-                <article className={publicStyles.noreCareCard} key={item.title}>
+            <div className={publicStyles.careRecordGrid}>
+              {careRecordItems.map((item) => (
+                <article className={publicStyles.careRecordCard} key={item.title}>
                   <h3>{item.title}</h3>
                   <p>{item.text}</p>
                 </article>

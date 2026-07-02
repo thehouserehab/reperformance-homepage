@@ -63,7 +63,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `npm.cmd run db:migration:check` passes against the production PostgreSQL database.
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
 - Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
-- `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, and request-size checks for JSON body routes.
+- `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.

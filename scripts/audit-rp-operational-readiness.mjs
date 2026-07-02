@@ -59,6 +59,25 @@ function directoryIncludesText(dir, needle) {
   return false;
 }
 
+function directoryIncludesPattern(dir, pattern) {
+  const dirPath = path.join(root, dir);
+  if (!fs.existsSync(dirPath)) return false;
+
+  const stack = [dirPath];
+  while (stack.length) {
+    const current = stack.pop();
+    const stats = fs.statSync(current);
+    if (stats.isDirectory()) {
+      for (const child of fs.readdirSync(current)) stack.push(path.join(current, child));
+      continue;
+    }
+
+    if (stats.isFile() && pattern.test(fs.readFileSync(current, "utf8"))) return true;
+  }
+
+  return false;
+}
+
 function listFiles(dir, predicate = () => true) {
   const dirPath = path.join(root, dir);
   if (!fs.existsSync(dirPath)) return [];
@@ -99,6 +118,7 @@ const packageJson = JSON.parse(readFile("package.json"));
 const dependencies = packageJson.dependencies || {};
 const scripts = packageJson.scripts || {};
 const externalManagementDomain = ["no", "re", "app", ".com"].join("");
+const externalManagementPattern = /nore(?!ferrer)|noreapp|trainer\/home|7977D6D6/i;
 const apiRouteFiles = listFiles("app/api", (file) => path.basename(file) === "route.js");
 
 addCheck("runtime", "Next.js is on a patched 15.5.x+ line", versionAtLeast(dependencies.next, "15.5.7"), `next=${dependencies.next}`);
@@ -184,6 +204,11 @@ addCheck(
   !directoryIncludesText("app", externalManagementDomain)
     && !directoryIncludesText("components", externalManagementDomain)
     && !directoryIncludesText("lib", externalManagementDomain),
+);
+addCheck(
+  "security",
+  "External management service identifiers are absent from source code",
+  !["app", "components", "lib", "database"].some((dir) => directoryIncludesPattern(dir, externalManagementPattern)),
 );
 addCheck(
   "security",
