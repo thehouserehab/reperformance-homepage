@@ -47,16 +47,14 @@ RP_ACCOUNT_RECOVERY_SECRET=긴 랜덤 문자열
 
 ```powershell
 npm run pe-exam:data:refresh
-npm run pe-exam:data:freshness
-npm run pe-exam:data:audit
 ```
 
-이 명령은 KUSF 수시 요약, KUSF 상세, ADIGA 정시 전형, ADIGA 입결 데이터를 순서대로 갱신하고 마지막에 누락 감사를 실행합니다.
+이 명령은 KUSF 수시 요약, KUSF 상세, ADIGA 정시 전형, ADIGA 입결 데이터를 순서대로 갱신한 뒤 freshness gate와 대학 누락 감사를 함께 실행합니다. 원천 fetch 없이 현재 snapshot만 빠르게 검증할 때는 `npm run pe-exam:data:verify`를 사용합니다.
 
 운영 기준:
 
-- `npm run pe-exam:data:freshness`로 생성일, 원천 학년도, 최소 데이터량을 확인합니다.
-- 데이터 갱신 후 `npm run pe-exam:data:audit` 결과에서 신규 누락 대학이 없는지 확인합니다.
+- `npm run pe-exam:data:refresh` 결과에서 생성일, 원천 학년도, 최소 데이터량, 신규 누락 대학 여부를 한 번에 확인합니다.
+- 배포 직전 snapshot 검증만 필요하면 `npm run pe-exam:data:verify`로 freshness와 coverage를 재확인합니다.
 - `npm run build`로 486개 이상의 정적 체대입시 상세 페이지가 생성되는지 확인합니다.
 - 공식 원천에 없는 등급컷/기록 기준은 임의 작성하지 않고 “공식 모집요강 확인”으로 표시합니다.
 - 수동 보강 대학은 `peExamData.ts`에 검색어, 코드, 학과, 공식 확인 문구를 함께 남깁니다.
@@ -93,5 +91,4 @@ npm run pe-exam:data:audit
 - 로그인 실패 반복 시 429 응답 또는 제한 안내 확인
 - 인증번호 반복 요청 시 429 응답 확인
 - 상담 신청 반복 제출 시 429 응답 또는 `rate-limited` 상태 확인
-- `npm run pe-exam:data:audit`로 대학 누락 감사
-- `npm run pe-exam:data:freshness`로 원천 학년도/생성일/최소 데이터량 확인
+- `npm run pe-exam:data:verify`로 대학 누락, 원천 학년도, 생성일, 최소 데이터량 확인

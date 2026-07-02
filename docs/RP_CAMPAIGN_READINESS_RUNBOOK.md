@@ -16,7 +16,7 @@ This runs:
 
 - `npm.cmd run ops:audit`
 - `npm.cmd run data:retention:audit`
-- `npm.cmd run pe-exam:data:audit`
+- `npm.cmd run pe-exam:data:verify`
 
 For final pre-deploy verification, run:
 
@@ -146,9 +146,9 @@ Before admission-season traffic:
 
 ```powershell
 npm.cmd run pe-exam:data:refresh
-npm.cmd run pe-exam:data:freshness
-npm.cmd run pe-exam:data:audit
 ```
+
+`pe-exam:data:refresh` fetches all KUSF/ADIGA source snapshots and then runs freshness/source-year and university coverage gates. Use `npm.cmd run pe-exam:data:verify` when the source snapshots have already been refreshed and only the gates need to be rerun.
 
 Publish only when:
 

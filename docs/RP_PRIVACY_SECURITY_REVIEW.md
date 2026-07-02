@@ -42,7 +42,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Session signatures, verification-code hashes, and password fallbacks now use a shared constant-time-style comparison helper.
 - PostgreSQL legacy `password_plain` fallback is automatically migrated to `password_hash` and cleared after a successful login.
 - Global security headers are configured in `next.config.js`.
-- PE exam source data refresh is available through `npm run pe-exam:data:refresh`, followed by freshness and coverage auditing.
+- PE exam source data refresh is available through `npm run pe-exam:data:refresh`, which now includes freshness and coverage gates; `npm run pe-exam:data:verify` reruns those gates without fetching.
 - Customer data retention dry-run is available through `npm run data:retention:audit`.
 - Sensitive auth and AI-approval actions now write hashed security events to `rp_security_events`; see `docs/RP_SECURITY_EVENT_AUDIT_LOG.md`.
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. Unauthenticated requests are rejected before setup checks, the route runs dry-run by default, and it applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
@@ -60,7 +60,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - App-level rate limits now share `rp_rate_limit_buckets` through PostgreSQL when configured. Add Vercel Firewall or Redis/edge rate limiting before major campaigns so abusive traffic is blocked before it reaches the app and DB.
 - Google Drive/Sheets backup can still contain contact and structured consultation routing fields. Use it only as a transition/backup path, restrict sheet access, and mirror the retention process in `docs/RP_DATA_RETENTION.md`.
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
-- PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Run `npm run pe-exam:data:freshness` to verify source year, generated date, and minimum data volume whenever generated data is updated.
+- PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Run `npm run pe-exam:data:refresh` to update snapshots and verify source year, generated date, minimum data volume, and university coverage whenever generated data is updated.
 - AI consult output must remain a preparation guide, not final admissions, medical, or legal advice.
 
 ## Operational Checklist
@@ -76,7 +76,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
-- Run `npm run pe-exam:data:freshness` before admission-season traffic or paid PE exam campaigns.
+- Run `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
 - Run `npm run ops:public:check` after deploy to verify public pages, security headers, API no-store behavior, unauthenticated API rejection, and external management service separation.
 - When `DATABASE_URL` and `VERCEL_TOKEN` are available, run `npm run ops:campaign:check -- --build --typecheck --database --vercel` to include database and production Vercel gates.

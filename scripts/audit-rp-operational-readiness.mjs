@@ -361,7 +361,7 @@ addCheck(
 );
 addCheck(
   "pe-data",
-  "PE exam data freshness gate exists",
+  "PE exam data freshness gate is wired into snapshot verification",
   Boolean(scripts["pe-exam:data:freshness"])
     && includesAll("scripts/check-pe-exam-data-freshness.mjs", [
       "schoolYear",
@@ -370,7 +370,7 @@ addCheck(
       "min-adiga-year",
       "max-age-days",
     ])
-    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["pe-exam:data:freshness", "PE exam source freshness"]),
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["pe-exam:data:verify", "PE exam source snapshot gates"]),
 );
 addCheck(
   "data",
@@ -565,7 +565,23 @@ addCheck(
   includesAll("app/api/auth/account-recovery/route.js", ["PHONE_REQUEST_LIMIT", "IP_REQUEST_LIMIT", "VERIFY_ATTEMPT_LIMIT"]),
 );
 
-addCheck("pe-data", "PE exam data refresh command exists", Boolean(scripts["pe-exam:data:refresh"]));
+addCheck(
+  "pe-data",
+  "PE exam data refresh command runs source fetches and verification gates",
+  Boolean(scripts["pe-exam:data:refresh"])
+    && scripts["pe-exam:data:refresh"].includes("scripts/refresh-pe-exam-data.mjs")
+    && Boolean(scripts["pe-exam:data:verify"])
+    && scripts["pe-exam:data:verify"].includes("--verify-only")
+    && includesAll("scripts/refresh-pe-exam-data.mjs", [
+      "fetch-kusf-pe-exam-data.mjs",
+      "fetch-kusf-pe-exam-detail-data.mjs",
+      "fetch-adiga-pe-exam-regular-data.mjs",
+      "fetch-adiga-pe-exam-selection-data.mjs",
+      "check-pe-exam-data-freshness.mjs",
+      "audit-pe-exam-university-coverage.mjs",
+      "--verify-only",
+    ]),
+);
 addCheck("pe-data", "PE exam data coverage audit command exists", Boolean(scripts["pe-exam:data:audit"]));
 addCheck("pe-data", "KUSF summary fetch script exists", fileExists("scripts/fetch-kusf-pe-exam-data.mjs"));
 addCheck("pe-data", "KUSF detail fetch script exists", fileExists("scripts/fetch-kusf-pe-exam-detail-data.mjs"));

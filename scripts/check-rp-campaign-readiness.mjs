@@ -18,12 +18,8 @@ const steps = [
     command: [npmCommand, "run", "data:retention:audit"],
   },
   {
-    name: "PE exam source freshness",
-    command: [npmCommand, "run", "pe-exam:data:freshness"],
-  },
-  {
-    name: "PE exam source coverage",
-    command: [npmCommand, "run", "pe-exam:data:audit"],
+    name: "PE exam source snapshot gates",
+    command: [npmCommand, "run", "pe-exam:data:verify"],
   },
 ];
 
