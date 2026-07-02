@@ -310,18 +310,26 @@
 }
 
 .resourceHubNav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   width: 100%;
-  flex: 0 1 auto;
-  flex-wrap: wrap;
+  max-width: 100%;
+  flex: none;
   overflow: visible;
   padding: 4px 0 0;
-  row-gap: 10px;
 }
 
 .resourceHubNav .hubPillLink {
-  max-width: 100%;
-  flex: 0 1 auto;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  flex: none;
   border-color: rgba(255, 255, 255, 0.24);
+  padding: 0 14px;
+  line-height: 1.18;
+  text-align: center;
+  white-space: normal;
 }
 
 .resourceHubNav .hubPillPrimary {
@@ -605,11 +613,7 @@
   }
 
   .resourceHubNav {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
     margin-right: 0;
-    overflow: visible;
     padding-right: 0;
   }
 
@@ -620,12 +624,7 @@
   }
 
   .resourceHubNav .hubPillLink {
-    width: 100%;
-    min-width: 0;
-    padding: 0 14px;
-    white-space: normal;
-    line-height: 1.18;
-    text-align: center;
+    padding: 0 12px;
   }
 }
 
