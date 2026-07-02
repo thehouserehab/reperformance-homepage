@@ -55,12 +55,12 @@ Production includes a monthly Vercel Cron entry in `vercel.json`:
 }
 ```
 
-The endpoint is protected by `Authorization: Bearer <secret>` and accepts either:
+The endpoint is protected by `Authorization: Bearer <secret>`. Requests without a bearer token are rejected before database or retention setup checks. The route accepts either:
 
 - `CRON_SECRET`
 - `RP_MAINTENANCE_CRON_SECRET`
 
-Cron mode is intentionally dry-run by default. It reports candidate counts and fails with `503` if no production database URL is configured. To allow the cron endpoint to prune broad payloads and old operational buckets, set:
+Cron mode is intentionally dry-run by default. It reports candidate counts and fails with `503` if no production database URL is configured after authorization succeeds. To allow the cron endpoint to prune broad payloads and old operational buckets, set:
 
 ```txt
 RP_RETENTION_CRON_APPLY=true

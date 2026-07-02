@@ -49,7 +49,7 @@ This records the live Vercel state that was verifiable through the connected Ver
 - Runtime logs, recent 1-hour 5xx filter: no matching logs found.
 - Runtime logs, recent 1-hour 429 filter: no matching logs found.
 - `/pe-exam` returned `200 OK` on both production domains after the `f41f099` deployment.
-- `/api/rp/maintenance/retention` is deployed on both projects and currently returns `503 Maintenance cron secret is not configured.`, which confirms the route is live and the production cron secret still needs to be set.
+- `/api/rp/maintenance/retention` is deployed on both projects. Unauthenticated requests should return `401`, and authenticated cron execution still requires `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` plus a production database URL before relying on the monthly result.
 
 ## Known gaps
 

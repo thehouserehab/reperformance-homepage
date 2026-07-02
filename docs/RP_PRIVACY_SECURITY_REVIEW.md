@@ -45,7 +45,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - PE exam source data refresh is available through `npm run pe-exam:data:refresh`, followed by freshness and coverage auditing.
 - Customer data retention dry-run is available through `npm run data:retention:audit`.
 - Sensitive auth and AI-approval actions now write hashed security events to `rp_security_events`; see `docs/RP_SECURITY_EVENT_AUDIT_LOG.md`.
-- Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. It runs dry-run by default and applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
+- Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. Unauthenticated requests are rejected before setup checks, the route runs dry-run by default, and it applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
 - The deprecated interactive `next lint` script was replaced with an explicit nonconfigured message, and `npm run typecheck` was added.
 

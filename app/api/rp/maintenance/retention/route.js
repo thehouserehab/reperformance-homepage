@@ -20,12 +20,18 @@ function getBearerToken(request) {
   return header.slice(prefix.length).trim();
 }
 
+function getMaintenanceSecret() {
+  return cleanValue(process.env.CRON_SECRET || process.env.RP_MAINTENANCE_CRON_SECRET);
+}
+
 function isAuthorizedCronRequest(request) {
-  const secret = cleanValue(process.env.CRON_SECRET || process.env.RP_MAINTENANCE_CRON_SECRET);
+  const token = getBearerToken(request);
+  if (!token) return { ok: false, status: 401, error: 'Unauthorized maintenance request.' };
+
+  const secret = getMaintenanceSecret();
   if (!secret) return { ok: false, status: 503, error: 'Maintenance cron secret is not configured.' };
 
-  const token = getBearerToken(request);
-  if (!safeEqual(token, secret)) return { ok: false, status: 401, error: 'Unauthorized maintenance request.' };
+  if (!safeEqual(token, secret)) return { ok: false, status: 403, error: 'Forbidden maintenance request.' };
 
   return { ok: true };
 }

@@ -254,7 +254,18 @@ addCheck(
 addCheck(
   "data",
   "Retention cron route is bearer-secret protected",
-  includesAll("app/api/rp/maintenance/retention/route.js", ["CRON_SECRET", "RP_MAINTENANCE_CRON_SECRET", "safeEqual", "authorization", "Bearer "]),
+  includesAll("app/api/rp/maintenance/retention/route.js", [
+    "CRON_SECRET",
+    "RP_MAINTENANCE_CRON_SECRET",
+    "getBearerToken",
+    "getMaintenanceSecret",
+    "if (!token)",
+    "status: 401",
+    "status: 403",
+    "safeEqual",
+    "authorization",
+    "Bearer ",
+  ]),
 );
 addCheck(
   "data",

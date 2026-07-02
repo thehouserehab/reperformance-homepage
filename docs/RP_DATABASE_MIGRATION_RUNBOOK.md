@@ -79,7 +79,7 @@ $env:RP_RETENTION_ALLOW_APPLY="true"
 node scripts/audit-rp-data-retention.mjs --apply --confirm=APPLY_RP_RETENTION
 ```
 
-The deployed Vercel cron route `/api/rp/maintenance/retention` uses the same retention logic as the CLI. Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before relying on the cron result, and keep `RP_RETENTION_CRON_APPLY` disabled until the production migration check, backup restore test, and deletion approval are complete.
+The deployed Vercel cron route `/api/rp/maintenance/retention` uses the same retention logic as the CLI and rejects unauthenticated requests before setup checks. Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before relying on the cron result, and keep `RP_RETENTION_CRON_APPLY` disabled until the production migration check, backup restore test, and deletion approval are complete.
 
 The `20260702_retention_scale_indexes.sql` migration adds partial indexes for old broad JSON payload cleanup. Apply it before running retention apply mode on a large production dataset so the cleanup can find unminimized rows without scanning every retained record.
 
