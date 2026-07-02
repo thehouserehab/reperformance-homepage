@@ -185,6 +185,17 @@ addCheck(
 );
 addCheck(
   "data",
+  "Service application Google Drive backup payload is minimized",
+  includesAll("app/api/rp/service-application/route.js", [
+    "buildGoogleDriveBackupApplication",
+    "buildGoogleDriveBackupClient",
+    "minimized_on_send",
+    "application: backupApplication",
+    "client: backupClient",
+  ]),
+);
+addCheck(
+  "data",
   "Retention logic is shared by CLI and cron",
   includesAll("scripts/audit-rp-data-retention.mjs", ["runDataRetention", "summarizeRetentionResult", "RETENTION_CONFIRM_TOKEN"])
     && includesAll("app/api/rp/maintenance/retention/route.js", ["runDataRetention", "summarizeRetentionResult", "RP_RETENTION_CRON_APPLY"]),

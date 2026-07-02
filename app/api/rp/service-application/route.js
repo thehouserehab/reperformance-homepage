@@ -68,19 +68,28 @@ async function backupServiceApplication(application, client) {
     };
   }
 
+  const backupPayload = buildMinimizedApplicationPayload(application);
+  const backupApplication = buildGoogleDriveBackupApplication(application, backupPayload);
+  const backupClient = buildGoogleDriveBackupClient(client);
   const payload = {
-    application,
-    client,
+    application: backupApplication,
+    client: backupClient,
     record: {
       recordType: 'serviceApplication',
+      backupRetention: 'minimized_on_send',
+      backupSchemaVersion: 1,
+      applicationId: application.id,
       clientId: application.clientId,
       clientName: application.name,
       phone: application.phone,
       selectedService: application.selectedService,
       serviceLabel: application.serviceLabel,
       memberType: application.memberType,
-      application,
-      client,
+      parqStatus: application.parqStatus,
+      source: application.source,
+      payload: backupPayload,
+      application: backupApplication,
+      client: backupClient,
     },
   };
   const attempts = ['saveServiceApplication', 'saveApplication', 'saveConsultation'];
@@ -260,6 +269,39 @@ function buildMinimizedApplicationPayload(application) {
         }
       : null,
     savedAt: new Date().toISOString(),
+  };
+}
+
+function buildGoogleDriveBackupApplication(application, metadata = buildMinimizedApplicationPayload(application)) {
+  return {
+    retention: 'minimized_on_send',
+    kind: 'service_application_backup',
+    schemaVersion: 1,
+    id: application.id,
+    clientId: application.clientId,
+    name: application.name,
+    phone: application.phone,
+    selectedService: application.selectedService,
+    serviceLabel: application.serviceLabel,
+    memberType: application.memberType,
+    parqStatus: application.parqStatus,
+    source: application.source,
+    metadata,
+  };
+}
+
+function buildGoogleDriveBackupClient(client = {}) {
+  return {
+    retention: 'minimized_on_send',
+    kind: 'client_backup_reference',
+    schemaVersion: 1,
+    id: client.id || null,
+    name: client.name || null,
+    phone: client.phone || null,
+    memberType: client.memberType || null,
+    status: client.status || null,
+    parqStatus: client.parqStatus || null,
+    source: client.source || null,
   };
 }
 

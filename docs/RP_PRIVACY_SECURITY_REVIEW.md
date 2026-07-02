@@ -1,6 +1,6 @@
 # RePERFORMANCE privacy and security review
 
-Last updated: 2026-06-30
+Last updated: 2026-07-02
 
 ## Scope
 
@@ -25,6 +25,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Public service application JSON responses no longer return the full application/client payload.
 - Service application and PE exam AI consult free-text inputs are length-limited before storage/backup.
 - New `rp_service_applications.payload` writes are minimized on insert; duplicate PII and raw free-text application details stay in structured follow-up columns instead of the broad JSON payload.
+- Service application Google Drive/Sheets backup requests now send a minimized backup payload instead of duplicating the full application/client objects.
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
@@ -51,7 +52,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Existing older `rp_service_applications.payload` rows may still contain broader application objects until retention pruning is reviewed and applied.
 - `rp_auth_accounts` still supports legacy `password_plain` fallback for migration. Successful DB fallback logins now clear it automatically, but remaining rows should still be audited and cleaned.
 - App-level rate limits now share `rp_rate_limit_buckets` through PostgreSQL when configured. Add Vercel Firewall or Redis/edge rate limiting before major campaigns so abusive traffic is blocked before it reaches the app and DB.
-- Google Drive/Sheets backup duplicates sensitive consultation data. Use it only as a transition/backup path, restrict sheet access, and mirror the retention process in `docs/RP_DATA_RETENTION.md`.
+- Google Drive/Sheets backup can still contain contact and structured consultation routing fields. Use it only as a transition/backup path, restrict sheet access, and mirror the retention process in `docs/RP_DATA_RETENTION.md`.
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
 - PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Run `npm run pe-exam:data:freshness` to verify source year, generated date, and minimum data volume whenever generated data is updated.
 - AI consult output must remain a preparation guide, not final admissions, medical, or legal advice.

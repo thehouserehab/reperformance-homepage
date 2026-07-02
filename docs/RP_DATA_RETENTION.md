@@ -71,4 +71,4 @@ Keep this disabled until backup/restore readiness, production DB migration state
 - Quarterly: review candidate counts and apply pruning after backup/restore readiness is confirmed
 - Before large campaigns: run `npm.cmd run ops:campaign:check -- --build --typecheck`
 
-Google Drive/Sheets backups are outside this script. If backup is enabled, apply the same retention decisions to the backup sheet/drive permissions and rows.
+Google Drive/Sheets backups are outside this script. New service application backup requests are minimized with `retention=minimized_on_send`, but the backup sheet/drive still contains contact and routing fields. If backup is enabled, apply the same retention decisions to the backup sheet/drive permissions and rows.
