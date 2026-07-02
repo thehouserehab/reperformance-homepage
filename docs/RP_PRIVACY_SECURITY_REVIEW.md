@@ -35,7 +35,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
 - Public and expensive POST routes reject oversized request bodies before parsing.
 - Customer client writes reject oversized request bodies before parsing.
-- Login, logout, signup, identity verification, account recovery, service application, customer write, consultation summary, PE exam question, and PE exam AI consult POST routes now reject foreign `Origin`/`Referer` values before parsing or rate-limit work.
+- Login, logout, signup, identity verification, account recovery, service application, customer write, consultation summary, PE exam question, and PE exam AI consult POST routes now reject foreign `Origin`/`Referer` values before parsing or rate-limit work. Staff-only protected write APIs also perform this origin check in middleware before staff-session auth.
 - `/api/*` responses are marked `private, no-store` with noindex headers so customer/auth data is not cached by browsers or intermediaries.
 - Consultation summary generation now requires a valid staff session before any OpenAI call.
 - New signup and password reset inputs require at least 8 characters.
@@ -78,7 +78,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
 - Run `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
-- Run `npm run ops:public:check` after deploy to verify public pages, security headers, API no-store behavior, unauthenticated API rejection, and external management service separation.
+- Run `npm run ops:public:check` after deploy to verify public pages, security headers, API no-store behavior, unauthenticated API rejection, foreign-origin write rejection, and external management service separation.
 - When `DATABASE_URL` and `VERCEL_TOKEN` are available, run `npm run ops:campaign:check -- --build --typecheck --database --vercel` to include database and production Vercel gates.
 - Review `docs/RP_SHARED_RATE_LIMITING.md` before campaign traffic or paid advertising bursts.
 - Complete the manual gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.

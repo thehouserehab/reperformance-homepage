@@ -119,6 +119,6 @@ Manual gates before a high-traffic campaign:
 - Run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup access is restricted or disable it with RP_GOOGLE_DRIVE_BACKUP_ENABLED=false.
 - Confirm PE exam source year and unresolved university coverage before publishing admission campaigns.
-- Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, and external management separation.
+- Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, foreign-origin write rejection, and external management separation.
 - Monitor Vercel logs, 429 rate, 5xx rate, database connection timeouts, and backup failures during the campaign.
 `);

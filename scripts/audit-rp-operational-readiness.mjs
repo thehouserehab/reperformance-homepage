@@ -158,6 +158,16 @@ addCheck(
 );
 addCheck(
   "security",
+  "Middleware rejects foreign protected API writes before staff auth",
+  includesAll("middleware.js", [
+    "checkSameOriginRequest",
+    "buildForbiddenOriginResponse",
+    "isProtectedApiPath(pathname) && isStateChangingMethod(request.method)",
+    "verifyAdminSessionCookie",
+  ]),
+);
+addCheck(
+  "security",
   "PostgreSQL shared rate limit buckets are available",
   includesAll("lib/rpDatabase.js", ["rp_rate_limit_buckets", "checkDatabaseRateLimit", "ON CONFLICT (rate_key, window_start)"]),
 );
@@ -407,6 +417,9 @@ addCheck(
       "DEFAULT_BASE_URLS",
       "requiredPageHeaders",
       "protectedApiChecks",
+      "foreignOriginApiChecks",
+      "checkForeignOriginApi",
+      "Request origin is not allowed.",
       "externalServiceChecks",
       "strict-transport-security",
       "x-robots-tag",

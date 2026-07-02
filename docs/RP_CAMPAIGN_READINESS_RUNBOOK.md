@@ -51,7 +51,7 @@ To include it in the campaign command:
 npm.cmd run ops:campaign:check -- --public
 ```
 
-The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, protected APIs reject unauthenticated requests, API responses are not cached, and the external management service remains separated from the homepage.
+The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, protected APIs reject unauthenticated requests, state-changing APIs reject foreign `Origin` requests, API responses are not cached, and the external management service remains separated from the homepage.
 
 ## 2. Production gates
 

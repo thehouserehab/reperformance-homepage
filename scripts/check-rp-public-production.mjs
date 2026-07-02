@@ -36,6 +36,22 @@ const protectedApiChecks = [
   { path: "/api/rp/auth-accounts", label: "auth accounts API", expectedStatuses: [401] },
 ];
 
+const foreignOriginApiChecks = [
+  { path: "/api/auth/login", method: "POST", label: "login POST" },
+  { path: "/api/admin/login", method: "POST", label: "admin login POST" },
+  { path: "/api/auth/logout", method: "POST", label: "member logout POST" },
+  { path: "/api/admin/logout", method: "POST", label: "admin logout POST" },
+  { path: "/api/auth/identity-verification", method: "POST", label: "identity verification POST" },
+  { path: "/api/auth/account-recovery", method: "POST", label: "account recovery POST" },
+  { path: "/api/rp/signup", method: "POST", label: "signup POST" },
+  { path: "/api/rp/service-application", method: "POST", label: "service application POST" },
+  { path: "/api/rp/pe-exam-question", method: "POST", label: "PE exam question POST" },
+  { path: "/api/rp/pe-exam-ai-consult", method: "POST", label: "PE exam AI consult POST" },
+  { path: "/api/rp/consultation-summary", method: "POST", label: "consultation summary POST" },
+  { path: "/api/rp/clients", method: "POST", label: "clients POST" },
+  { path: "/api/rp/auth-accounts", method: "PATCH", label: "auth accounts PATCH" },
+];
+
 const requiredPageHeaders = [
   { key: "x-content-type-options", includes: "nosniff" },
   { key: "x-frame-options", includes: "DENY" },
@@ -102,16 +118,18 @@ function absoluteUrl(baseUrl, path) {
   return new URL(path, `${baseUrl}/`).toString();
 }
 
-async function fetchWithTimeout(url) {
+async function fetchWithTimeout(url, init = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     return await fetch(url, {
+      ...init,
       signal: controller.signal,
       headers: {
         Accept: "text/html,application/json;q=0.9,*/*;q=0.8",
         "User-Agent": "RePERFORMANCE-public-production-check/1.0",
+        ...(init.headers || {}),
       },
     });
   } finally {
@@ -189,6 +207,36 @@ async function checkProtectedApi(baseUrl, api) {
   }
 }
 
+async function checkForeignOriginApi(baseUrl, api) {
+  const label = `${baseUrl} ${api.label}`;
+  const url = absoluteUrl(baseUrl, api.path);
+
+  try {
+    const response = await fetchWithTimeout(url, {
+      method: api.method,
+      headers: {
+        "Content-Type": "application/json",
+        Origin: "https://malicious.example",
+        Referer: "https://malicious.example/form",
+      },
+      body: JSON.stringify({ publicProductionSmokeTest: true }),
+    });
+    const body = await response.text();
+
+    addResult("origin-guards", `${label} rejects foreign origin`, response.status === 403, String(response.status));
+    addResult(
+      "origin-guards",
+      `${label} returns expected origin guard body`,
+      body.includes("Request origin is not allowed."),
+      "Request origin is not allowed.",
+    );
+    checkHeaders("api-cache", label, response, requiredApiHeaders);
+    checkNoExternalServiceText("separation", label, body);
+  } catch (error) {
+    addResult("origin-guards", `${label} fetch succeeds`, false, error?.message || String(error));
+  }
+}
+
 function printResults(targets) {
   const byArea = new Map();
   for (const result of results) {
@@ -229,6 +277,10 @@ async function main() {
 
     for (const api of protectedApiChecks) {
       await checkProtectedApi(baseUrl, api);
+    }
+
+    for (const api of foreignOriginApiChecks) {
+      await checkForeignOriginApi(baseUrl, api);
     }
   }
 

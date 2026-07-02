@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ADMIN_COOKIE_NAME, hasStaffAccess, verifyAdminSessionCookie } from './lib/rpAdminAuth';
+import { buildForbiddenOriginResponse, checkSameOriginRequest } from './lib/rpRequestGuards';
 
 function isProtectedAdminPath(pathname) {
   return pathname.startsWith('/admin') && !pathname.startsWith('/admin/login');
@@ -13,6 +14,10 @@ function isProtectedApiPath(pathname) {
   return pathname.startsWith('/api/rp/clients')
     || pathname.startsWith('/api/rp/consultation-summary')
     || pathname.startsWith('/api/rp/system-status');
+}
+
+function isStateChangingMethod(method) {
+  return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(String(method || '').toUpperCase());
 }
 
 function buildStaffLoginUrl(request, error) {
@@ -34,6 +39,12 @@ function unauthorizedJson(error, status) {
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
+
+  if (isProtectedApiPath(pathname) && isStateChangingMethod(request.method)) {
+    const originCheck = checkSameOriginRequest(request);
+    if (!originCheck.ok) return buildForbiddenOriginResponse();
+  }
+
   const cookieValue = request.cookies.get(ADMIN_COOKIE_NAME)?.value;
   const session = await verifyAdminSessionCookie(cookieValue);
   const canUseStaffArea = hasStaffAccess(session);
