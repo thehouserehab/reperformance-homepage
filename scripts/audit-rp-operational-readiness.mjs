@@ -196,6 +196,27 @@ addCheck(
 );
 addCheck(
   "data",
+  "PE exam AI consult JSON records are minimized before storage",
+  includesAll("lib/rpDatabase.js", [
+    "buildMinimizedPeExamAiConsultPayload",
+    "buildMinimizedPeExamAiConversationRecord",
+    "minimized_on_write",
+    "JSON.stringify(storedPayload)",
+    "JSON.stringify(storedConversationRecord)",
+  ]),
+);
+addCheck(
+  "data",
+  "PE exam AI consult Google Drive backup payload is minimized",
+  includesAll("app/api/rp/pe-exam-ai-consult/route.js", [
+    "buildPeExamAiConsultBackupRecord",
+    "minimized_on_send",
+    "record: backupRecord",
+    "peExamAiConsult: backupRecord",
+  ]),
+);
+addCheck(
+  "data",
   "Retention logic is shared by CLI and cron",
   includesAll("scripts/audit-rp-data-retention.mjs", ["runDataRetention", "summarizeRetentionResult", "RETENTION_CONFIRM_TOKEN"])
     && includesAll("app/api/rp/maintenance/retention/route.js", ["runDataRetention", "summarizeRetentionResult", "RP_RETENTION_CRON_APPLY"]),

@@ -19,7 +19,7 @@ Without a database URL, the command prints the static retention plan only. With 
 Checked areas:
 
 - `rp_service_applications.payload`: legacy broad consultation application payloads older than 365 days; new writes are minimized with `retention=minimized_on_write`
-- `rp_pe_exam_ai_consults.payload` and `conversation_record`: broad AI consult source records older than 365 days
+- `rp_pe_exam_ai_consults.payload` and `conversation_record`: legacy broad AI consult source records older than 365 days; new writes are minimized with `retention=minimized_on_write`
 - `rp_pe_exam_questions`: records older than 730 days for manual review
 - `rp_rate_limit_buckets`: expired operational counters older than 7 days
 - `rp_auth_accounts.password_plain`: legacy plaintext password fields when a hash already exists
@@ -35,7 +35,7 @@ node scripts/audit-rp-data-retention.mjs --apply --confirm=APPLY_RP_RETENTION
 
 Apply mode:
 
-- prunes legacy broad JSON payloads while keeping indexed columns and already-minimized payload markers
+- prunes legacy broad JSON payloads while keeping indexed columns, summaries, and already-minimized payload markers
 - deletes expired rate limit buckets
 - clears `password_plain` only when `password_hash` already exists
 - does not delete client profiles or PE exam question rows automatically

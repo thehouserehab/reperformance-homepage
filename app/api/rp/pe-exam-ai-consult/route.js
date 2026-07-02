@@ -71,6 +71,7 @@ async function backupPeExamAiConsultToGoogleDrive(record) {
     };
   }
 
+  const backupRecord = buildPeExamAiConsultBackupRecord(record);
   const attempts = ['savePeExamAiConsult', 'savePeExamAiConsultation', 'saveConsultation'];
   const errors = [];
 
@@ -78,8 +79,8 @@ async function backupPeExamAiConsultToGoogleDrive(record) {
     try {
       const data = await callGoogleDriveBackup(action, {
         recordType: 'peExamAiConsult',
-        record,
-        peExamAiConsult: record,
+        record: backupRecord,
+        peExamAiConsult: backupRecord,
       });
       return { ok: true, source: 'google-drive', action, data };
     } catch (error) {
@@ -88,6 +89,50 @@ async function backupPeExamAiConsultToGoogleDrive(record) {
   }
 
   return { ok: false, error: errors.slice(0, 3).join(' / ') || 'Google Drive backup failed.' };
+}
+
+function buildPeExamAiConsultBackupRecord(record = {}) {
+  const summary = record.consultationSummary || record.guidance || {};
+
+  return {
+    retention: 'minimized_on_send',
+    kind: 'pe_exam_ai_consult_backup',
+    schemaVersion: 1,
+    id: record.id || null,
+    source: record.source || 'pe-exam-ai-consult',
+    databaseAction: record.databaseAction || null,
+    aiStatus: record.aiStatus || null,
+    admissionTrack: record.admissionTrack || null,
+    subject: {
+      hasUsername: Boolean(record.username),
+      hasMemberName: Boolean(record.memberName),
+      role: record.role || null,
+    },
+    target: {
+      hasUniversity: Boolean(record.targetUniversity),
+      hasDepartment: Boolean(record.targetDepartment),
+      universityId: record.targetUniversityId || null,
+      universityRegion: record.targetUniversityRegion || null,
+      universitySchoolType: record.targetUniversitySchoolType || null,
+      universitySlug: record.targetUniversitySlug || null,
+    },
+    fieldLengths: {
+      targetUniversity: cleanValue(record.targetUniversity).length,
+      targetDepartment: cleanValue(record.targetDepartment).length,
+      schoolGrade: cleanValue(record.schoolGrade).length,
+      mockExam: cleanValue(record.mockExam).length,
+      practicalRecords: cleanValue(record.practicalRecords).length,
+      trainingContext: cleanValue(record.trainingContext).length,
+      injuryNote: cleanValue(record.injuryNote).length,
+      questionFocus: cleanValue(record.questionFocus).length,
+    },
+    summary: {
+      hasSummary: Boolean(summary.summary),
+      cardCount: Array.isArray(summary.cards) ? summary.cards.length : 0,
+      nextStepCount: Array.isArray(summary.nextSteps) ? summary.nextSteps.length : 0,
+    },
+    savedAt: record.savedAt || new Date().toISOString(),
+  };
 }
 
 function extractNumbers(value) {

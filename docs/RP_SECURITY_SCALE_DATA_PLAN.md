@@ -1,6 +1,6 @@
 # RePERFORMANCE 보안, 데이터, 확장 운영 대책
 
-Last updated: 2026-07-01
+Last updated: 2026-07-02
 
 이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
 
@@ -11,6 +11,7 @@ Last updated: 2026-07-01
 - Production은 `DATABASE_URL` 또는 `RP_DATABASE_URL`과 `RP_DATA_SOURCE=database`를 기준으로 운영합니다.
 - Google Drive/Sheets 백업은 필요한 기간에만 켜고, `RP_BACKUP_SECRET_IN_QUERY=false`를 유지합니다.
 - 신규 `rp_service_applications.payload`는 저장 시점부터 필수 메타데이터 중심으로 최소화하고, 기존 넓은 payload는 retention 감사/정리 대상으로 둡니다.
+- 신규 `rp_pe_exam_ai_consults.payload`와 `conversation_record`는 저장 시점부터 최소 메타데이터 중심으로 저장하고, 기존 넓은 AI 상담 JSON 기록은 retention 감사/정리 대상으로 둡니다.
 - 운영 계정은 `owner`, `admin`, `trainer`, `member` 역할을 분리하고, 고객관리/상담 API는 staff 권한에서만 접근합니다.
 - 신규 고객 신청, 체대입시 AI 상담 준비, 계정 찾기 기록은 모두 길이 제한과 공개 응답 축소를 유지합니다.
 - 정기 운영 작업: 월 1회 백업 접근자 점검, 분기 1회 오래된 상담 원본 payload 삭제 또는 익명화 정책 확정.
