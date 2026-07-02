@@ -223,6 +223,46 @@ function buildApplication(payload = {}) {
   };
 }
 
+function buildMinimizedApplicationPayload(application) {
+  return {
+    retention: 'minimized_on_write',
+    kind: 'service_application',
+    schemaVersion: 2,
+    applicationId: application.id,
+    clientId: application.clientId,
+    selectedService: application.selectedService,
+    serviceLabel: application.serviceLabel,
+    memberType: application.memberType,
+    source: application.source,
+    consent: {
+      privacy: application.privacyConsent === 'yes',
+      parq: application.parqConsent === 'yes',
+    },
+    parqStatus: application.parqStatus,
+    counts: {
+      purpose: application.purpose.length,
+      painAreas: application.painAreas.length,
+      parqYesItems: application.parqYesItems.length,
+      peExamPracticalEvents: application.peExamPracticalEvents.length,
+    },
+    fieldLengths: {
+      goal: application.goal.length,
+      concern: application.concern.length,
+      exerciseExperience: application.exerciseExperience.length,
+      parqMemo: application.parqMemo.length,
+      peExamMemo: application.peExamMemo.length,
+    },
+    peExam: application.selectedService === 'pe-exam'
+      ? {
+          hasTargetUniversities: Boolean(application.peExamTargetUniversities),
+          hasTargetDepartment: Boolean(application.peExamTargetDepartment),
+          practicalEventCount: application.peExamPracticalEvents.length,
+        }
+      : null,
+    savedAt: new Date().toISOString(),
+  };
+}
+
 let poolPromise;
 async function getPool() {
   const databaseUrl = getDatabaseUrl();
@@ -291,6 +331,7 @@ async function ensureApplicationSchema() {
 }
 
 async function saveServiceApplication(application) {
+  const storedPayload = buildMinimizedApplicationPayload(application);
   const clientResult = await saveDatabaseClient({
     id: application.clientId,
     name: application.name,
@@ -355,7 +396,7 @@ async function saveServiceApplication(application) {
       JSON.stringify(application.parqYesItems),
       JSON.stringify(application.purpose),
       JSON.stringify(application.painAreas),
-      JSON.stringify(application),
+      JSON.stringify(storedPayload),
     ],
   );
 

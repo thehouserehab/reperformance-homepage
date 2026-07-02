@@ -1,5 +1,14 @@
 # RP service application setup
 
+## Payload minimization
+
+New rows in `rp_service_applications.payload` are minimized at write time.
+
+- Lookup columns keep `name`, `phone`, `selected_service`, `parq_yes_items`, `purpose`, and `pain_areas`.
+- The JSONB `payload` stores operational metadata only: schema version, consent flags, service choice, counts, field lengths, and PE-exam presence flags.
+- Duplicate raw PII and long free-text application details are not copied into the JSONB payload.
+- Legacy broad payload rows remain covered by `npm.cmd run data:retention:audit`.
+
 홈페이지의 `/apply` 페이지는 사용자가 서비스를 선택하고 PAR-Q 확인까지 완료하는 신청 흐름입니다.
 
 ## 저장 위치

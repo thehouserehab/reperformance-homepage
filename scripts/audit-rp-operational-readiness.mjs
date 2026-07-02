@@ -176,7 +176,12 @@ addCheck(
 addCheck(
   "data",
   "Retention audit covers sensitive broad payloads",
-  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "rp_pe_exam_ai_consults", "oldSecurityEvents", "legacyPlainPasswords"]),
+  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "minimized_on_write", "rp_pe_exam_ai_consults", "oldSecurityEvents", "legacyPlainPasswords"]),
+);
+addCheck(
+  "data",
+  "Service application payload is minimized before storage",
+  includesAll("app/api/rp/service-application/route.js", ["buildMinimizedApplicationPayload", "minimized_on_write", "JSON.stringify(storedPayload)"]),
 );
 addCheck(
   "data",
