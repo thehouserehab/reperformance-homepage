@@ -79,6 +79,7 @@
 
 .hubPillLink {
   display: inline-flex;
+  box-sizing: border-box;
   flex: 0 0 auto;
   min-height: 52px;
   align-items: center;
@@ -279,6 +280,7 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 18px;
+  min-width: 0;
   padding: clamp(24px, 3vw, 30px);
   background: #172033;
   color: #fff;
@@ -308,10 +310,17 @@
 }
 
 .resourceHubNav {
+  width: 100%;
   flex: 0 1 auto;
+  flex-wrap: wrap;
+  overflow: visible;
+  padding: 4px 0 0;
+  row-gap: 10px;
 }
 
 .resourceHubNav .hubPillLink {
+  max-width: 100%;
+  flex: 0 1 auto;
   border-color: rgba(255, 255, 255, 0.24);
 }
 
@@ -595,10 +604,28 @@
     padding-right: 16px;
   }
 
+  .resourceHubNav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-right: 0;
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .hubPillLink {
     min-height: 54px;
     padding: 0 22px;
     font-size: 16px;
+  }
+
+  .resourceHubNav .hubPillLink {
+    width: 100%;
+    min-width: 0;
+    padding: 0 14px;
+    white-space: normal;
+    line-height: 1.18;
+    text-align: center;
   }
 }
 
