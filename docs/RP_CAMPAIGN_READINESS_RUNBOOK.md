@@ -65,6 +65,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
+- `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
 - `npm.cmd run ops:public:check` passes against both production URLs after deploy.
@@ -98,6 +99,7 @@ The app-layer PostgreSQL limiter protects correctness across serverless instance
 - `/api/rp/pe-exam-ai-consult`
 - `/api/rp/pe-exam-question`
 - `/api/rp/clients`
+- `/api/rp/auth-accounts`
 
 Use `docs/RP_VERCEL_FIREWALL_RULES.md` as the concrete rule checklist.
 

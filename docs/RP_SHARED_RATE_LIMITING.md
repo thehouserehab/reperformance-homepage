@@ -1,6 +1,6 @@
 # RePERFORMANCE shared rate limiting
 
-Last updated: 2026-06-30
+Last updated: 2026-07-03
 
 ## Current behavior
 
@@ -18,6 +18,7 @@ Protected flows:
 - `/api/rp/pe-exam-ai-consult`
 - `/api/rp/consultation-summary`
 - `/api/rp/clients`
+- `/api/rp/auth-accounts`
 - `/api/rp/system-status`
 
 The shared limiter writes fixed-window counters to `rp_rate_limit_buckets` using an atomic `INSERT ... ON CONFLICT ... DO UPDATE` query. This means multiple serverless instances see the same counters instead of each instance keeping a separate memory-only count.
@@ -34,6 +35,7 @@ The PostgreSQL limiter is a practical app-layer guard, but it still consumes app
 - `/api/rp/pe-exam-ai-consult`
 - `/api/rp/pe-exam-question`
 - `/api/rp/clients`
+- `/api/rp/auth-accounts`
 
 Use the DB limiter for correctness across app instances, and edge/WAF controls to reject abusive traffic before it reaches the app or database.
 

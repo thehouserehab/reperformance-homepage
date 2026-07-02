@@ -1,6 +1,6 @@
 # RePERFORMANCE Vercel Firewall rules
 
-Last updated: 2026-07-01
+Last updated: 2026-07-03
 
 These rules are the recommended campaign and admission-season edge controls. They must be applied in Vercel Firewall, Vercel REST API, or another edge/WAF layer. They are not automatically applied by this repository.
 
@@ -97,6 +97,7 @@ Suggested starting point:
 Protect:
 
 - `/api/rp/clients`
+- `/api/rp/auth-accounts`
 - `/api/rp/consultation-summary`
 - `/api/rp/system-status`
 
@@ -110,6 +111,7 @@ Suggested starting point:
 
 - fixed window 30 to 60 requests per IP per minute
 - stricter for `POST /api/rp/clients`
+- stricter for `PATCH /api/rp/auth-accounts`
 
 ## Scanner and bot noise
 
@@ -138,6 +140,7 @@ npm.cmd run ops:campaign:check -- --build --typecheck
 Then verify in production:
 
 - `/api/rp/clients` returns `401` without a staff session
+- `/api/rp/auth-accounts` returns `401` without a staff session
 - `/api/rp/system-status` works with a staff session
 - API responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`
 - Vercel Firewall events show expected challenges or denies without blocking real customers

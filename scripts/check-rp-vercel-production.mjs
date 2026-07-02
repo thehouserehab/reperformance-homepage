@@ -65,6 +65,7 @@ const recommendedFirewallTerms = [
   "/api/rp/service-application",
   "/api/rp/pe-exam-ai-consult",
   "/api/rp/clients",
+  "/api/rp/auth-accounts",
 ];
 
 const results = [];

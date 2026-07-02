@@ -358,7 +358,12 @@ addCheck(
 addCheck(
   "traffic",
   "Vercel firewall rule checklist exists",
-  includesAll("docs/RP_VERCEL_FIREWALL_RULES.md", ["/api/auth/login", "/api/rp/service-application", "/api/rp/clients"]),
+  includesAll("docs/RP_VERCEL_FIREWALL_RULES.md", [
+    "/api/auth/login",
+    "/api/rp/service-application",
+    "/api/rp/clients",
+    "/api/rp/auth-accounts",
+  ]),
 );
 addCheck("security", "Shared safe comparison helper exists", fileExists("lib/rpSecurity.js") && readFile("lib/rpSecurity.js").includes("safeEqual"));
 addCheck(
@@ -383,6 +388,7 @@ const rateLimitedRoutes = [
   "app/api/rp/pe-exam-ai-consult/route.js",
   "app/api/rp/consultation-summary/route.js",
   "app/api/rp/clients/route.js",
+  "app/api/rp/auth-accounts/route.js",
   "app/api/rp/system-status/route.js",
 ];
 
@@ -401,6 +407,7 @@ const bodyLimitedRoutes = [
   "app/api/rp/pe-exam-ai-consult/route.js",
   "app/api/rp/consultation-summary/route.js",
   "app/api/rp/clients/route.js",
+  "app/api/rp/auth-accounts/route.js",
 ];
 
 for (const route of bodyLimitedRoutes) {
@@ -427,6 +434,12 @@ addCheck(
   "traffic",
   "Customer clients API requires staff session",
   includesAll("app/api/rp/clients/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+);
+
+addCheck(
+  "traffic",
+  "Auth account API requires staff session",
+  includesAll("app/api/rp/auth-accounts/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(
