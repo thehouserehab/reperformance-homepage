@@ -61,6 +61,9 @@ function validateMigrations(migrations) {
     "CREATE INDEX IF NOT EXISTS rp_rate_limit_buckets_expires_at_idx",
     "CREATE INDEX IF NOT EXISTS rp_ai_usage_buckets_usage_date_idx",
     "CREATE INDEX IF NOT EXISTS rp_security_events_created_at_idx",
+    "CREATE INDEX IF NOT EXISTS rp_service_applications_retention_idx",
+    "CREATE INDEX IF NOT EXISTS rp_pe_exam_ai_consults_retention_idx",
+    "CREATE INDEX IF NOT EXISTS rp_pe_exam_questions_retention_idx",
     "COMMIT;",
   ];
 

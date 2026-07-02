@@ -164,6 +164,20 @@ addCheck(
   includesAll("database/migrations/20260701_security_event_log.sql", ["rp_security_events", "actor_hash", "target_hash", "ip_hash"]),
 );
 addCheck(
+  "data",
+  "Retention scale index SQL migration exists",
+  includesAll("database/migrations/20260702_retention_scale_indexes.sql", [
+    "rp_service_applications_retention_idx",
+    "rp_pe_exam_ai_consults_retention_idx",
+    "rp_pe_exam_questions_retention_idx",
+  ])
+    && includesAll("scripts/check-rp-database-migration.mjs", [
+      "rp_service_applications_retention_idx",
+      "rp_pe_exam_ai_consults_retention_idx",
+      "rp_pe_exam_questions_retention_idx",
+    ]),
+);
+addCheck(
   "security",
   "Security event audit log documentation exists",
   includesAll("docs/RP_SECURITY_EVENT_AUDIT_LOG.md", ["rp_security_events", "Non-Storage Rules", "oldSecurityEvents"]),

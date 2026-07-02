@@ -79,6 +79,7 @@ npm run pe-exam:data:audit
 사용자와 상담 신청이 늘면 “저장”보다 “검색, 중복 정리, 보존 기간, 권한”이 병목이 됩니다.
 
 - `rp_clients`, `rp_service_applications`, `rp_pe_exam_ai_consults`는 생성일/사용자/고객 ID 인덱스를 유지합니다.
+- `rp_service_applications`, `rp_pe_exam_ai_consults`, `rp_pe_exam_questions`의 broad payload retention 정리는 partial index로 미정리 대상만 빠르게 찾도록 유지합니다.
 - 고객 중복은 이름+전화번호 기준으로 상담 화면에서 병합 후보를 확인하는 운영 흐름을 둡니다.
 - Google Drive/Sheets 백업은 운영자가 직접 다루기 쉬운 장점이 있지만, 장기 보관 원본 저장소로 쓰지 않습니다.
 - 상담 원본 payload, PAR-Q 메모, 체대입시 상담 준비 기록은 보존 기간을 정하고 만료 후 삭제/익명화합니다.

@@ -42,6 +42,8 @@ Apply mode:
 - does not delete client profiles or PE exam question rows automatically
 - runs the apply queries inside a transaction so a failed table cleanup rolls the apply batch back
 
+Before applying retention on a large production dataset, apply `database/migrations/20260702_retention_scale_indexes.sql`. It adds partial indexes for broad payload cleanup on `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
+
 ## Automated Vercel cron
 
 Production includes a monthly Vercel Cron entry in `vercel.json`:
