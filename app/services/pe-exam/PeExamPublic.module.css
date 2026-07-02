@@ -63,12 +63,13 @@
 
 .hubPillNav {
   display: flex;
+  flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
   flex: 1 1 420px;
   gap: 10px;
-  overflow-x: auto;
-  padding: 4px 2px;
+  overflow: visible;
+  padding: 4px 0;
   scroll-padding-inline: 2px;
   scrollbar-width: none;
 }
@@ -311,7 +312,7 @@
 
 .resourceHubNav {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(128px, 1fr));
   gap: 10px;
   width: 100%;
   max-width: 100%;
@@ -608,12 +609,16 @@
   .hubPillNav {
     width: 100%;
     flex: 0 0 auto;
+    flex-wrap: nowrap;
     margin-right: -16px;
+    overflow-x: auto;
     padding-right: 16px;
   }
 
   .resourceHubNav {
+    flex-wrap: initial;
     margin-right: 0;
+    overflow: visible;
     padding-right: 0;
   }
 
@@ -631,6 +636,10 @@
 @media (max-width: 520px) {
   .publicHero {
     padding-top: 164px;
+  }
+
+  .resourceHubNav {
+    grid-template-columns: 1fr;
   }
 
   .publicHeroText p:not(:global(.eyebrow)),
