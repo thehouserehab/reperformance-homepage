@@ -1,6 +1,6 @@
 # RePERFORMANCE data retention operations
 
-Last updated: 2026-07-01
+Last updated: 2026-07-03
 
 ## Purpose
 
@@ -23,6 +23,8 @@ Checked areas:
 - `rp_pe_exam_questions.payload`: legacy broad PE exam question payloads older than 730 days; new writes are minimized with `retention=minimized_on_write`
 - `rp_pe_exam_questions`: question records older than 730 days for manual review
 - `rp_rate_limit_buckets`: expired operational counters older than 7 days
+- `rp_ai_usage_buckets`: AI usage accounting buckets older than 400 days
+- `rp_security_events`: hashed security events older than 400 days
 - `rp_auth_accounts.password_plain`: legacy plaintext password fields when a hash already exists
 
 ## Apply mode
@@ -37,7 +39,8 @@ node scripts/audit-rp-data-retention.mjs --apply --confirm=APPLY_RP_RETENTION
 Apply mode:
 
 - prunes legacy broad JSON payloads while keeping indexed columns, summaries, and already-minimized payload markers
-- deletes expired rate limit buckets
+- deletes expired rate limit buckets and old AI usage accounting buckets
+- deletes hashed security events outside the retention window
 - clears `password_plain` only when `password_hash` already exists
 - does not delete client profiles or PE exam question rows automatically
 - runs the apply queries inside a transaction so a failed table cleanup rolls the apply batch back

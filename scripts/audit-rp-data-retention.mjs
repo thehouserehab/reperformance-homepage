@@ -28,6 +28,7 @@ function buildCliPlan() {
     aiConsultDays: getNumberArg("ai-consult-days", 365),
     questionDays: getNumberArg("question-days", 730),
     rateLimitDays: getNumberArg("rate-limit-days", 7),
+    aiUsageDays: getNumberArg("ai-usage-days", 400),
   });
 }
 
@@ -66,7 +67,7 @@ function printResult(result, plan, apply) {
 if (hasArg("help")) {
   console.log(`Usage:
   node scripts/audit-rp-data-retention.mjs
-  node scripts/audit-rp-data-retention.mjs --application-payload-days=365 --ai-consult-days=365 --question-days=730
+  node scripts/audit-rp-data-retention.mjs --application-payload-days=365 --ai-consult-days=365 --question-days=730 --ai-usage-days=400
   RP_RETENTION_ALLOW_APPLY=true node scripts/audit-rp-data-retention.mjs --apply --confirm=${RETENTION_CONFIRM_TOKEN}`);
   process.exit(0);
 }

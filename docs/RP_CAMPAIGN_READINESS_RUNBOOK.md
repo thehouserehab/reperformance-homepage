@@ -1,6 +1,6 @@
 # RePERFORMANCE campaign readiness runbook
 
-Last updated: 2026-07-01
+Last updated: 2026-07-03
 
 Use this before paid ads, offline events, admission season traffic, or any expected traffic spike.
 
@@ -118,6 +118,7 @@ Before the campaign:
 - Run `npm.cmd run db:migration:check` with a production database URL.
 - Run `npm.cmd run data:retention:audit`.
 - Review old broad payload counts for `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
+- Review old operational bucket counts for `rp_rate_limit_buckets`, `rp_ai_usage_buckets`, and `rp_security_events`.
 - Confirm `20260702_retention_scale_indexes.sql` has been applied before retention apply mode on a large production dataset.
 - Confirm the monthly retention cron is reporting candidate counts, or run the endpoint manually with `Authorization: Bearer <secret>`.
 - Apply retention only after backup and restore readiness is confirmed:

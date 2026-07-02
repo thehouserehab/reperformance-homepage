@@ -260,6 +260,18 @@ async function checkDatabase(client) {
     );
     addResult("data", "Expired rate-limit buckets are under review", expiredBucketCount !== null, expiredBucketCount === null ? "count unavailable" : `expiredOlderThan7Days=${expiredBucketCount}`);
   }
+
+  if (existingTables.has("rp_ai_usage_buckets")) {
+    const oldAiUsageBucketCount = await countIfPossible(
+      client,
+      `
+        SELECT COUNT(*)::int AS count
+        FROM rp_ai_usage_buckets
+        WHERE usage_date < (CURRENT_DATE - INTERVAL '400 days')::date
+      `,
+    );
+    addResult("data", "Old AI usage buckets are under retention review", oldAiUsageBucketCount !== null, oldAiUsageBucketCount === null ? "count unavailable" : `olderThan400Days=${oldAiUsageBucketCount}`);
+  }
 }
 
 function printResults() {

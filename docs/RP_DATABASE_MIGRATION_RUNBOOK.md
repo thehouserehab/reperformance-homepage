@@ -1,6 +1,6 @@
 # RePERFORMANCE database migration runbook
 
-Last updated: 2026-07-02
+Last updated: 2026-07-03
 
 Use this before high-traffic campaigns, production data migration, or any deploy that changes login, customer, application, PE exam AI, or rate-limit storage.
 
@@ -30,6 +30,7 @@ The script also accepts `POSTGRES_URL` or `RP_DATABASE_URL`. It verifies:
 - required indexes for customer lookup, application lookup, PE exam lookup, broad-payload retention cleanup, expired rate-limit cleanup, AI usage lookup, and security event review
 - remaining legacy `password_plain` rows that already have `password_hash`
 - expired rate-limit bucket rows older than seven days
+- AI usage bucket rows older than 400 days for retention review
 
 ## 3. Apply checked-in migrations
 
@@ -81,7 +82,7 @@ node scripts/audit-rp-data-retention.mjs --apply --confirm=APPLY_RP_RETENTION
 
 The deployed Vercel cron route `/api/rp/maintenance/retention` uses the same retention logic as the CLI and rejects unauthenticated requests before setup checks. Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before relying on the cron result, and keep `RP_RETENTION_CRON_APPLY` disabled until the production migration check, backup restore test, and deletion approval are complete.
 
-The `20260702_retention_scale_indexes.sql` migration adds partial indexes for old broad JSON payload cleanup. Apply it before running retention apply mode on a large production dataset so the cleanup can find unminimized rows without scanning every retained record.
+The `20260702_retention_scale_indexes.sql` migration adds partial indexes for old broad JSON payload cleanup. The baseline migrations also include indexes for rate-limit expiry, AI usage dates, and security event review. Apply the migrations before running retention apply mode on a large production dataset so cleanup queries can find old rows without scanning every retained record.
 
 If the migration check reports legacy plaintext passwords with hashes, prioritize normal login migration or an admin-approved cleanup that sets `password_plain = NULL` only after `password_hash` is confirmed.
 

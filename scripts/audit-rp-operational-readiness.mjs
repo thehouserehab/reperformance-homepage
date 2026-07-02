@@ -252,7 +252,7 @@ addCheck(
 addCheck(
   "data",
   "Retention audit covers sensitive broad payloads",
-  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "minimized_on_write", "rp_pe_exam_ai_consults", "rp_pe_exam_questions", "oldSecurityEvents", "legacyPlainPasswords"]),
+  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "minimized_on_write", "rp_pe_exam_ai_consults", "rp_pe_exam_questions", "oldAiUsageBuckets", "oldSecurityEvents", "legacyPlainPasswords"]),
 );
 addCheck(
   "data",
