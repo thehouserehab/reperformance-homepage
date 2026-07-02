@@ -93,7 +93,7 @@ Before the campaign:
 
 - Run `npm.cmd run db:migration:check` with a production database URL.
 - Run `npm.cmd run data:retention:audit`.
-- Review old broad payload counts for `rp_service_applications` and `rp_pe_exam_ai_consults`.
+- Review old broad payload counts for `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
 - Confirm the monthly retention cron is reporting candidate counts, or run the endpoint manually with `Authorization: Bearer <secret>`.
 - Apply retention only after backup and restore readiness is confirmed:
 

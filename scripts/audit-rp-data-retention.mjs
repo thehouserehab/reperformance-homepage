@@ -66,7 +66,7 @@ function printResult(result, plan, apply) {
 if (hasArg("help")) {
   console.log(`Usage:
   node scripts/audit-rp-data-retention.mjs
-  node scripts/audit-rp-data-retention.mjs --application-payload-days=365 --ai-consult-days=365
+  node scripts/audit-rp-data-retention.mjs --application-payload-days=365 --ai-consult-days=365 --question-days=730
   RP_RETENTION_ALLOW_APPLY=true node scripts/audit-rp-data-retention.mjs --apply --confirm=${RETENTION_CONFIRM_TOKEN}`);
   process.exit(0);
 }

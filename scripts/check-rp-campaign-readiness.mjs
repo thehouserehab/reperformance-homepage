@@ -107,7 +107,7 @@ Manual gates before a high-traffic campaign:
 - Apply all checked-in SQL files in database/migrations with npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION and confirm no pending migration drift.
 - Run npm.cmd run db:migration:check against production PostgreSQL.
 - Verify /api/rp/system-status with a staff session in production.
-- Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-ai-consult, and /api/rp/clients.
+- Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, and /api/rp/clients.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
 - Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention in both production Vercel projects.
 - Keep RP_RETENTION_CRON_APPLY disabled until backup/restore readiness and deletion approval are confirmed.

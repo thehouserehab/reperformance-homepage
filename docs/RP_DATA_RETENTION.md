@@ -20,7 +20,8 @@ Checked areas:
 
 - `rp_service_applications.payload`: legacy broad consultation application payloads older than 365 days; new writes are minimized with `retention=minimized_on_write`
 - `rp_pe_exam_ai_consults.payload` and `conversation_record`: legacy broad AI consult source records older than 365 days; new writes are minimized with `retention=minimized_on_write`
-- `rp_pe_exam_questions`: records older than 730 days for manual review
+- `rp_pe_exam_questions.payload`: legacy broad PE exam question payloads older than 730 days; new writes are minimized with `retention=minimized_on_write`
+- `rp_pe_exam_questions`: question records older than 730 days for manual review
 - `rp_rate_limit_buckets`: expired operational counters older than 7 days
 - `rp_auth_accounts.password_plain`: legacy plaintext password fields when a hash already exists
 

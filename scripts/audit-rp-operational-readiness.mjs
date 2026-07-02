@@ -176,7 +176,7 @@ addCheck(
 addCheck(
   "data",
   "Retention audit covers sensitive broad payloads",
-  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "minimized_on_write", "rp_pe_exam_ai_consults", "oldSecurityEvents", "legacyPlainPasswords"]),
+  includesAll("lib/rpDataRetention.mjs", ["rp_service_applications", "minimized_on_write", "rp_pe_exam_ai_consults", "rp_pe_exam_questions", "oldSecurityEvents", "legacyPlainPasswords"]),
 );
 addCheck(
   "data",
@@ -213,6 +213,17 @@ addCheck(
     "minimized_on_send",
     "record: backupRecord",
     "peExamAiConsult: backupRecord",
+  ]),
+);
+addCheck(
+  "data",
+  "PE exam question payload is minimized before storage",
+  includesAll("lib/rpDatabase.js", [
+    "buildMinimizedPeExamQuestionPayload",
+    "buildMinimizedPeExamQuestionPayload(question)",
+    "kind: 'pe_exam_question'",
+    "minimized_on_write",
+    "JSON.stringify(storedPayload)",
   ]),
 );
 addCheck(
