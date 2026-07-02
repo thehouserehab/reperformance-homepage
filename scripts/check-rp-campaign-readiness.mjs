@@ -6,6 +6,7 @@ const includeBuild = args.has("--build");
 const includeTypecheck = args.has("--typecheck");
 const includeVercel = args.has("--vercel");
 const includeDatabase = args.has("--database");
+const includePublic = args.has("--public");
 
 const steps = [
   {
@@ -54,6 +55,13 @@ if (includeVercel) {
   });
 }
 
+if (includePublic) {
+  steps.push({
+    name: "Public production smoke and security gates",
+    command: [npmCommand, "run", "ops:public:check"],
+  });
+}
+
 function formatCommand(command) {
   return command.join(" ");
 }
@@ -89,6 +97,7 @@ console.log("RePERFORMANCE campaign readiness check");
 console.log("Use --build --typecheck for final pre-deploy verification.");
 console.log("Use --database with DATABASE_URL, POSTGRES_URL, or RP_DATABASE_URL to verify production migration state.");
 console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates.");
+console.log("Use --public to verify public production URLs without Vercel secrets.");
 
 let ok = true;
 for (const step of steps) {
@@ -114,5 +123,6 @@ Manual gates before a high-traffic campaign:
 - Run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup access is restricted or disable it with RP_GOOGLE_DRIVE_BACKUP_ENABLED=false.
 - Confirm PE exam source year and unresolved university coverage before publishing admission campaigns.
+- Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, and external management separation.
 - Monitor Vercel logs, 429 rate, 5xx rate, database connection timeouts, and backup failures during the campaign.
 `);

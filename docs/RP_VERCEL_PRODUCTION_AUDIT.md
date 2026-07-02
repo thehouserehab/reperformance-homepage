@@ -57,6 +57,7 @@ This records the live Vercel state that was verifiable through the connected Ver
 - Vercel CLI is installed, but local CLI login is not currently usable in this shell session.
 - Production `DATABASE_URL`/`RP_DATABASE_URL`, migration state, and Firewall rules still require dashboard, REST API token, or CLI verification.
 - Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and deletion approval are complete.
+- `npm.cmd run ops:public:check` is the no-secret public production smoke check for page status, security headers, unauthenticated API rejection, and external management service separation after each deploy.
 
 ## Required follow-up
 
@@ -80,3 +81,9 @@ npm.cmd run ops:campaign:check -- --build --typecheck --vercel
 ```
 
 The check reads both default production Vercel projects, latest production deployments, production env keys, and active Firewall config. It does not print secret values. To check a custom subset, pass `--project-id=...` or set comma-separated `RP_VERCEL_PROJECT_IDS`.
+
+For public post-deploy verification without Vercel secrets:
+
+```powershell
+npm.cmd run ops:public:check
+```

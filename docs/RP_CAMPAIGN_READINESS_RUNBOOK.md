@@ -39,6 +39,20 @@ npm.cmd run ops:campaign:check -- --build --typecheck --database --vercel
 
 This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, and readable Firewall configuration for each project.
 
+After a deployment, or when no Vercel token is available, run the public production smoke and security check:
+
+```powershell
+npm.cmd run ops:public:check
+```
+
+To include it in the campaign command:
+
+```powershell
+npm.cmd run ops:campaign:check -- --public
+```
+
+The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, protected APIs reject unauthenticated requests, API responses are not cached, and the external management service remains separated from the homepage.
+
 ## 2. Production gates
 
 Do not start a high-traffic campaign until these manual gates are checked:
@@ -53,6 +67,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
+- `npm.cmd run ops:public:check` passes against both production URLs after deploy.
 - Google Drive/Sheets backup is restricted to trusted staff, or disabled with `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false`.
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.
 - Vercel Cron has `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` configured for `/api/rp/maintenance/retention`.
@@ -66,6 +81,12 @@ npm.cmd run ops:vercel:check
 ```
 
 To check a custom subset, pass `--project-id=...` for one project or set comma-separated `RP_VERCEL_PROJECT_IDS`.
+
+To check a custom public URL subset without Vercel secrets:
+
+```powershell
+npm.cmd run ops:public:check -- --base-urls=https://example.com,https://www.example.com
+```
 
 ## 3. Edge traffic controls
 

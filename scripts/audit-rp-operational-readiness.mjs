@@ -277,7 +277,7 @@ addCheck(
   "traffic",
   "Campaign readiness command exists",
   Boolean(scripts["ops:campaign:check"])
-    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["--build", "--typecheck", "--database", "--vercel", "Manual gates before a high-traffic campaign"]),
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["--build", "--typecheck", "--database", "--vercel", "--public", "Manual gates before a high-traffic campaign"]),
 );
 addCheck(
   "pe-data",
@@ -318,6 +318,20 @@ addCheck(
       "/v13/deployments",
       "/v1/security/firewall/config/active",
     ]),
+);
+addCheck(
+  "traffic",
+  "Public production smoke check command exists",
+  Boolean(scripts["ops:public:check"])
+    && includesAll("scripts/check-rp-public-production.mjs", [
+      "DEFAULT_BASE_URLS",
+      "requiredPageHeaders",
+      "protectedApiChecks",
+      "externalServiceChecks",
+      "strict-transport-security",
+      "x-robots-tag",
+    ])
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["ops:public:check", "Public production smoke and security gates"]),
 );
 addCheck(
   "traffic",
