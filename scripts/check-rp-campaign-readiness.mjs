@@ -51,7 +51,7 @@ if (includeDatabase) {
 if (includeVercel) {
   steps.push({
     name: "Vercel production gates",
-    command: [npmCommand, "run", "ops:vercel:check"],
+    command: [npmCommand, "run", "ops:vercel:check", "--", "--require-commit-match"],
   });
 }
 
@@ -96,7 +96,7 @@ function runStep(step) {
 console.log("RePERFORMANCE campaign readiness check");
 console.log("Use --build --typecheck for final pre-deploy verification.");
 console.log("Use --database with DATABASE_URL, POSTGRES_URL, or RP_DATABASE_URL to verify production migration state.");
-console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates.");
+console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates and deployed HEAD matching.");
 console.log("Use --public to verify public production URLs without Vercel secrets.");
 
 let ok = true;

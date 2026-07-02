@@ -37,7 +37,7 @@ If `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, include production Vercel g
 npm.cmd run ops:campaign:check -- --build --typecheck --database --vercel
 ```
 
-This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, and readable Firewall configuration for each project.
+This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, readable Firewall configuration, and that each production deployment matches the current local Git `HEAD`.
 
 After a deployment, or when no Vercel token is available, run the public production smoke and security check:
 
@@ -62,7 +62,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - If migrations have not been applied, use `npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` with `RP_DATABASE_MIGRATION_ALLOW_APPLY=true`.
 - `npm.cmd run db:migration:check` passes against the production PostgreSQL database.
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
-- Both production Vercel projects point at the expected GitHub `main` commit.
+- Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.

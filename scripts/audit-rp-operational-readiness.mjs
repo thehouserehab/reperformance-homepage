@@ -280,6 +280,12 @@ addCheck(
     && includesAll("scripts/check-rp-campaign-readiness.mjs", ["--build", "--typecheck", "--database", "--vercel", "--public", "Manual gates before a high-traffic campaign"]),
 );
 addCheck(
+  "traffic",
+  "Campaign Vercel gate requires deployed HEAD match",
+  includesAll("scripts/check-rp-campaign-readiness.mjs", ["ops:vercel:check", "--require-commit-match", "deployed HEAD matching"])
+    && includesAll("scripts/check-rp-vercel-production.mjs", ["requireCommitMatch", "expectedCommit", "latest deployment commit matches expected"]),
+);
+addCheck(
   "pe-data",
   "PE exam data freshness gate exists",
   Boolean(scripts["pe-exam:data:freshness"])
