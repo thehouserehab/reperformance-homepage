@@ -22,6 +22,7 @@ const IP_REQUEST_LIMIT = 20;
 const VERIFY_WINDOW_MS = 5 * 60 * 1000;
 const VERIFY_ATTEMPT_LIMIT = 8;
 const MIN_PASSWORD_LENGTH = 8;
+const GENERIC_REQUEST_MESSAGE = '입력한 정보와 일치하는 계정이 있으면 인증번호를 발송합니다.';
 
 function cleanValue(value) {
   return String(value || '').trim();
@@ -140,6 +141,21 @@ function maskUsername(username) {
   return `${value.slice(0, 2)}${'*'.repeat(Math.max(2, value.length - 2))}`;
 }
 
+function buildGenericRequestCodeResponse({ verificationToken = '', debugCode } = {}) {
+  return Response.json({
+    ok: true,
+    verificationToken,
+    expiresIn: CODE_TTL_SECONDS,
+    sms: {
+      setupRequired: false,
+      message: GENERIC_REQUEST_MESSAGE,
+    },
+    passwordResetSupported: false,
+    usernamePreview: '',
+    debugCode,
+  });
+}
+
 function logRecoveryEvent(request, eventType, outcome, target = '', metadata = {}) {
   return recordSecurityEvent({
     request,
@@ -233,7 +249,23 @@ async function handleRequestCode(payload, request) {
 
   if (!account) {
     await logRecoveryEvent(request, 'auth.account_recovery.request_code', 'failure', phone, { purpose, reason: 'account_not_found' });
-    return Response.json({ ok: false, error: '입력한 정보와 일치하는 계정을 찾지 못했습니다.' }, { status: 404 });
+    const decoyCode = createCode();
+    const decoySalt = crypto.randomUUID();
+    const decoyCodeHash = await hashCode(decoyCode, decoySalt);
+    const decoyVerificationToken = await createToken({
+      type: 'account-recovery-code',
+      username: '',
+      name,
+      phone,
+      purpose,
+      source: 'decoy',
+      passwordResetSupported: false,
+      salt: decoySalt,
+      codeHash: decoyCodeHash,
+      decoy: true,
+      exp: Date.now() + CODE_TTL_SECONDS * 1000,
+    });
+    return buildGenericRequestCodeResponse({ verificationToken: decoyVerificationToken });
   }
 
   const code = createCode();
@@ -260,13 +292,8 @@ async function handleRequestCode(payload, request) {
     smsSetupRequired: Boolean(sms.setupRequired),
   });
 
-  return Response.json({
-    ok: true,
+  return buildGenericRequestCodeResponse({
     verificationToken,
-    expiresIn: CODE_TTL_SECONDS,
-    sms,
-    passwordResetSupported,
-    usernamePreview: maskUsername(account.username),
     debugCode: process.env.NODE_ENV === 'production' ? undefined : code,
   });
 }
@@ -296,8 +323,11 @@ async function handleVerifyCode(payload, request) {
   }
 
   const attemptedHash = await hashCode(code, tokenPayload.salt);
-  if (!code || !safeEqual(attemptedHash, tokenPayload.codeHash)) {
-    await logRecoveryEvent(request, 'auth.account_recovery.verify_code', 'failure', tokenPayload.username, { purpose, reason: 'invalid_code' });
+  if (!code || !safeEqual(attemptedHash, tokenPayload.codeHash) || tokenPayload.decoy) {
+    await logRecoveryEvent(request, 'auth.account_recovery.verify_code', 'failure', tokenPayload.username || tokenPayload.phone || '', {
+      purpose,
+      reason: tokenPayload.decoy ? 'decoy_token' : 'invalid_code',
+    });
     return Response.json({ ok: false, error: '인증번호가 일치하지 않습니다.' }, { status: 400 });
   }
 

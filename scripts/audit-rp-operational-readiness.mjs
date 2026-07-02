@@ -180,6 +180,18 @@ addCheck(
 );
 addCheck(
   "security",
+  "Account recovery request response avoids account enumeration",
+  includesAll("app/api/auth/account-recovery/route.js", [
+    "GENERIC_REQUEST_MESSAGE",
+    "buildGenericRequestCodeResponse",
+    "decoy: true",
+    "'decoy_token'",
+    "reason: 'account_not_found'",
+  ])
+    && !readFile("app/api/auth/account-recovery/route.js").includes("accountLookupMatched"),
+);
+addCheck(
+  "security",
   "Member-facing AI consult route is gated by approval and daily usage",
   includesAll("app/api/rp/pe-exam-ai-consult/route.js", ["checkAiServiceAccess", "AI_DAILY_LIMIT_REACHED", "aiUsage"]),
 );
