@@ -59,10 +59,47 @@ function directoryIncludesText(dir, needle) {
   return false;
 }
 
+function listFiles(dir, predicate = () => true) {
+  const dirPath = path.join(root, dir);
+  if (!fs.existsSync(dirPath)) return [];
+
+  const files = [];
+  const stack = [dirPath];
+  while (stack.length) {
+    const current = stack.pop();
+    const stats = fs.statSync(current);
+    if (stats.isDirectory()) {
+      for (const child of fs.readdirSync(current)) stack.push(path.join(current, child));
+      continue;
+    }
+
+    if (stats.isFile() && predicate(current)) {
+      files.push(path.relative(root, current).split(path.sep).join("/"));
+    }
+  }
+
+  return files.sort();
+}
+
+function uniqueSorted(items) {
+  return [...new Set(items)].sort();
+}
+
+function findMissing(required, inventory) {
+  const known = new Set(inventory);
+  return required.filter((item) => !known.has(item));
+}
+
+function routeMethodNames(route) {
+  const text = readFile(route);
+  return [...text.matchAll(/export\s+async\s+function\s+([A-Z]+)\s*\(/g)].map((match) => match[1]);
+}
+
 const packageJson = JSON.parse(readFile("package.json"));
 const dependencies = packageJson.dependencies || {};
 const scripts = packageJson.scripts || {};
 const externalManagementDomain = ["no", "re", "app", ".com"].join("");
+const apiRouteFiles = listFiles("app/api", (file) => path.basename(file) === "route.js");
 
 addCheck("runtime", "Next.js is on a patched 15.5.x+ line", versionAtLeast(dependencies.next, "15.5.7"), `next=${dependencies.next}`);
 addCheck("runtime", "React is on a patched 19.2.x+ line", versionAtLeast(dependencies.react, "19.2.4"), `react=${dependencies.react}`);
@@ -423,6 +460,43 @@ const originProtectedRoutes = [
 for (const route of originProtectedRoutes) {
   addCheck("security", `${route} rejects foreign origins`, includesAll(route, ["checkSameOriginRequest", "buildForbiddenOriginResponse"]));
 }
+
+const bearerSecretRoutes = [
+  "app/api/rp/maintenance/retention/route.js",
+];
+
+const protectedApiRouteInventory = uniqueSorted([
+  ...rateLimitedRoutes,
+  ...originProtectedRoutes,
+  ...bearerSecretRoutes,
+]);
+const missingProtectedApiRoutes = findMissing(apiRouteFiles, protectedApiRouteInventory);
+addCheck(
+  "security",
+  "All API routes are covered by the protection inventory",
+  missingProtectedApiRoutes.length === 0,
+  missingProtectedApiRoutes.length ? `missing=${missingProtectedApiRoutes.join(", ")}` : "",
+);
+
+const stateChangingApiRoutes = apiRouteFiles.filter((route) =>
+  routeMethodNames(route).some((method) => !["GET", "HEAD", "OPTIONS"].includes(method)),
+);
+const missingOriginGuards = findMissing(stateChangingApiRoutes, uniqueSorted(originProtectedRoutes));
+addCheck(
+  "security",
+  "All state-changing API routes are same-origin guarded",
+  missingOriginGuards.length === 0,
+  missingOriginGuards.length ? `missing=${missingOriginGuards.join(", ")}` : "",
+);
+
+const jsonBodyRoutes = apiRouteFiles.filter((route) => readFile(route).includes("request.json("));
+const missingBodySizeGuards = findMissing(jsonBodyRoutes, uniqueSorted(bodyLimitedRoutes));
+addCheck(
+  "traffic",
+  "All JSON body API routes are request-size guarded",
+  missingBodySizeGuards.length === 0,
+  missingBodySizeGuards.length ? `missing=${missingBodySizeGuards.join(", ")}` : "",
+);
 
 addCheck(
   "traffic",

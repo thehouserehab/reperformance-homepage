@@ -45,6 +45,8 @@ For campaign preparation, run:
 npm.cmd run ops:campaign:check -- --build --typecheck
 ```
 
+The operational audit also fails if a new `app/api/**/route.js` file is not added to the protection inventory, if a state-changing route is missing same-origin protection, or if a JSON body route parses `request.json()` without the request-size guard.
+
 Then complete the manual edge and production database gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.
 
 ## Verification
