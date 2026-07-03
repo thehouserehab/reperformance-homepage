@@ -30,6 +30,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - PE exam AI consult Google Drive/Sheets backup requests now send minimized metadata instead of duplicating raw student input or conversation records.
 - New `rp_pe_exam_questions.payload` writes are minimized on insert; the submitted question remains in the structured `question_text` column without being duplicated into broad JSON payloads.
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
+- Session cookie creation and clearing use centralized options with `httpOnly`, production-only `secure`, `sameSite=lax`, and root path settings.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.

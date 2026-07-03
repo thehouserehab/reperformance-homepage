@@ -143,6 +143,27 @@ addCheck(
 );
 addCheck(
   "security",
+  "Session cookie security options are centralized",
+  includesAll("lib/rpAdminAuth.js", [
+    "getAdminCookieSecurityOptions",
+    "getAdminCookieOptions",
+    "getAdminCookieClearOptions",
+    "httpOnly: true",
+    "secure: process.env.NODE_ENV === 'production'",
+    "sameSite: 'lax'",
+    "maxAge: getAdminSessionTtlSeconds()",
+    "maxAge: 0",
+  ])
+    && includesAll("app/api/auth/login/route.js", ["getAdminCookieOptions", "response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions())"])
+    && includesAll("app/api/admin/login/route.js", ["getAdminCookieOptions", "response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions())"])
+    && includesAll("app/api/rp/signup/route.js", ["getAdminCookieOptions", "response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions())"])
+    && includesAll("app/api/auth/logout/route.js", ["getAdminCookieClearOptions", "response.cookies.set(ADMIN_COOKIE_NAME, '', getAdminCookieClearOptions())"])
+    && includesAll("app/api/admin/logout/route.js", ["getAdminCookieClearOptions", "response.cookies.set(ADMIN_COOKIE_NAME, '', getAdminCookieClearOptions())"])
+    && !readFile("app/api/auth/logout/route.js").includes("secure: process.env.NODE_ENV")
+    && !readFile("app/api/admin/logout/route.js").includes("secure: process.env.NODE_ENV"),
+);
+addCheck(
+  "security",
   "Shared rate limit helper exists",
   includesAll("lib/rpRateLimit.js", ["checkSharedRequestRateLimit", "checkDatabaseRateLimit", "checkRateLimit(key"]),
 );
