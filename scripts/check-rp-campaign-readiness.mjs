@@ -126,6 +126,7 @@ Manual gates before a high-traffic campaign:
 - Keep RP_RETENTION_CRON_APPLY disabled until backup/restore readiness and deletion approval are confirmed.
 - Run npm.cmd run ops:campaign:check -- --retention-strict with a production database URL, then run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup remains disabled unless RP_GOOGLE_DRIVE_BACKUP_ENABLED=true, RP_API_SECRET, restore readiness, retention rules, and trusted staff-only sheet access are all confirmed.
+- Confirm outbound timeout env vars remain conservative: RP_OUTBOUND_FETCH_TIMEOUT_MS, RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS, RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS, RP_WEBHOOK_FETCH_TIMEOUT_MS, and RP_OPENAI_FETCH_TIMEOUT_MS.
 - Confirm PE exam source year and unresolved university coverage before publishing admission campaigns.
 - Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, foreign-origin write rejection, and external management separation.
 - Monitor Vercel logs, 429 rate, 5xx rate, database connection timeouts, and backup failures during the campaign.

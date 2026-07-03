@@ -17,6 +17,7 @@ import {
   isGoogleDriveBackupEnabled,
   shouldSendGoogleDriveSecretInQuery,
 } from '../../../../lib/rpGoogleDriveBackup';
+import { fetchWithTimeout } from '../../../../lib/rpOutboundFetch';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -354,7 +355,11 @@ async function callSheetsApi(body, options = {}) {
     fetchOptions.body = JSON.stringify(requestBody);
   }
 
-  const response = await fetch(buildScriptUrl(webAppUrl, body, apiSecret), fetchOptions);
+  const response = await fetchWithTimeout(buildScriptUrl(webAppUrl, body, apiSecret), fetchOptions, {
+    envKey: 'RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS',
+    fallbackMs: 8000,
+    maxMs: 30000,
+  });
   const data = await parseScriptResponse(response);
 
   if (!response.ok || data?.ok === false) {
@@ -404,7 +409,11 @@ async function addClientWithAttempts(record) {
 async function fetchMembersCsvClients() {
   const { sheetId, membersGid } = getConfig();
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${membersGid}`;
-  const response = await fetch(url, { cache: 'no-store', redirect: 'follow' });
+  const response = await fetchWithTimeout(url, { cache: 'no-store', redirect: 'follow' }, {
+    envKey: 'RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS',
+    fallbackMs: 8000,
+    maxMs: 30000,
+  });
   const text = await response.text();
 
   if (!response.ok) throw new Error(`Google Sheets CSV 조회 실패: ${response.status}`);

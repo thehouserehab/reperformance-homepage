@@ -52,6 +52,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. Unauthenticated requests are rejected before setup checks, the route runs dry-run by default, and it applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
 - Runtime database schema sync can be disabled with `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` after checked-in migrations pass, preventing request handlers from running schema DDL during high-traffic production.
 - Google Drive/Sheets backup copies now fail closed unless `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true` and `RP_API_SECRET` are both configured, preventing accidental customer-data replication just because an Apps Script URL exists.
+- Server-side outbound calls now use `fetchWithTimeout` so Apps Script, webhook, Google Sheets CSV, and OpenAI requests cannot hold serverless functions open indefinitely during traffic spikes.
 - `npm run ops:audit` now fails if source code reintroduces external management service identifiers, domains, invite codes, or paths into the homepage codebase.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
 - The deprecated interactive `next lint` script was replaced with an explicit nonconfigured message, and `npm run typecheck` was added.
@@ -83,6 +84,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Leave `RP_GOOGLE_DRIVE_BACKUP_ENABLED` unset or false unless backup access, restore testing, and retention policy are ready.
+- Keep outbound timeout settings conservative: `RP_OUTBOUND_FETCH_TIMEOUT_MS`, `RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS`, `RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS`, `RP_WEBHOOK_FETCH_TIMEOUT_MS`, and `RP_OPENAI_FETCH_TIMEOUT_MS` should stay within the documented caps unless a campaign test proves more time is required.
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
 - For paid ads, offline events, or admission-season traffic, run `npm run ops:campaign:check -- --build --typecheck --database --retention-strict` with a production database URL before increasing traffic.
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.

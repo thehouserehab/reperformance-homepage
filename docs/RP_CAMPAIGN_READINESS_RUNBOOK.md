@@ -83,6 +83,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `npm.cmd run ops:public:check` passes against both production URLs after deploy.
 - Google Drive/Sheets backup remains disabled unless `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true`, `RP_API_SECRET`, and trusted staff-only sheet access are confirmed.
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.
+- Outbound timeout env vars remain conservative: `RP_OUTBOUND_FETCH_TIMEOUT_MS`, `RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS`, `RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS`, `RP_WEBHOOK_FETCH_TIMEOUT_MS`, and `RP_OPENAI_FETCH_TIMEOUT_MS`.
 - Vercel Cron has `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` configured for `/api/rp/maintenance/retention`.
 - Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and retention approval are confirmed.
 - `npm.cmd run ops:campaign:check -- --database --retention-strict` passes against production PostgreSQL before paid or admission-season traffic.

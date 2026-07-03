@@ -11,6 +11,7 @@ import {
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
 import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
+import { fetchWithTimeout } from '../../../../lib/rpOutboundFetch';
 import { assertStrongProductionSecret, safeEqual } from '../../../../lib/rpSecurity';
 import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
@@ -189,7 +190,7 @@ async function sendRecoveryCode({ phone, code, purpose }) {
     };
   }
 
-  const response = await fetch(webhookUrl, {
+  const response = await fetchWithTimeout(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -204,6 +205,10 @@ async function sendRecoveryCode({ phone, code, purpose }) {
       secret: getWebhookSecret(),
       source: 'reperformance-account-recovery',
     }),
+  }, {
+    envKey: 'RP_WEBHOOK_FETCH_TIMEOUT_MS',
+    fallbackMs: 8000,
+    maxMs: 30000,
   });
 
   if (!response.ok) {

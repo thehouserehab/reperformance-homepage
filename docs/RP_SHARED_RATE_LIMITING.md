@@ -39,6 +39,8 @@ The PostgreSQL limiter is a practical app-layer guard, but it still consumes app
 
 Use the DB limiter for correctness across app instances, and edge/WAF controls to reject abusive traffic before it reaches the app or database.
 
+Server-side outbound calls are also timeout-bound with `fetchWithTimeout`. Keep Google/Auth/Webhook defaults near 8 seconds and OpenAI near 25 seconds unless a campaign load test proves a larger value is necessary.
+
 For campaign preparation, run:
 
 ```powershell

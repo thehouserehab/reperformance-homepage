@@ -535,6 +535,23 @@ addCheck(
 );
 addCheck(
   "traffic",
+  "Server outbound fetches are timeout-bound",
+  includesAll("lib/rpOutboundFetch.js", [
+    "fetchWithTimeout",
+    "AbortController",
+    "RP_OUTBOUND_FETCH_TIMEOUT_MS",
+    "Outbound request timed out",
+  ])
+    && includesAll("lib/rpGoogleDriveBackup.js", ["fetchWithTimeout", "RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS"])
+    && includesAll("lib/rpSheetAuthStore.js", ["fetchWithTimeout", "RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS"])
+    && includesAll("lib/rpIdentityVerification.js", ["fetchWithTimeout", "RP_WEBHOOK_FETCH_TIMEOUT_MS"])
+    && includesAll("app/api/auth/account-recovery/route.js", ["fetchWithTimeout", "RP_WEBHOOK_FETCH_TIMEOUT_MS"])
+    && includesAll("app/api/rp/clients/route.js", ["fetchWithTimeout", "RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS"])
+    && includesAll("app/api/rp/consultation-summary/route.js", ["fetchWithTimeout", "RP_OPENAI_FETCH_TIMEOUT_MS"])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", ["Server-side outbound calls", "fetchWithTimeout"]),
+);
+addCheck(
+  "traffic",
   "High-traffic campaign runbook exists",
   includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", ["Vercel Firewall", "npm.cmd run ops:campaign:check", "PE exam data freshness"]),
 );

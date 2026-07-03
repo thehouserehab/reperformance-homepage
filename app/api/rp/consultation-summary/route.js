@@ -6,6 +6,7 @@ import {
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
 import { checkAiServiceAccess } from '../../../../lib/rpAiAccess';
+import { fetchWithTimeout } from '../../../../lib/rpOutboundFetch';
 import { getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
@@ -188,7 +189,7 @@ async function callOpenAI({ client, record, phase }) {
   if (!apiKey) return null;
 
   const model = cleanText(process.env.OPENAI_MODEL) || 'gpt-5.4-mini';
-  const response = await fetch('https://api.openai.com/v1/responses', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -201,6 +202,10 @@ async function callOpenAI({ client, record, phase }) {
       instructions: 'You are a Korean exercise consultation assistant for RePERFORMANCE. Return only a valid JSON object with clientSummary and coachSummary string fields. Do not diagnose or claim medical certainty.',
       input: buildPrompt(client, record, phase),
     }),
+  }, {
+    envKey: 'RP_OPENAI_FETCH_TIMEOUT_MS',
+    fallbackMs: 25000,
+    maxMs: 60000,
   });
 
   const data = await response.json().catch(() => ({}));
