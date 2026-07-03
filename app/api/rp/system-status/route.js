@@ -5,7 +5,7 @@ import {
   hasStaffAccess,
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
-import { isDatabaseConfigured, isDatabaseOnlyMode } from '../../../../lib/rpDatabase';
+import { isDatabaseConfigured, isDatabaseOnlyMode, isRuntimeSchemaSyncDisabled } from '../../../../lib/rpDatabase';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +40,7 @@ function buildStatus() {
       postgres: {
         configured: databaseConfigured,
         databaseOnly,
+        runtimeSchemaSyncDisabled: isRuntimeSchemaSyncDisabled(),
       },
       googleDriveBackup: {
         configured: sheetsWebAppConfigured && apiSecretConfigured,

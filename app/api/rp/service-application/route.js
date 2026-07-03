@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   isDatabaseConfigured,
+  isRuntimeSchemaSyncDisabled,
   saveDatabaseClient,
 } from '../../../../lib/rpDatabase';
 import {
@@ -336,6 +337,8 @@ async function getPool() {
 
 let schemaPromise;
 async function ensureApplicationSchema() {
+  if (isRuntimeSchemaSyncDisabled()) return;
+
   const pool = await getPool();
   if (schemaPromise) return schemaPromise;
 

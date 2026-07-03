@@ -48,13 +48,14 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Customer data retention gates now support `--require-database`, `--require-tables`, and candidate-count thresholds so campaign checks can fail while old auto-prunable data remains unresolved.
 - Sensitive auth and AI-approval actions now write hashed security events to `rp_security_events`; see `docs/RP_SECURITY_EVENT_AUDIT_LOG.md`.
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. Unauthenticated requests are rejected before setup checks, the route runs dry-run by default, and it applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
+- Runtime database schema sync can be disabled with `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` after checked-in migrations pass, preventing request handlers from running schema DDL during high-traffic production.
 - `npm run ops:audit` now fails if source code reintroduces external management service identifiers, domains, invite codes, or paths into the homepage codebase.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
 - The deprecated interactive `next lint` script was replaced with an explicit nonconfigured message, and `npm run typecheck` was added.
 
 ## Remaining Risks
 
-- Runtime table creation still exists in request paths. Prefer formal migrations before heavier production use.
+- Runtime table creation remains available as a setup safety net, but high-traffic production should apply checked-in migrations and set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` before campaigns.
 - Existing older `rp_service_applications.payload` rows may still contain broader application objects until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_ai_consults.payload` and `conversation_record` rows may still contain broader AI consultation source records until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_questions.payload` rows may still contain duplicated question data until retention pruning is reviewed and applied.
@@ -69,6 +70,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 
 - Keep `DATABASE_URL` or `RP_DATABASE_URL` configured in production.
 - Apply all checked-in SQL files in `database/migrations` before high-traffic production use, then keep runtime schema creation as a safety net only.
+- After `npm run db:migration:check` passes against production, set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` and verify `/api/rp/system-status` reports `storage.postgres.runtimeSchemaSyncDisabled=true`.
 - Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying migrations.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
 - Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.

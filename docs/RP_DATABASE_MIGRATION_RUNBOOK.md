@@ -65,7 +65,29 @@ npm.cmd run db:migration:check
 
 Treat any failed table, column, or index check as a no-go for campaign traffic.
 
-## 4. Retention and legacy cleanup
+## 4. Disable runtime schema sync for heavy traffic
+
+The app keeps runtime schema creation as a local/setup safety net. Before paid traffic, admission-season traffic, or any large offline event, apply the checked-in migrations and confirm:
+
+```powershell
+npm.cmd run db:migration:check
+```
+
+After that production check passes, disable request-path DDL in Vercel:
+
+```txt
+RP_DISABLE_RUNTIME_SCHEMA_SYNC=true
+```
+
+Equivalent fallback:
+
+```txt
+RP_RUNTIME_SCHEMA_SYNC=false
+```
+
+With runtime schema sync disabled, request handlers no longer run `CREATE TABLE`, `ALTER TABLE`, or `CREATE INDEX` safety-net queries. Missing schema will surface as normal database errors, so do not enable this until `db:migration:check` passes against the same production database. Staff can confirm the effective runtime mode from `/api/rp/system-status` after login: `storage.postgres.runtimeSchemaSyncDisabled` should be `true`.
+
+## 5. Retention and legacy cleanup
 
 After the schema is confirmed:
 
@@ -86,7 +108,7 @@ The `20260702_retention_scale_indexes.sql` migration adds partial indexes for ol
 
 If the migration check reports legacy plaintext passwords with hashes, prioritize normal login migration or an admin-approved cleanup that sets `password_plain = NULL` only after `password_hash` is confirmed.
 
-## 5. Campaign command
+## 6. Campaign command
 
 When a database URL is available, include database gates in the campaign check:
 

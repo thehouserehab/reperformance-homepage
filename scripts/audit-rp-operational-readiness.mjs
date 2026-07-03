@@ -432,6 +432,28 @@ addCheck(
     && includesAll("scripts/apply-rp-database-migration.mjs", ["RP_DATABASE_MIGRATION_ALLOW_APPLY", "APPLY_RP_DB_MIGRATION", "database/migrations", "db:migration:check"]),
 );
 addCheck(
+  "data",
+  "Runtime schema sync can be disabled after migrations",
+  includesAll("lib/rpDatabase.js", [
+    "isRuntimeSchemaSyncDisabled",
+    "RP_DISABLE_RUNTIME_SCHEMA_SYNC",
+    "RP_RUNTIME_SCHEMA_SYNC",
+    "ensureDatabaseSchema",
+  ])
+    && includesAll("app/api/rp/service-application/route.js", [
+      "isRuntimeSchemaSyncDisabled",
+      "ensureApplicationSchema",
+    ])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "runtimeSchemaSyncDisabled",
+      "isRuntimeSchemaSyncDisabled",
+    ])
+    && includesAll("docs/RP_DATABASE_MIGRATION_RUNBOOK.md", [
+      "RP_DISABLE_RUNTIME_SCHEMA_SYNC=true",
+      "db:migration:check",
+    ]),
+);
+addCheck(
   "traffic",
   "Vercel production check command exists",
   Boolean(scripts["ops:vercel:check"])

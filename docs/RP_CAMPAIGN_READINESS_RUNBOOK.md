@@ -70,6 +70,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - All checked-in SQL files in `database/migrations` have been applied in production.
 - If migrations have not been applied, use `npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` with `RP_DATABASE_MIGRATION_ALLOW_APPLY=true`.
 - `npm.cmd run db:migration:check` passes against the production PostgreSQL database.
+- After `db:migration:check` passes, set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` for high-traffic production so request handlers do not run schema DDL during user traffic.
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
 - Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
@@ -127,6 +128,7 @@ Recommended policy:
 Before the campaign:
 
 - Run `npm.cmd run db:migration:check` with a production database URL.
+- Confirm `/api/rp/system-status` reports `storage.postgres.runtimeSchemaSyncDisabled=true` after migrations are applied and the production env is updated.
 - Run `npm.cmd run data:retention:audit`.
 - Run `npm.cmd run ops:campaign:check -- --database --retention-strict` when preparing for paid traffic or admission-season spikes.
 - Review old broad payload counts for `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
