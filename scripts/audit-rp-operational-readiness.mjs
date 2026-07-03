@@ -164,6 +164,33 @@ addCheck(
 );
 addCheck(
   "security",
+  "Production signing and password secrets are strength-gated",
+  includesAll("lib/rpSecurity.js", [
+    "MIN_PRODUCTION_SECRET_LENGTH",
+    "assertStrongProductionSecret",
+    "getProductionSecretStatus",
+    "PLACEHOLDER_SECRET_PATTERN",
+  ])
+    && includesAll("lib/rpAdminAuth.js", ["assertStrongProductionSecret", "RP_ADMIN_SESSION_SECRET or RP_API_SECRET"])
+    && includesAll("lib/rpIdentityVerification.js", ["assertStrongProductionSecret", "RP_IDENTITY_VERIFICATION_SECRET or fallback signing secret"])
+    && includesAll("app/api/auth/account-recovery/route.js", ["assertStrongProductionSecret", "RP_ACCOUNT_RECOVERY_SECRET or fallback signing secret"])
+    && includesAll("lib/rpDatabase.js", ["assertStrongProductionSecret", "RP_PASSWORD_HASH_SECRET or fallback signing secret"])
+    && includesAll("lib/rpSheetAuthStore.js", ["assertStrongProductionSecret", "RP_PASSWORD_HASH_SECRET or fallback signing secret"])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "getProductionSecretStatus",
+      "buildSecretStatus",
+      "signingSecret",
+      "passwordHash",
+    ])
+    && includesAll("docs/RP_PRODUCTION_SECRET_POLICY.md", [
+      "at least 32 characters",
+      "placeholder",
+      "RP_ADMIN_SESSION_SECRET",
+      "RP_PASSWORD_HASH_SECRET",
+    ]),
+);
+addCheck(
+  "security",
   "Shared rate limit helper exists",
   includesAll("lib/rpRateLimit.js", ["checkSharedRequestRateLimit", "checkDatabaseRateLimit", "checkRateLimit(key"]),
 );

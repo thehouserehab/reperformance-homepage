@@ -7,6 +7,7 @@ import {
 } from '../../../../lib/rpAdminAuth';
 import { isDatabaseConfigured, isDatabaseOnlyMode, isRuntimeSchemaSyncDisabled } from '../../../../lib/rpDatabase';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import { getProductionSecretStatus } from '../../../../lib/rpSecurity';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,19 @@ function cleanEnvValue(value) {
 
 function hasEnv(...keys) {
   return keys.some((key) => Boolean(cleanEnvValue(process.env[key])));
+}
+
+function getFirstEnv(...keys) {
+  for (const key of keys) {
+    const value = cleanEnvValue(process.env[key]);
+    if (value) return value;
+  }
+
+  return '';
+}
+
+function buildSecretStatus(...keys) {
+  return getProductionSecretStatus(getFirstEnv(...keys));
 }
 
 function buildStatus() {
@@ -55,11 +69,18 @@ function buildStatus() {
         ttlSeconds: sessionTtlSeconds,
         minimumOneDay: sessionTtlSeconds >= 60 * 60 * 24,
         signingSecretConfigured: hasEnv('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+        signingSecret: buildSecretStatus('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
       },
       signup: {
         defaultRole: 'member',
         identitySigningSecretConfigured: hasEnv(
           'RP_IDENTITY_VERIFICATION_SECRET',
+          'RP_ADMIN_SESSION_SECRET',
+          'RP_API_SECRET',
+        ),
+        identitySigningSecret: buildSecretStatus(
+          'RP_IDENTITY_VERIFICATION_SECRET',
+          'RP_ACCOUNT_RECOVERY_SECRET',
           'RP_ADMIN_SESSION_SECRET',
           'RP_API_SECRET',
         ),
@@ -69,6 +90,7 @@ function buildStatus() {
       },
       accountRecovery: {
         signingSecretConfigured: hasEnv('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+        signingSecret: buildSecretStatus('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
         phoneWebhookConfigured: hasEnv('RP_SMS_WEBHOOK_URL', 'SMS_WEBHOOK_URL'),
         webhookSecretConfigured: hasEnv('RP_IDENTITY_WEBHOOK_SECRET', 'RP_SMS_WEBHOOK_SECRET', 'RP_API_SECRET'),
         passwordResetStore: databaseConfigured ? 'postgres' : 'manual',
@@ -77,6 +99,10 @@ function buildStatus() {
           perIp: '20 / 15min',
           verifyAttempts: '8 / 5min',
         },
+      },
+      passwordHash: {
+        secretConfigured: hasEnv('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+        secret: buildSecretStatus('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
       },
       seedAccounts: {
         authUsersConfigured: hasEnv('RP_AUTH_USERS'),

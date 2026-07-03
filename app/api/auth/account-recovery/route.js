@@ -10,7 +10,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
-import { safeEqual } from '../../../../lib/rpSecurity';
+import { assertStrongProductionSecret, safeEqual } from '../../../../lib/rpSecurity';
 import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
 export const dynamic = 'force-dynamic';
@@ -49,10 +49,11 @@ function rateLimitResponse(retryAfterSeconds) {
 }
 
 function getRecoverySecret() {
-  return cleanValue(
+  return assertStrongProductionSecret(
     process.env.RP_ACCOUNT_RECOVERY_SECRET ||
     process.env.RP_ADMIN_SESSION_SECRET ||
     process.env.RP_API_SECRET,
+    'RP_ACCOUNT_RECOVERY_SECRET or fallback signing secret',
   );
 }
 

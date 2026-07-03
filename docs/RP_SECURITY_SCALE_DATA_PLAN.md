@@ -1,6 +1,6 @@
 # RePERFORMANCE 보안, 데이터, 확장 운영 대책
 
-Last updated: 2026-07-02
+Last updated: 2026-07-03
 
 이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
 
@@ -86,6 +86,7 @@ npm run pe-exam:data:refresh
 ## 검증 체크리스트
 
 - `npm run build`
+- `npm run ops:audit` confirms production signing and password secrets are strength-gated in code and documented in `docs/RP_PRODUCTION_SECRET_POLICY.md`.
 - `git diff --check`
 - `/api/rp/system-status`에서 DB, 인증 웹훅, 세션 설정 확인
 - 로그인 실패 반복 시 429 응답 또는 제한 안내 확인

@@ -31,6 +31,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - New `rp_pe_exam_questions.payload` writes are minimized on insert; the submitted question remains in the structured `question_text` column without being duplicated into broad JSON payloads.
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
 - Session cookie creation and clearing use centralized options with `httpOnly`, production-only `secure`, `sameSite=lax`, and root path settings.
+- Production session, identity verification, account recovery, and password-hash secrets now reject weak placeholder values and require at least 32 characters before signing or hashing.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
@@ -56,6 +57,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 ## Remaining Risks
 
 - Runtime table creation remains available as a setup safety net, but high-traffic production should apply checked-in migrations and set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` before campaigns.
+- Production auth can fail closed if signing/hash secrets are too short or still contain placeholder text. Confirm secret strength in `/api/rp/system-status` after updating Vercel env vars.
 - Existing older `rp_service_applications.payload` rows may still contain broader application objects until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_ai_consults.payload` and `conversation_record` rows may still contain broader AI consultation source records until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_questions.payload` rows may still contain duplicated question data until retention pruning is reviewed and applied.
@@ -73,6 +75,8 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - After `npm run db:migration:check` passes against production, set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` and verify `/api/rp/system-status` reports `storage.postgres.runtimeSchemaSyncDisabled=true`.
 - Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying migrations.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
+- Use unique production secrets with at least 32 characters and no placeholder terms like `change-this`, `example`, or `default`; `/api/rp/system-status` reports only strength status, not the secret values.
+- Use `docs/RP_PRODUCTION_SECRET_POLICY.md` when rotating production auth, recovery, and password-hash secrets.
 - Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Use `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` if backup access or retention policy is not ready.
