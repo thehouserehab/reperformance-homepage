@@ -9,7 +9,7 @@ Last updated: 2026-07-03
 현재 기본 방향은 PostgreSQL을 1차 저장소로 두고, Google Drive/Sheets는 전환기 백업 경로로만 사용하는 것입니다.
 
 - Production은 `DATABASE_URL` 또는 `RP_DATABASE_URL`과 `RP_DATA_SOURCE=database`를 기준으로 운영합니다.
-- Google Drive/Sheets 백업은 필요한 기간에만 켜고, `RP_BACKUP_SECRET_IN_QUERY=false`를 유지합니다.
+- Google Drive/Sheets 백업은 `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true`로 명시적으로 켠 기간에만 사용하고, `RP_BACKUP_SECRET_IN_QUERY=false`를 유지합니다.
 - 신규 `rp_service_applications.payload`는 저장 시점부터 필수 메타데이터 중심으로 최소화하고, 기존 넓은 payload는 retention 감사/정리 대상으로 둡니다.
 - 신규 `rp_pe_exam_ai_consults.payload`와 `conversation_record`는 저장 시점부터 최소 메타데이터 중심으로 저장하고, 기존 넓은 AI 상담 JSON 기록은 retention 감사/정리 대상으로 둡니다.
 - 신규 `rp_pe_exam_questions.payload`는 저장 시점부터 최소 메타데이터 중심으로 저장하고, 기존 넓은 질문 JSON 기록은 retention 감사/정리 대상으로 둡니다.

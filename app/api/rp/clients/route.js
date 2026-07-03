@@ -12,7 +12,11 @@ import {
   saveDatabaseClient,
   saveDatabaseConsultation,
 } from '../../../../lib/rpDatabase';
-import { shouldSendGoogleDriveSecretInQuery } from '../../../../lib/rpGoogleDriveBackup';
+import {
+  getGoogleDriveBackupSkipReason,
+  isGoogleDriveBackupEnabled,
+  shouldSendGoogleDriveSecretInQuery,
+} from '../../../../lib/rpGoogleDriveBackup';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -466,6 +470,14 @@ async function listClientsFromPreferredStore() {
 }
 
 async function backupClientToGoogleDrive(record) {
+  if (!isGoogleDriveBackupEnabled()) {
+    return {
+      ok: false,
+      skipped: true,
+      reason: getGoogleDriveBackupSkipReason(),
+    };
+  }
+
   try {
     const backupRecord = normalizeManualClient(record);
     const data = await addClientWithAttempts(backupRecord);
@@ -476,6 +488,14 @@ async function backupClientToGoogleDrive(record) {
 }
 
 async function backupConsultationToGoogleDrive(record) {
+  if (!isGoogleDriveBackupEnabled()) {
+    return {
+      ok: false,
+      skipped: true,
+      reason: getGoogleDriveBackupSkipReason(),
+    };
+  }
+
   try {
     const data = await callSheetsApi({ action: 'saveConsultation', record });
     return { ok: true, source: 'apps-script', action: 'saveConsultation', ...data };

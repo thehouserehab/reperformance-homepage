@@ -570,6 +570,33 @@ addCheck(
   "Google backup query secret is legacy opt-in only",
   includesAll("lib/rpGoogleDriveBackup.js", ["RP_BACKUP_SECRET_IN_QUERY", "isEnabledFlag(process.env.RP_BACKUP_SECRET_IN_QUERY)"]),
 );
+addCheck(
+  "data",
+  "Google backup copies require explicit opt-in and API secret",
+  includesAll("lib/rpGoogleDriveBackup.js", [
+    "getBackupEnabledSetting",
+    "getBackupApiSecret",
+    "RP_GOOGLE_DRIVE_BACKUP_ENABLED",
+    "RP_SERVICE_APPLICATION_BACKUP_ENABLED",
+    "Boolean(getBackupWebAppUrl() && getBackupApiSecret() && isEnabledFlag(configuredValue))",
+    "Google Drive backup requires RP_GOOGLE_DRIVE_BACKUP_ENABLED=true.",
+  ])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "isGoogleDriveBackupEnabled",
+      "explicitOptInRequired",
+      "skipReason",
+      "backupWebAppConfigured",
+    ])
+    && includesAll("app/api/rp/clients/route.js", [
+      "isGoogleDriveBackupEnabled",
+      "getGoogleDriveBackupSkipReason",
+      "skipped: true",
+    ])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
+      "RP_GOOGLE_DRIVE_BACKUP_ENABLED=true",
+      "fail closed",
+    ]),
+);
 
 const rateLimitedRoutes = [
   "app/api/auth/login/route.js",

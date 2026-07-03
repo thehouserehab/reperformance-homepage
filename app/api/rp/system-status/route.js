@@ -6,6 +6,10 @@ import {
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
 import { isDatabaseConfigured, isDatabaseOnlyMode, isRuntimeSchemaSyncDisabled } from '../../../../lib/rpDatabase';
+import {
+  getGoogleDriveBackupSkipReason,
+  isGoogleDriveBackupEnabled,
+} from '../../../../lib/rpGoogleDriveBackup';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import { getProductionSecretStatus } from '../../../../lib/rpSecurity';
 
@@ -43,7 +47,9 @@ function buildStatus() {
   const databaseOnly = isDatabaseOnlyMode();
   const sheetsWebAppConfigured = hasEnv('RP_SHEETS_WEBAPP_URL');
   const authWebAppConfigured = hasEnv('RP_AUTH_WEBAPP_URL', 'RP_SIGNUP_WEBAPP_URL', 'RP_SHEETS_WEBAPP_URL');
+  const backupWebAppConfigured = authWebAppConfigured;
   const apiSecretConfigured = hasEnv('RP_API_SECRET');
+  const googleDriveBackupEnabled = isGoogleDriveBackupEnabled();
   const sessionTtlSeconds = getAdminSessionTtlSeconds();
 
   return {
@@ -57,7 +63,11 @@ function buildStatus() {
         runtimeSchemaSyncDisabled: isRuntimeSchemaSyncDisabled(),
       },
       googleDriveBackup: {
-        configured: sheetsWebAppConfigured && apiSecretConfigured,
+        configured: backupWebAppConfigured && apiSecretConfigured,
+        enabled: googleDriveBackupEnabled,
+        explicitOptInRequired: true,
+        skipReason: googleDriveBackupEnabled ? null : getGoogleDriveBackupSkipReason(),
+        backupWebAppConfigured,
         sheetsWebAppConfigured,
         authWebAppConfigured,
         apiSecretConfigured,

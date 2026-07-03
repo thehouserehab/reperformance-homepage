@@ -8,6 +8,7 @@ New rows in `rp_service_applications.payload` are minimized at write time.
 - The JSONB `payload` stores operational metadata only: schema version, consent flags, service choice, counts, field lengths, and PE-exam presence flags.
 - Duplicate raw PII and long free-text application details are not copied into the JSONB payload.
 - Google Drive/Sheets backup requests use a separate minimized payload with contact/routing fields and metadata only; long free-text fields are not duplicated into the backup request.
+- Google Drive/Sheets backup is disabled by default. It runs only when a backup web app URL, `RP_API_SECRET`, and `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true` are configured.
 - Legacy broad payload rows remain covered by `npm.cmd run data:retention:audit`.
 
 홈페이지의 `/apply` 페이지는 사용자가 서비스를 선택하고 PAR-Q 확인까지 완료하는 신청 흐름입니다.
@@ -41,8 +42,8 @@ DB가 설정되지 않은 상태에서 신청하면 `/apply?status=setup` 안내
 
 PostgreSQL 저장 후 Google Drive/Sheets Apps Script 백업을 시도할 수 있습니다.
 
-- `RP_SHEETS_WEBAPP_URL`, `RP_SIGNUP_WEBAPP_URL`, `RP_AUTH_WEBAPP_URL` 중 하나가 있으면 기본적으로 백업을 시도합니다.
-- `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false`로 설정하면 DB 저장만 진행하고 백업은 건너뜁니다.
+- A backup web app URL alone does not enable Google Drive/Sheets backup.
+- Set `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true` together with `RP_API_SECRET` and a backup web app URL to explicitly enable backup.
 - `RP_API_SECRET`은 기본적으로 header와 POST body로 전달합니다.
 - 기존 Apps Script가 URL query의 `secret`, `apiSecret`, `token`만 읽는 경우에만 `RP_BACKUP_SECRET_IN_QUERY=true`를 임시로 사용합니다.
 - 공개 JSON 응답에는 신청 원본과 고객 전체 객체를 반환하지 않고 `applicationId`, `clientId`, 백업 상태만 반환합니다.

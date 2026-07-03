@@ -81,7 +81,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
 - Public SSG pages are not marked `no-store`, and hashed `/_next/static` assets return `Cache-Control: public, max-age=31536000, immutable`.
 - `npm.cmd run ops:public:check` passes against both production URLs after deploy.
-- Google Drive/Sheets backup is restricted to trusted staff, or disabled with `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false`.
+- Google Drive/Sheets backup remains disabled unless `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true`, `RP_API_SECRET`, and trusted staff-only sheet access are confirmed.
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.
 - Vercel Cron has `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` configured for `/api/rp/maintenance/retention`.
 - Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and retention approval are confirmed.
