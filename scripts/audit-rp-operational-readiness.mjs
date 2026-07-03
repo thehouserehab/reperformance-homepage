@@ -250,6 +250,23 @@ addCheck(
 );
 addCheck(
   "security",
+  "Public-facing API error responses are sanitized",
+  includesAll("lib/rpPublicErrors.js", [
+    "INTERNAL_ERROR_PATTERN",
+    "getSafePublicErrorMessage",
+    "getPublicErrorStatus",
+    "exposePublicError",
+  ])
+    && includesAll("lib/rpIdentityVerification.js", ["exposePublicError"])
+    && includesAll("app/api/auth/identity-verification/route.js", ["getSafePublicErrorMessage", "getPublicErrorStatus"])
+    && includesAll("app/api/auth/account-recovery/route.js", ["getSafePublicErrorMessage", "getPublicErrorStatus"])
+    && includesAll("app/api/rp/signup/route.js", ["getSafePublicErrorMessage", "buildPublicSignupResult", "buildPublicBackupResult"])
+    && includesAll("app/api/rp/pe-exam-question/route.js", ["getSafePublicErrorMessage", "질문 저장소 설정"])
+    && includesAll("app/api/rp/pe-exam-ai-consult/route.js", ["getSafePublicErrorMessage", "buildPublicBackupResult", "AI 상담 준비 저장소 설정"])
+    && includesAll("app/api/rp/consultation-summary/route.js", ["getSafePublicErrorMessage"]),
+);
+addCheck(
+  "security",
   "Member-facing AI consult route is gated by approval and daily usage",
   includesAll("app/api/rp/pe-exam-ai-consult/route.js", ["checkAiServiceAccess", "AI_DAILY_LIMIT_REACHED", "aiUsage"]),
 );

@@ -10,6 +10,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
+import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { assertStrongProductionSecret, safeEqual } from '../../../../lib/rpSecurity';
 import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
 
@@ -399,8 +400,8 @@ export async function POST(request) {
   } catch (error) {
     console.error('account recovery failed', error);
     return Response.json(
-      { ok: false, error: error?.message || '계정 찾기 처리 중 오류가 발생했습니다.' },
-      { status: 500 },
+      { ok: false, error: getSafePublicErrorMessage(error, '계정 찾기 처리 중 오류가 발생했습니다.') },
+      { status: getPublicErrorStatus(error) },
     );
   }
 }

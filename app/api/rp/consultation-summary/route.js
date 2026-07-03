@@ -6,6 +6,7 @@ import {
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
 import { checkAiServiceAccess } from '../../../../lib/rpAiAccess';
+import { getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -289,7 +290,7 @@ export async function POST(request) {
       ok: true,
       source: 'fallback',
       ...fallback,
-      warning: error?.message || 'AI 요약 생성 중 오류가 발생해 기본 요약을 사용했습니다.',
+      warning: getSafePublicErrorMessage(error, 'AI 요약 생성 중 오류가 발생해 기본 요약을 사용했습니다.'),
     });
   }
 }

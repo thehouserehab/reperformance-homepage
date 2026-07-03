@@ -7,6 +7,7 @@ import {
   listPeExamAiConsultRequests,
   savePeExamAiConsultRequest,
 } from '../../../../lib/rpDatabase';
+import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import {
   callGoogleDriveBackup,
   getGoogleDriveBackupSkipReason,
@@ -132,6 +133,19 @@ function buildPeExamAiConsultBackupRecord(record = {}) {
       nextStepCount: Array.isArray(summary.nextSteps) ? summary.nextSteps.length : 0,
     },
     savedAt: record.savedAt || new Date().toISOString(),
+  };
+}
+
+function buildPublicBackupResult(backup) {
+  if (!backup) return null;
+
+  return {
+    ok: Boolean(backup.ok),
+    skipped: Boolean(backup.skipped),
+    source: backup.source || null,
+    action: backup.action || null,
+    reason: backup.reason || null,
+    error: backup.ok || backup.skipped ? null : 'Backup is temporarily unavailable.',
   };
 }
 
@@ -818,7 +832,7 @@ export async function POST(request) {
         return NextResponse.json(
           {
             ok: false,
-            error: 'DATABASE_URL 또는 RP_DATABASE_URL 환경변수가 필요합니다.',
+            error: 'AI 상담 준비 저장소 설정이 아직 완료되지 않았습니다.',
             guidance,
             setupRequired: true,
           },
@@ -844,14 +858,14 @@ export async function POST(request) {
       savedAt: new Date().toISOString(),
     });
 
-    if (jsonMode) return NextResponse.json({ ok: true, guidance, backup, aiUsage: aiAccess.usage, ...result });
+    if (jsonMode) return NextResponse.json({ ok: true, guidance, backup: buildPublicBackupResult(backup), aiUsage: aiAccess.usage, ...result });
 
     return redirectTo(request, 'success');
   } catch (error) {
     if (jsonMode) {
       return NextResponse.json(
-        { ok: false, error: error?.message || 'AI 상담 사전 입력 저장 중 오류가 발생했습니다.' },
-        { status: error?.status || 500 },
+        { ok: false, error: getSafePublicErrorMessage(error, 'AI 상담 사전 입력 저장 중 오류가 발생했습니다.') },
+        { status: getPublicErrorStatus(error) },
       );
     }
 
@@ -879,7 +893,7 @@ export async function GET(request) {
     return NextResponse.json({
       ok: false,
       setupRequired: true,
-      error: 'DATABASE_URL 또는 RP_DATABASE_URL 환경변수가 필요합니다.',
+      error: 'AI 상담 준비 저장소 설정이 아직 완료되지 않았습니다.',
       requests: [],
     });
   }
@@ -895,7 +909,7 @@ export async function GET(request) {
     return NextResponse.json({ ok: true, requests, count: requests.length });
   } catch (error) {
     return NextResponse.json(
-      { ok: false, error: error?.message || 'AI 상담 준비 내역 조회 중 오류가 발생했습니다.', requests: [] },
+      { ok: false, error: getSafePublicErrorMessage(error, 'AI 상담 준비 내역 조회 중 오류가 발생했습니다.'), requests: [] },
       { status: 500 },
     );
   }

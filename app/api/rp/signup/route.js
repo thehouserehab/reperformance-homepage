@@ -6,6 +6,7 @@ import {
 } from '../../../../lib/rpIdentityVerification';
 import { getSheetRoleLabel, saveSheetAuthSignup } from '../../../../lib/rpSheetAuthStore';
 import { isDatabaseConfigured, isDatabaseOnlyMode, saveDatabaseAuthSignup } from '../../../../lib/rpDatabase';
+import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -84,6 +85,27 @@ function jsonResponse(payload, status = 200) {
 function buildSafeRecord(record) {
   const { password, passwordConfirm, ...safeRecord } = record;
   return safeRecord;
+}
+
+function buildPublicBackupResult(backup) {
+  if (!backup) return null;
+
+  return {
+    ok: Boolean(backup.ok),
+    skipped: Boolean(backup.skipped),
+    action: backup.action || null,
+    reason: backup.reason || null,
+    error: backup.ok || backup.skipped ? null : 'Backup is temporarily unavailable.',
+  };
+}
+
+function buildPublicSignupResult(result = {}) {
+  return {
+    primary: result.primary || null,
+    action: result.action || null,
+    autoApproved: Boolean(result.autoApproved),
+    backup: buildPublicBackupResult(result.backup),
+  };
 }
 
 function logSignupEvent(request, outcome, payload, metadata = {}) {
@@ -238,7 +260,7 @@ export async function POST(request) {
       const account = result.account || { username: record.username, name: record.name, role: 'member' };
 
       if (wantsJson) {
-        const response = jsonResponse({ ok: true, autoApproved: true, record: safeRecord, result });
+        const response = jsonResponse({ ok: true, autoApproved: true, record: safeRecord, result: buildPublicSignupResult(result) });
         const session = await createAdminSession(account);
         response.cookies.set(ADMIN_COOKIE_NAME, session, getAdminCookieOptions());
         return response;
@@ -247,13 +269,16 @@ export async function POST(request) {
       return buildSessionResponse(request, account);
     }
 
-    if (wantsJson) return jsonResponse({ ok: true, autoApproved: false, pendingApproval: true, record: safeRecord, result });
+    if (wantsJson) return jsonResponse({ ok: true, autoApproved: false, pendingApproval: true, record: safeRecord, result: buildPublicSignupResult(result) });
     return buildRedirect(request, 'pending', role);
   } catch (error) {
     const status = getFailureStatus(error);
     await logSignupEvent(request, 'failure', payload, { reason: status, role, verificationMethod });
     if (wantsJson) {
-      return jsonResponse({ ok: false, error: error?.message || '가입 처리 중 오류가 발생했습니다.' }, 500);
+      return jsonResponse(
+        { ok: false, error: getSafePublicErrorMessage(error, '가입 처리 중 오류가 발생했습니다.') },
+        getPublicErrorStatus(error),
+      );
     }
     return buildRedirect(request, status, role);
   }

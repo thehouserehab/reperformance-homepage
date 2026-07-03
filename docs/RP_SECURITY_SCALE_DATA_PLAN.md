@@ -87,6 +87,7 @@ npm run pe-exam:data:refresh
 
 - `npm run build`
 - `npm run ops:audit` confirms production signing and password secrets are strength-gated in code and documented in `docs/RP_PRODUCTION_SECRET_POLICY.md`.
+- `npm run ops:audit` also confirms public-facing API catch responses use sanitized fallback messages instead of raw database, secret, webhook, Apps Script, or OpenAI errors.
 - `git diff --check`
 - `/api/rp/system-status`에서 DB, 인증 웹훅, 세션 설정 확인
 - 로그인 실패 반복 시 429 응답 또는 제한 안내 확인

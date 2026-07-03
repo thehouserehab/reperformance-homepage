@@ -3,6 +3,7 @@ import {
   requestIdentityCode,
   verifyIdentityCode,
 } from '../../../../lib/rpIdentityVerification';
+import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -76,8 +77,8 @@ export async function POST(request) {
     return Response.json({ ok: false, error: '지원하지 않는 요청입니다.' }, { status: 400 });
   } catch (error) {
     return Response.json(
-      { ok: false, error: error?.message || '본인 인증 처리 중 오류가 발생했습니다.' },
-      { status: error?.status || 500 },
+      { ok: false, error: getSafePublicErrorMessage(error, '본인 인증 처리 중 오류가 발생했습니다.') },
+      { status: getPublicErrorStatus(error) },
     );
   }
 }

@@ -23,6 +23,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Backup requests now also send `X-RP-API-Secret` and `Authorization: Bearer ...` headers, while keeping body secrets for Apps Script compatibility.
 - `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` can disable backup attempts while keeping PostgreSQL saves active.
 - Public service application JSON responses no longer return the full application/client payload.
+- Public and member-facing API catch responses now use sanitized fallback messages so database, secret, webhook, Apps Script, and OpenAI internals are not returned to browsers.
 - Service application and PE exam AI consult free-text inputs are length-limited before storage/backup.
 - New `rp_service_applications.payload` writes are minimized on insert; duplicate PII and raw free-text application details stay in structured follow-up columns instead of the broad JSON payload.
 - Service application Google Drive/Sheets backup requests now send a minimized backup payload instead of duplicating the full application/client objects.
@@ -58,6 +59,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 
 - Runtime table creation remains available as a setup safety net, but high-traffic production should apply checked-in migrations and set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` before campaigns.
 - Production auth can fail closed if signing/hash secrets are too short or still contain placeholder text. Confirm secret strength in `/api/rp/system-status` after updating Vercel env vars.
+- Keep detailed operational errors in server logs or staff-only tooling; public JSON responses should use `getSafePublicErrorMessage` or an equivalent sanitized fallback.
 - Existing older `rp_service_applications.payload` rows may still contain broader application objects until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_ai_consults.payload` and `conversation_record` rows may still contain broader AI consultation source records until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_questions.payload` rows may still contain duplicated question data until retention pruning is reviewed and applied.

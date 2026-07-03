@@ -5,6 +5,7 @@ import {
   isDatabaseConfigured,
   savePeExamQuestion,
 } from '../../../../lib/rpDatabase';
+import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -115,7 +116,7 @@ export async function POST(request) {
 
     if (!isDatabaseConfigured()) {
       if (jsonMode) {
-        return NextResponse.json({ ok: false, error: 'DATABASE_URL 또는 RP_DATABASE_URL 환경변수가 필요합니다.' }, { status: 503 });
+        return NextResponse.json({ ok: false, error: '질문 저장소 설정이 아직 완료되지 않았습니다.' }, { status: 503 });
       }
 
       return redirectTo(request, 'setup');
@@ -131,8 +132,8 @@ export async function POST(request) {
   } catch (error) {
     if (jsonMode) {
       return NextResponse.json(
-        { ok: false, error: error?.message || '질문 저장 중 오류가 발생했습니다.' },
-        { status: error?.status || 500 },
+        { ok: false, error: getSafePublicErrorMessage(error, '질문 저장 중 오류가 발생했습니다.') },
+        { status: getPublicErrorStatus(error) },
       );
     }
 
