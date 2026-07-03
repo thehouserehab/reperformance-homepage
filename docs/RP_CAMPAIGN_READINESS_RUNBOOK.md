@@ -60,7 +60,7 @@ To include it in the campaign command:
 npm.cmd run ops:campaign:check -- --public
 ```
 
-The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, protected APIs reject unauthenticated requests, state-changing APIs reject foreign `Origin` requests, API responses are not cached, and the external management service remains separated from the homepage.
+The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, public SSG pages are not marked `no-store`, hashed `/_next/static` assets are served with immutable public cache headers, protected APIs reject unauthenticated requests, state-changing APIs reject foreign `Origin` requests, API responses are not cached, response times stay below the configured public-check thresholds, and the external management service remains separated from the homepage.
 
 ## 2. Production gates
 
@@ -78,6 +78,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
+- Public SSG pages are not marked `no-store`, and hashed `/_next/static` assets return `Cache-Control: public, max-age=31536000, immutable`.
 - `npm.cmd run ops:public:check` passes against both production URLs after deploy.
 - Google Drive/Sheets backup is restricted to trusted staff, or disabled with `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false`.
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.

@@ -437,6 +437,10 @@ addCheck(
       "checkForeignOriginApi",
       "Request origin is not allowed.",
       "externalServiceChecks",
+      "extractStaticAssetPaths",
+      "staticAssetCacheHeaders",
+      "checkPublicPageCache",
+      "checkResponseTime",
       "strict-transport-security",
       "x-robots-tag",
     ])

@@ -4,6 +4,10 @@ const DEFAULT_BASE_URLS = [
 ];
 
 const REQUEST_TIMEOUT_MS = Number(process.env.RP_PUBLIC_CHECK_TIMEOUT_MS) || 12000;
+const MAX_PAGE_RESPONSE_MS = Number(process.env.RP_PUBLIC_CHECK_MAX_PAGE_MS) || 8000;
+const MAX_API_RESPONSE_MS = Number(process.env.RP_PUBLIC_CHECK_MAX_API_MS) || 8000;
+const MAX_ASSET_RESPONSE_MS = Number(process.env.RP_PUBLIC_CHECK_MAX_ASSET_MS) || 8000;
+const MAX_STATIC_ASSETS_PER_BASE = Number(process.env.RP_PUBLIC_CHECK_STATIC_ASSET_LIMIT) || 8;
 
 const args = process.argv.slice(2);
 const namedArgs = new Map(
@@ -23,6 +27,8 @@ const pageChecks = [
   { path: "/signup", label: "signup", expectedText: "회원가입" },
   { path: "/find-account", label: "account recovery", expectedText: "계정" },
 ];
+
+const publicCachePagePaths = new Set(["/", "/pe-exam", "/services/pe-exam"]);
 
 const protectedApiChecks = [
   {
@@ -63,6 +69,11 @@ const requiredPageHeaders = [
 const requiredApiHeaders = [
   { key: "cache-control", includes: "no-store" },
   { key: "x-robots-tag", includes: "noindex" },
+];
+
+const staticAssetCacheHeaders = [
+  { key: "cache-control", includes: "public" },
+  { key: "cache-control", includes: "immutable" },
 ];
 
 const externalBrand = ["NO", "RE"].join("");
@@ -137,6 +148,12 @@ async function fetchWithTimeout(url, init = {}) {
   }
 }
 
+async function fetchTimed(url, init = {}) {
+  const startedAt = Date.now();
+  const response = await fetchWithTimeout(url, init);
+  return { response, durationMs: Date.now() - startedAt };
+}
+
 function getHeader(response, key) {
   return response.headers.get(key) || "";
 }
@@ -146,11 +163,49 @@ function checkHeaders(area, label, response, headers) {
     const value = getHeader(response, header.key);
     addResult(
       area,
-      `${label} header ${header.key}`,
+      `${label} header ${header.key} includes ${header.includes}`,
       value.toLowerCase().includes(header.includes.toLowerCase()),
       value || "missing",
     );
   }
+}
+
+function checkResponseTime(area, label, durationMs, maxMs) {
+  addResult(area, `${label} responds within ${maxMs}ms`, durationMs <= maxMs, `${durationMs}ms`);
+}
+
+function checkPublicPageCache(label, response) {
+  const cacheControl = getHeader(response, "cache-control").toLowerCase();
+  addResult(
+    "page-cache",
+    `${label} is not marked no-store`,
+    !cacheControl.includes("no-store") && !cacheControl.includes("private"),
+    cacheControl || "missing",
+  );
+  addResult(
+    "page-cache",
+    `${label} has cache-aware response header`,
+    ["public", "s-maxage", "stale-while-revalidate", "must-revalidate"].some((token) => cacheControl.includes(token)),
+    cacheControl || "missing",
+  );
+}
+
+function extractStaticAssetPaths(body) {
+  const assetPaths = new Set();
+  const patterns = [
+    /(?:src|href)=["']([^"']*\/_next\/static\/[^"']+)["']/gi,
+    /url\(["']?([^"')]*\/_next\/static\/[^"')]+)["']?\)/gi,
+  ];
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(body)) !== null) {
+      const cleanPath = String(match[1] || "").replace(/&amp;/g, "&");
+      if (cleanPath) assetPaths.add(cleanPath);
+    }
+  }
+
+  return [...assetPaths];
 }
 
 function checkNoExternalServiceText(area, label, body) {
@@ -169,15 +224,20 @@ async function checkPage(baseUrl, page) {
   const url = absoluteUrl(baseUrl, page.path);
 
   try {
-    const response = await fetchWithTimeout(url);
+    const { response, durationMs } = await fetchTimed(url);
     const body = await response.text();
 
     addResult("pages", `${label} returns 200`, response.status === 200, String(response.status));
     addResult("pages", `${label} contains expected text`, body.includes(page.expectedText), page.expectedText);
+    checkResponseTime("latency", label, durationMs, MAX_PAGE_RESPONSE_MS);
     checkHeaders("headers", label, response, requiredPageHeaders);
+    if (publicCachePagePaths.has(page.path)) checkPublicPageCache(label, response);
     checkNoExternalServiceText("separation", label, body);
+
+    return body;
   } catch (error) {
     addResult("pages", `${label} fetch succeeds`, false, error?.message || String(error));
+    return "";
   }
 }
 
@@ -186,7 +246,7 @@ async function checkProtectedApi(baseUrl, api) {
   const url = absoluteUrl(baseUrl, api.path);
 
   try {
-    const response = await fetchWithTimeout(url);
+    const { response, durationMs } = await fetchTimed(url);
     const body = await response.text();
 
     addResult(
@@ -195,6 +255,7 @@ async function checkProtectedApi(baseUrl, api) {
       api.expectedStatuses.includes(response.status),
       String(response.status),
     );
+    checkResponseTime("latency", label, durationMs, MAX_API_RESPONSE_MS);
 
     if (api.expectedBody) {
       addResult("apis", `${label} returns expected auth body`, body.includes(api.expectedBody), api.expectedBody);
@@ -212,7 +273,7 @@ async function checkForeignOriginApi(baseUrl, api) {
   const url = absoluteUrl(baseUrl, api.path);
 
   try {
-    const response = await fetchWithTimeout(url, {
+    const { response, durationMs } = await fetchTimed(url, {
       method: api.method,
       headers: {
         "Content-Type": "application/json",
@@ -224,6 +285,7 @@ async function checkForeignOriginApi(baseUrl, api) {
     const body = await response.text();
 
     addResult("origin-guards", `${label} rejects foreign origin`, response.status === 403, String(response.status));
+    checkResponseTime("latency", label, durationMs, MAX_API_RESPONSE_MS);
     addResult(
       "origin-guards",
       `${label} returns expected origin guard body`,
@@ -234,6 +296,26 @@ async function checkForeignOriginApi(baseUrl, api) {
     checkNoExternalServiceText("separation", label, body);
   } catch (error) {
     addResult("origin-guards", `${label} fetch succeeds`, false, error?.message || String(error));
+  }
+}
+
+async function checkStaticAsset(baseUrl, assetPath) {
+  const url = /^https?:\/\//i.test(assetPath) ? assetPath : absoluteUrl(baseUrl, assetPath);
+  const label = `${baseUrl} ${new URL(url).pathname}`;
+
+  try {
+    const { response, durationMs } = await fetchTimed(url, {
+      headers: {
+        Accept: "*/*",
+      },
+    });
+
+    await response.arrayBuffer();
+    addResult("static-assets", `${label} returns 200`, response.status === 200, String(response.status));
+    checkResponseTime("latency", label, durationMs, MAX_ASSET_RESPONSE_MS);
+    checkHeaders("asset-cache", label, response, staticAssetCacheHeaders);
+  } catch (error) {
+    addResult("static-assets", `${label} fetch succeeds`, false, error?.message || String(error));
   }
 }
 
@@ -271,8 +353,25 @@ async function main() {
     const parsed = new URL(baseUrl);
     addResult("targets", `${baseUrl} uses HTTPS`, parsed.protocol === "https:", parsed.protocol);
 
+    const staticAssetPaths = new Set();
+
     for (const page of pageChecks) {
-      await checkPage(baseUrl, page);
+      const body = await checkPage(baseUrl, page);
+      for (const assetPath of extractStaticAssetPaths(body)) {
+        staticAssetPaths.add(assetPath);
+      }
+    }
+
+    const selectedStaticAssets = [...staticAssetPaths].slice(0, MAX_STATIC_ASSETS_PER_BASE);
+    addResult(
+      "static-assets",
+      `${baseUrl} exposes hashed Next static assets`,
+      selectedStaticAssets.length > 0,
+      `${selectedStaticAssets.length} checked`,
+    );
+
+    for (const assetPath of selectedStaticAssets) {
+      await checkStaticAsset(baseUrl, assetPath);
     }
 
     for (const api of protectedApiChecks) {

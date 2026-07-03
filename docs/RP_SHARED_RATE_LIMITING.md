@@ -49,6 +49,14 @@ The operational audit also fails if a new `app/api/**/route.js` file is not adde
 
 Then complete the manual edge and production database gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.
 
+After deploy, run:
+
+```powershell
+npm.cmd run ops:public:check
+```
+
+This no-secret public check now also verifies public page cache headers, hashed `/_next/static` immutable caching, and broad response-time thresholds so obvious CDN or routing regressions are caught before traffic is increased.
+
 ## Verification
 
 Run:
