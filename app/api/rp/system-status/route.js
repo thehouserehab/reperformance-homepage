@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import {
   ADMIN_COOKIE_NAME,
+  areEnvironmentAuthAccountsAllowed,
   getAdminSessionTtlSeconds,
   hasStaffAccess,
   verifyAdminSessionCookie,
@@ -115,6 +116,8 @@ function buildStatus() {
         secret: buildSecretStatus('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
       },
       seedAccounts: {
+        allowed: areEnvironmentAuthAccountsAllowed(),
+        productionOptInRequired: process.env.NODE_ENV === 'production',
         authUsersConfigured: hasEnv('RP_AUTH_USERS'),
         adminUsersConfigured: hasEnv('RP_ADMIN_USERS', 'RP_ADMIN_USERNAME'),
         trainerUsersConfigured: hasEnv('RP_TRAINER_USERS', 'RP_TRAINER_USERNAME'),

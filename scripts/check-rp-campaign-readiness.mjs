@@ -122,6 +122,7 @@ Manual gates before a high-traffic campaign:
 - Verify /api/rp/system-status with a staff session in production.
 - Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, /api/rp/clients, and /api/rp/auth-accounts.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
+- Confirm RP_ALLOW_ENV_AUTH_ACCOUNTS remains unset or false unless a short emergency bootstrap window is intentionally open.
 - Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention in both production Vercel projects.
 - Keep RP_RETENTION_CRON_APPLY disabled until backup/restore readiness and deletion approval are confirmed.
 - Run npm.cmd run ops:campaign:check -- --retention-strict with a production database URL, then run retention apply mode only after backup and restore readiness is confirmed.

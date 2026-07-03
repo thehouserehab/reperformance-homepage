@@ -88,6 +88,8 @@ RP_PASSWORD_HASH_SECRET=비밀번호 해시에 사용할 긴 임의 문자열
 
 ## 기존 환경변수 계정도 유지됩니다
 
+Production에서는 환경변수 계정이 기본적으로 비활성화됩니다. `RP_ADMIN_USERNAME`, `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_TRAINER_USERS`를 임시 부트스트랩 계정으로 써야 할 때만 `RP_ALLOW_ENV_AUTH_ACCOUNTS=true`를 짧게 켜고, 이후 PostgreSQL 계정으로 전환한 뒤 다시 끕니다.
+
 기존 관리자 계정 환경변수는 계속 사용할 수 있습니다.
 
 ```txt

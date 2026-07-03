@@ -43,6 +43,8 @@ DB와 백업 저장소에는 원본 데이터가 쌓이고, 실제 상담자가 
 
 ### 계정 조회 순서
 
+Production에서는 `RP_ALLOW_ENV_AUTH_ACCOUNTS=true`를 명시적으로 설정한 경우에만 환경변수 계정을 로그인 후보로 사용합니다. 이 값은 초기 부트스트랩이나 비상 접근 때만 짧게 켜고, 일반 운영 계정은 PostgreSQL `rp_auth_accounts`에서 관리합니다.
+
 1. 환경변수 계정: `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_ADMIN_USERNAME` 등
 2. PostgreSQL 계정: `rp_auth_accounts`
 3. Google Drive/Sheets 계정: `RP_AUTH_WEBAPP_URL`, `RP_SIGNUP_WEBAPP_URL`, `RP_SHEETS_WEBAPP_URL`
@@ -133,6 +135,7 @@ RP_ADMIN_SESSION_SECRET=긴 랜덤 문자열
 RP_PASSWORD_HASH_SECRET=긴 랜덤 문자열
 RP_IDENTITY_VERIFICATION_SECRET=긴 랜덤 문자열
 RP_ACCOUNT_RECOVERY_SECRET=긴 랜덤 문자열
+RP_ALLOW_ENV_AUTH_ACCOUNTS=false
 RP_SHEETS_WEBAPP_URL=https://script.google.com/macros/s/.../exec
 RP_AUTH_WEBAPP_URL=https://script.google.com/macros/s/.../exec
 RP_API_SECRET=Apps Script 검증용 secret

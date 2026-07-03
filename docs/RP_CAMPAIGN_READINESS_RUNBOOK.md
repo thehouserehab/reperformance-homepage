@@ -77,6 +77,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
+- `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
 - Public SSG pages are not marked `no-store`, and hashed `/_next/static` assets return `Cache-Control: public, max-age=31536000, immutable`.

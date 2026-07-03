@@ -33,6 +33,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
 - Session cookie creation and clearing use centralized options with `httpOnly`, production-only `secure`, `sameSite=lax`, and root path settings.
 - Production session, identity verification, account recovery, and password-hash secrets now reject weak placeholder values and require at least 32 characters before signing or hashing.
+- Production environment-variable auth accounts now require explicit `RP_ALLOW_ENV_AUTH_ACCOUNTS=true` opt-in; otherwise `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_ADMIN_USERNAME`, and trainer env accounts are ignored so PostgreSQL accounts remain the default production login store.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
@@ -80,6 +81,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying migrations.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
 - Use unique production secrets with at least 32 characters and no placeholder terms like `change-this`, `example`, or `default`; `/api/rp/system-status` reports only strength status, not the secret values.
+- Keep `RP_ALLOW_ENV_AUTH_ACCOUNTS` unset or false in production except during a short emergency bootstrap window, then move staff/member accounts into PostgreSQL.
 - Use `docs/RP_PRODUCTION_SECRET_POLICY.md` when rotating production auth, recovery, and password-hash secrets.
 - Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.

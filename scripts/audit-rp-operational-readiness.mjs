@@ -191,6 +191,25 @@ addCheck(
 );
 addCheck(
   "security",
+  "Production environment auth accounts require explicit opt-in",
+  includesAll("lib/rpAdminAuth.js", [
+    "areEnvironmentAuthAccountsAllowed",
+    "RP_ALLOW_ENV_AUTH_ACCOUNTS",
+    "process.env.NODE_ENV !== 'production'",
+    "if (!areEnvironmentAuthAccountsAllowed()) return [];",
+  ])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "areEnvironmentAuthAccountsAllowed",
+      "productionOptInRequired",
+      "seedAccounts",
+    ])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
+      "RP_ALLOW_ENV_AUTH_ACCOUNTS=true",
+      "environment-variable auth accounts",
+    ]),
+);
+addCheck(
+  "security",
   "Shared rate limit helper exists",
   includesAll("lib/rpRateLimit.js", ["checkSharedRequestRateLimit", "checkDatabaseRateLimit", "checkRateLimit(key"]),
 );
