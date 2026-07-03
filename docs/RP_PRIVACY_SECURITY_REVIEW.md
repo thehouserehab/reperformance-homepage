@@ -1,6 +1,6 @@
 # RePERFORMANCE privacy and security review
 
-Last updated: 2026-07-02
+Last updated: 2026-07-03
 
 ## Scope
 
@@ -44,6 +44,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Global security headers are configured in `next.config.js`.
 - PE exam source data refresh is available through `npm run pe-exam:data:refresh`, which now includes freshness and coverage gates; `npm run pe-exam:data:verify` reruns those gates without fetching.
 - Customer data retention dry-run is available through `npm run data:retention:audit`.
+- Customer data retention gates now support `--require-database`, `--require-tables`, and candidate-count thresholds so campaign checks can fail while old auto-prunable data remains unresolved.
 - Sensitive auth and AI-approval actions now write hashed security events to `rp_security_events`; see `docs/RP_SECURITY_EVENT_AUDIT_LOG.md`.
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. Unauthenticated requests are rejected before setup checks, the route runs dry-run by default, and it applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
 - `npm run ops:audit` now fails if source code reintroduces external management service identifiers, domains, invite codes, or paths into the homepage codebase.
@@ -73,6 +74,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Use `RP_GOOGLE_DRIVE_BACKUP_ENABLED=false` if backup access or retention policy is not ready.
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
+- For paid ads, offline events, or admission-season traffic, run `npm run ops:campaign:check -- --build --typecheck --database --retention-strict` with a production database URL before increasing traffic.
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.

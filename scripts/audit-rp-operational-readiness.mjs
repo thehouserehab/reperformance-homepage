@@ -327,7 +327,14 @@ addCheck(
 addCheck(
   "data",
   "Retention logic is shared by CLI and cron",
-  includesAll("scripts/audit-rp-data-retention.mjs", ["runDataRetention", "summarizeRetentionResult", "RETENTION_CONFIRM_TOKEN"])
+  includesAll("scripts/audit-rp-data-retention.mjs", [
+    "runDataRetention",
+    "summarizeRetentionResult",
+    "RETENTION_CONFIRM_TOKEN",
+    "--require-database",
+    "--max-prunable-candidates",
+    "evaluateGates",
+  ])
     && includesAll("app/api/rp/maintenance/retention/route.js", ["runDataRetention", "summarizeRetentionResult", "RP_RETENTION_CRON_APPLY"]),
 );
 addCheck(
@@ -361,7 +368,16 @@ addCheck(
   "traffic",
   "Campaign readiness command exists",
   Boolean(scripts["ops:campaign:check"])
-    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["--build", "--typecheck", "--database", "--vercel", "--public", "Manual gates before a high-traffic campaign"]),
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", [
+      "--build",
+      "--typecheck",
+      "--database",
+      "--vercel",
+      "--public",
+      "--retention-strict",
+      "--max-prunable-candidates=0",
+      "Manual gates before a high-traffic campaign",
+    ]),
 );
 addCheck(
   "traffic",

@@ -27,6 +27,36 @@ Checked areas:
 - `rp_security_events`: hashed security events older than 400 days
 - `rp_auth_accounts.password_plain`: legacy plaintext password fields when a hash already exists
 
+The JSON output and console summary split candidates into:
+
+- `candidates`: all rows that need pruning or manual review
+- `prunableCandidates`: rows the script can prune automatically in apply mode
+- `reviewOnlyCandidates`: rows that need a staff retention decision before deletion
+- `missingTables`: retention-managed tables not present in the connected database
+
+## Strict gates
+
+Use strict gates before paid campaigns, admission-season traffic, or any large offline event. These gates turn the audit into a failing command when production retention risk is still unresolved:
+
+```powershell
+$env:DATABASE_URL="postgres://..."
+node scripts/audit-rp-data-retention.mjs --require-database --require-tables --max-prunable-candidates=0
+```
+
+Common gate options:
+
+- `--require-database`: fail when the command cannot inspect PostgreSQL
+- `--require-tables`: fail when retention-managed tables are missing
+- `--max-prunable-candidates=0`: fail while old broad payloads, expired rate buckets, old AI usage buckets, old security events, or legacy plaintext-password fields still need automated cleanup
+- `--max-review-only-candidates=N`: optionally cap staff-review records such as old PE exam question rows
+- `--fail-on-candidates`: fail unless every candidate count is zero
+
+For full campaign readiness, prefer:
+
+```powershell
+npm.cmd run ops:campaign:check -- --build --typecheck --database --retention-strict
+```
+
 ## Apply mode
 
 Apply mode is intentionally gated. It requires both an environment variable and a confirmation token:
@@ -75,6 +105,6 @@ Keep this disabled until backup/restore readiness, production DB migration state
 
 - Monthly: review the Vercel cron result and run `npm.cmd run data:retention:audit` when local DB credentials are available
 - Quarterly: review candidate counts and apply pruning after backup/restore readiness is confirmed
-- Before large campaigns: run `npm.cmd run ops:campaign:check -- --build --typecheck`
+- Before large campaigns: run `npm.cmd run ops:campaign:check -- --build --typecheck --database --retention-strict`
 
 Google Drive/Sheets backups are outside this script. New service application backup requests are minimized with `retention=minimized_on_send`, but the backup sheet/drive still contains contact and routing fields. If backup is enabled, apply the same retention decisions to the backup sheet/drive permissions and rows.

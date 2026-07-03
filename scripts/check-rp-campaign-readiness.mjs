@@ -7,6 +7,13 @@ const includeTypecheck = args.has("--typecheck");
 const includeVercel = args.has("--vercel");
 const includeDatabase = args.has("--database");
 const includePublic = args.has("--public");
+const includeRetentionStrict = args.has("--retention-strict");
+
+const retentionCommand = [npmCommand, "run", "data:retention:audit"];
+
+if (includeRetentionStrict) {
+  retentionCommand.push("--", "--require-database", "--require-tables", "--max-prunable-candidates=0");
+}
 
 const steps = [
   {
@@ -14,8 +21,8 @@ const steps = [
     command: [npmCommand, "run", "ops:audit"],
   },
   {
-    name: "Data retention dry-run",
-    command: [npmCommand, "run", "data:retention:audit"],
+    name: includeRetentionStrict ? "Data retention strict production gate" : "Data retention dry-run",
+    command: retentionCommand,
   },
   {
     name: "PE exam source snapshot gates",
@@ -94,6 +101,7 @@ console.log("Use --build --typecheck for final pre-deploy verification.");
 console.log("Use --database with DATABASE_URL, POSTGRES_URL, or RP_DATABASE_URL to verify production migration state.");
 console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates and deployed HEAD matching.");
 console.log("Use --public to verify public production URLs without Vercel secrets.");
+console.log("Use --retention-strict with a production database URL to require retention tables and zero auto-prunable candidates.");
 
 let ok = true;
 for (const step of steps) {
@@ -116,7 +124,7 @@ Manual gates before a high-traffic campaign:
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
 - Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention in both production Vercel projects.
 - Keep RP_RETENTION_CRON_APPLY disabled until backup/restore readiness and deletion approval are confirmed.
-- Run retention apply mode only after backup and restore readiness is confirmed.
+- Run npm.cmd run ops:campaign:check -- --retention-strict with a production database URL, then run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup access is restricted or disable it with RP_GOOGLE_DRIVE_BACKUP_ENABLED=false.
 - Confirm PE exam source year and unresolved university coverage before publishing admission campaigns.
 - Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, foreign-origin write rejection, and external management separation.

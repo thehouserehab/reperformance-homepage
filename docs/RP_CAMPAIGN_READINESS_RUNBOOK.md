@@ -31,6 +31,15 @@ $env:DATABASE_URL="postgres://..."
 npm.cmd run ops:campaign:check -- --build --typecheck --database
 ```
 
+For paid traffic, admission-season campaigns, or large offline events, add the strict retention gate:
+
+```powershell
+$env:DATABASE_URL="postgres://..."
+npm.cmd run ops:campaign:check -- --build --typecheck --database --retention-strict
+```
+
+`--retention-strict` requires a PostgreSQL connection, requires retention-managed tables to exist, and fails while auto-prunable retention candidates remain. Use it after backup/restore readiness is confirmed and before increasing traffic.
+
 If `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, include production Vercel gates:
 
 ```powershell
@@ -74,6 +83,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `RP_BACKUP_SECRET_IN_QUERY` remains unset or false unless a temporary legacy Apps Script requires it.
 - Vercel Cron has `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` configured for `/api/rp/maintenance/retention`.
 - Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and retention approval are confirmed.
+- `npm.cmd run ops:campaign:check -- --database --retention-strict` passes against production PostgreSQL before paid or admission-season traffic.
 
 To check Vercel directly without the full campaign command:
 
@@ -117,6 +127,7 @@ Before the campaign:
 
 - Run `npm.cmd run db:migration:check` with a production database URL.
 - Run `npm.cmd run data:retention:audit`.
+- Run `npm.cmd run ops:campaign:check -- --database --retention-strict` when preparing for paid traffic or admission-season spikes.
 - Review old broad payload counts for `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
 - Review old operational bucket counts for `rp_rate_limit_buckets`, `rp_ai_usage_buckets`, and `rp_security_events`.
 - Confirm `20260702_retention_scale_indexes.sql` has been applied before retention apply mode on a large production dataset.
