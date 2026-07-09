@@ -11,9 +11,10 @@ RePERFORMANCE는 공개 로그인과 운영자 전용 접근을 분리합니다.
 /admin          = 운영관리
 /admin/clients  = 고객관리
 /admin/consultation = 고객상담
+/admin/security = 보안 이벤트 점검
 ```
 
-`/admin`, `/admin/clients`, `/admin/consultation`, `/api/rp/clients`는 로그인 세션과 역할 권한이 있어야 접근할 수 있습니다.
+`/admin`, `/admin/clients`, `/admin/consultation`, `/admin/security`, `/api/rp/clients`, `/api/rp/auth-accounts`, `/api/rp/security-events`는 로그인 세션과 역할 권한이 있어야 접근할 수 있습니다.
 
 접근 가능한 운영 역할은 아래와 같습니다.
 
@@ -132,6 +133,8 @@ admin   = 운영관리, 고객관리, 고객상담 접근 가능
 trainer = 운영관리, 고객관리, 고객상담 접근 가능
 member  = /account 접근 가능, 관리자 영역 접근 불가
 ```
+
+`/admin/security`는 로그인, 계정 찾기, 회원가입, AI 승인 변경 같은 민감 이벤트를 점검하는 내부 화면입니다. 원본 전화번호, 이메일, IP는 표시하지 않고 해시 prefix와 부분 마스킹 IP 대역만 보여줍니다.
 
 ## 회원가입 / 계정 신청
 

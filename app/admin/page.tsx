@@ -22,6 +22,11 @@ const dashboardCards = [
     value: "일일 체크",
     note: "상담, 결제, 잔여회차, 재등록 연락을 하루 단위로 확인합니다.",
   },
+  {
+    label: "보안 점검",
+    value: "이벤트 로그",
+    note: "로그인, 계정 복구, AI 승인 변경 이벤트를 개인정보 원문 없이 확인합니다.",
+  },
 ];
 
 const workspaceLinks = [
@@ -36,6 +41,12 @@ const workspaceLinks = [
     description: "회원 검색, PAR-Q 확인, 잔여회차, 목표, 불편 부위, 상담 연결을 한 화면에서 봅니다.",
     href: "/admin/clients",
     label: "고객 확인",
+  },
+  {
+    title: "보안 이벤트 열기",
+    description: "로그인 실패, 계정 복구, AI 승인 변경 같은 민감 이벤트의 최근 패턴을 확인합니다.",
+    href: "/admin/security",
+    label: "보안 점검",
   },
   {
     title: "매출관리 열기",

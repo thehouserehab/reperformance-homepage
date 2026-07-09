@@ -1,6 +1,6 @@
 # RePERFORMANCE 보안, 데이터, 확장 운영 대책
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
 
@@ -32,6 +32,7 @@ Last updated: 2026-07-09
 - 회원별 AI 일일 한도는 `/admin/clients`의 AI ACCESS CONTROL 패널에서 조정하고, `RP_AI_DAILY_LIMIT_MAX` 서버 상한을 넘길 수 없습니다.
 - 일일 한도는 기능별이 아니라 계정별 하루 총량으로 먼저 차감합니다. 기능별 `route_key` 기록은 사용 분석용으로만 유지합니다.
 - 회원은 홈페이지와 일반 로그인은 이용할 수 있지만, AI 서비스는 관리자 승인 후에만 이용할 수 있습니다.
+- 로그인, 계정 찾기, 회원가입, AI 승인 변경 이벤트는 `rp_security_events`에 해시 기반으로 기록하고 `/admin/security`에서 원문 개인정보 없이 최근 패턴을 점검합니다.
 - 전역 보안 헤더: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
 
 운영 전 필수값:

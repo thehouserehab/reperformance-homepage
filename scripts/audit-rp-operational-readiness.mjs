@@ -255,11 +255,19 @@ addCheck(
   "Sensitive auth actions write hashed security events",
   includesAll("lib/rpDatabase.js", ["rp_security_events", "recordDatabaseSecurityEvent"])
     && includesAll("lib/rpSecurityEvents.js", ["recordSecurityEvent", "createHmac", "SENSITIVE_KEY_PATTERN"])
+    && includesAll("lib/rpDatabase.js", ["listDatabaseSecurityEvents", "actorHashPrefix", "ipPrefixes"])
     && includesAll("app/api/auth/login/route.js", ["auth.login", "recordSecurityEvent"])
     && includesAll("app/api/admin/login/route.js", ["auth.admin_login", "recordSecurityEvent"])
     && includesAll("app/api/rp/signup/route.js", ["auth.signup", "recordSecurityEvent"])
     && includesAll("app/api/auth/account-recovery/route.js", ["auth.account_recovery", "recordSecurityEvent"])
     && includesAll("app/api/rp/auth-accounts/route.js", ["admin.ai_access_update", "recordSecurityEvent"]),
+);
+addCheck(
+  "security",
+  "Staff security event monitor exists without raw PII exposure",
+  includesAll("app/api/rp/security-events/route.js", ["listDatabaseSecurityEvents", "verifyAdminSessionCookie", "hasStaffAccess", "checkSharedRequestRateLimit"])
+    && includesAll("app/admin/security/page.jsx", ["보안 이벤트 점검", "actorHashPrefix", "ipPrefix", "원본 전화번호·이메일·IP는 표시하지 않습니다", "verifyAdminSessionCookie", "hasStaffAccess", "redirect"])
+    && includesAll("app/admin/page.tsx", ["/admin/security", "보안 이벤트"]),
 );
 addCheck(
   "security",
@@ -872,6 +880,7 @@ const rateLimitedRoutes = [
   "app/api/rp/consultation-summary/route.js",
   "app/api/rp/clients/route.js",
   "app/api/rp/auth-accounts/route.js",
+  "app/api/rp/security-events/route.js",
   "app/api/rp/system-status/route.js",
 ];
 
@@ -960,6 +969,12 @@ addCheck(
   "traffic",
   "Auth account API requires staff session",
   includesAll("app/api/rp/auth-accounts/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+);
+
+addCheck(
+  "traffic",
+  "Security event API requires staff session",
+  includesAll("app/api/rp/security-events/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(

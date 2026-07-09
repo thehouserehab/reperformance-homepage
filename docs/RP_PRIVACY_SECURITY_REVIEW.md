@@ -1,6 +1,6 @@
 # RePERFORMANCE privacy and security review
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Scope
 
@@ -39,6 +39,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
 - Token-backed AI usage now requires approval and records account-wide daily use in PostgreSQL; staff can set per-account daily limits in `/admin/clients`, capped by `RP_AI_DAILY_LIMIT_MAX`.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
+- Security event review is available to staff through `/admin/security` and `/api/rp/security-events`, using shared rate limiting and prefix-only output instead of raw phone, email, or IP values.
 - Public and expensive POST routes reject oversized request bodies before parsing.
 - Customer client writes reject oversized request bodies before parsing.
 - Login, logout, signup, identity verification, account recovery, service application, customer write, consultation summary, PE exam question, and PE exam AI consult POST routes now reject foreign `Origin`/`Referer` values before parsing or rate-limit work. Staff-only protected write APIs also perform this origin check in middleware before staff-session auth.
@@ -75,6 +76,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
 - PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Run `npm run pe-exam:data:refresh` to update snapshots and verify source year, generated date, minimum data volume, and university coverage whenever generated data is updated.
 - AI consult output must remain a preparation guide, not final admissions, medical, or legal advice.
+- `/admin/security` is an operational audit view, not a full SIEM or fraud platform. Review repeated failures and unusual IP prefixes manually, and escalate to Vercel Firewall or account lockout policy work if abuse becomes recurring.
 
 ## Operational Checklist
 
@@ -96,6 +98,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
 - For paid ads, offline events, or admission-season traffic, run `npm run ops:campaign:check -- --build --typecheck --database --retention-strict` with a production database URL before increasing traffic.
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
+- Review `/admin/security` after deploys, campaigns, and repeated login/account-recovery failures. Treat raw PII absence as intentional; do not add raw phone, email, or IP fields to the view.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
 - Confirm `db:migration:check` reports `Auth verified contact duplicates are resolved` before applying or relying on the verified-contact unique index.

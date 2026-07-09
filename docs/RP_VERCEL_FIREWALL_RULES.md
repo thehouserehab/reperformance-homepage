@@ -1,6 +1,6 @@
 # RePERFORMANCE Vercel Firewall rules
 
-Last updated: 2026-07-03
+Last updated: 2026-07-10
 
 These rules are the recommended campaign and admission-season edge controls. They must be applied in Vercel Firewall, Vercel REST API, or another edge/WAF layer. They are not automatically applied by this repository.
 
@@ -99,6 +99,7 @@ Protect:
 - `/api/rp/clients`
 - `/api/rp/auth-accounts`
 - `/api/rp/consultation-summary`
+- `/api/rp/security-events`
 - `/api/rp/system-status`
 
 Suggested edge action:
@@ -141,6 +142,7 @@ Then verify in production:
 
 - `/api/rp/clients` returns `401` without a staff session
 - `/api/rp/auth-accounts` returns `401` without a staff session
+- `/api/rp/security-events` returns `401` without a staff session
 - `/api/rp/system-status` works with a staff session
 - API responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`
 - Vercel Firewall events show expected challenges or denies without blocking real customers

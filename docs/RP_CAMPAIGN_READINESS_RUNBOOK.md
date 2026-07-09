@@ -1,6 +1,6 @@
 # RePERFORMANCE campaign readiness runbook
 
-Last updated: 2026-07-03
+Last updated: 2026-07-10
 
 Use this before paid ads, offline events, admission season traffic, or any expected traffic spike.
 
@@ -97,6 +97,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - If a staff session cookie is available, `npm.cmd run ops:campaign:check -- --status` passes against the production URLs.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
+- `/api/rp/security-events` rejects unauthenticated requests before returning audit-event summaries.
 - `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
 - For paid campaigns or abuse-sensitive traffic windows, set `RP_RATE_LIMIT_FAIL_CLOSED=true` after the production migration check passes so shared limiter failures return temporary `429` responses instead of falling back to instance-local memory limits.
@@ -136,6 +137,7 @@ The app-layer PostgreSQL limiter protects correctness across serverless instance
 - `/api/rp/pe-exam-question`
 - `/api/rp/clients`
 - `/api/rp/auth-accounts`
+- `/api/rp/security-events`
 
 Use `docs/RP_VERCEL_FIREWALL_RULES.md` as the concrete rule checklist.
 
@@ -157,6 +159,7 @@ Before the campaign:
 - Run `npm.cmd run ops:campaign:check -- --database --retention-strict` when preparing for paid traffic or admission-season spikes.
 - Review old broad payload counts for `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
 - Review old operational bucket counts for `rp_rate_limit_buckets`, `rp_ai_usage_buckets`, and `rp_security_events`.
+- Review `/admin/security` for repeated login, signup, account-recovery, AI approval, and suspicious IP-prefix patterns.
 - Confirm `20260702_retention_scale_indexes.sql` has been applied before retention apply mode on a large production dataset.
 - Confirm the monthly retention cron is reporting candidate counts, or run the endpoint manually with `Authorization: Bearer <secret>`.
 - Apply retention only after backup and restore readiness is confirmed:
@@ -177,6 +180,7 @@ After the campaign:
 - Run the retention audit again.
 - Review duplicate customers by name and phone.
 - Review failed signup, login, identity verification, and service application rates.
+- Review `/admin/security` for campaign-period security-event spikes and repeated prefixes.
 
 ## 5. PE exam data freshness
 

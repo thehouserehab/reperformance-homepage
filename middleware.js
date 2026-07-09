@@ -13,6 +13,7 @@ function isProtectedAccountPath(pathname) {
 function isProtectedApiPath(pathname) {
   return pathname.startsWith('/api/rp/clients')
     || pathname.startsWith('/api/rp/consultation-summary')
+    || pathname.startsWith('/api/rp/security-events')
     || pathname.startsWith('/api/rp/system-status');
 }
 
@@ -87,6 +88,7 @@ export const config = {
     '/login',
     '/api/rp/clients/:path*',
     '/api/rp/consultation-summary/:path*',
+    '/api/rp/security-events/:path*',
     '/api/rp/system-status/:path*',
   ],
 };

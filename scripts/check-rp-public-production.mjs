@@ -40,6 +40,7 @@ const protectedApiChecks = [
   { path: "/api/rp/system-status", label: "system status", expectedStatuses: [401] },
   { path: "/api/rp/clients", label: "clients API", expectedStatuses: [401] },
   { path: "/api/rp/auth-accounts", label: "auth accounts API", expectedStatuses: [401] },
+  { path: "/api/rp/security-events", label: "security events API", expectedStatuses: [401] },
 ];
 
 const foreignOriginApiChecks = [
