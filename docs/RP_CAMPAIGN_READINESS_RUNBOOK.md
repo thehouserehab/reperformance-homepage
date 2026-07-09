@@ -46,7 +46,7 @@ If `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, include production Vercel g
 npm.cmd run ops:campaign:check -- --build --typecheck --database --vercel
 ```
 
-This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, readable Firewall configuration, and that each production deployment matches the current local Git `HEAD`.
+This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, readable Firewall configuration, and that each production deployment matches the current local Git `HEAD`. The env-key gate includes database URL, `RP_DATA_SOURCE`, runtime schema-sync disable flag, `RP_DATABASE_POOL_MAX`, auth/recovery/password secrets, SMS verification webhook, canonical site origin, `RP_RATE_LIMIT_FAIL_CLOSED`, and retention cron secret. Secret values are not printed; effective values are verified through `/api/rp/system-status`.
 
 After a deployment, or when no Vercel token is available, run the public production smoke and security check:
 

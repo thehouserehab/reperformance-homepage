@@ -38,6 +38,18 @@ const requiredEnvGroups = [
     anyOf: ["DATABASE_URL", "POSTGRES_URL", "RP_DATABASE_URL"],
   },
   {
+    name: "database-only data source mode flag",
+    anyOf: ["RP_DATA_SOURCE"],
+  },
+  {
+    name: "runtime schema sync disable flag",
+    anyOf: ["RP_DISABLE_RUNTIME_SCHEMA_SYNC", "RP_RUNTIME_SCHEMA_SYNC"],
+  },
+  {
+    name: "database pool max",
+    anyOf: ["RP_DATABASE_POOL_MAX"],
+  },
+  {
     name: "admin session signing secret",
     anyOf: ["RP_ADMIN_SESSION_SECRET", "RP_API_SECRET"],
   },
@@ -52,6 +64,18 @@ const requiredEnvGroups = [
   {
     name: "account recovery secret",
     anyOf: ["RP_ACCOUNT_RECOVERY_SECRET", "RP_ADMIN_SESSION_SECRET", "RP_API_SECRET"],
+  },
+  {
+    name: "phone verification delivery webhook",
+    anyOf: ["RP_SMS_WEBHOOK_URL", "SMS_WEBHOOK_URL"],
+  },
+  {
+    name: "canonical site origin",
+    anyOf: ["NEXT_PUBLIC_SITE_URL", "RP_SITE_URL"],
+  },
+  {
+    name: "shared rate-limit fail-closed flag",
+    anyOf: ["RP_RATE_LIMIT_FAIL_CLOSED"],
   },
   {
     name: "maintenance cron secret",

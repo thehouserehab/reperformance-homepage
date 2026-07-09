@@ -489,6 +489,10 @@ addCheck(
       "--retention-strict",
       "--max-prunable-candidates=0",
       "Manual gates before a high-traffic campaign",
+      "RP_DATA_SOURCE",
+      "RP_DATABASE_POOL_MAX",
+      "RP_SMS_WEBHOOK_URL",
+      "RP_RATE_LIMIT_FAIL_CLOSED",
     ]),
 );
 addCheck(
@@ -681,11 +685,29 @@ addCheck(
       "VERCEL_TOKEN",
       "DEFAULT_PROJECTS",
       "RP_VERCEL_PROJECT_IDS",
+      "RP_DATA_SOURCE",
+      "RP_DISABLE_RUNTIME_SCHEMA_SYNC",
+      "RP_DATABASE_POOL_MAX",
+      "RP_SMS_WEBHOOK_URL",
+      "NEXT_PUBLIC_SITE_URL",
+      "RP_RATE_LIMIT_FAIL_CLOSED",
       "CRON_SECRET",
       "RP_MAINTENANCE_CRON_SECRET",
       "/v9/projects",
       "/v13/deployments",
       "/v1/security/firewall/config/active",
+    ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "RP_DATABASE_POOL_MAX",
+      "RP_RATE_LIMIT_FAIL_CLOSED",
+      "SMS verification webhook",
+    ])
+    && includesAll("docs/RP_VERCEL_PRODUCTION_AUDIT.md", [
+      "Verified deployment ID",
+      "Commit:",
+      "RP_DATABASE_POOL_MAX",
+      "RP_RATE_LIMIT_FAIL_CLOSED",
+      "SMS verification webhook",
     ]),
 );
 addCheck(
