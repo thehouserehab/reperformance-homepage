@@ -120,6 +120,22 @@ function addReadinessIssue(list, code, message, detail = {}) {
   list.push({ code, message, detail });
 }
 
+function getProductionSecretReadinessIssues(auth) {
+  const secretChecks = [
+    ['session_secret_not_strong', auth.session.signingSecret],
+    ['identity_secret_not_strong', auth.signup.identitySigningSecret],
+    ['account_recovery_secret_not_strong', auth.accountRecovery.signingSecret],
+    ['password_hash_secret_not_strong', auth.passwordHash.secret],
+  ];
+
+  return secretChecks
+    .filter(([, status]) => status?.productionEnforced && !status.strong)
+    .map(([code]) => ({
+      code,
+      message: 'Production signing and password secrets must be configured, non-placeholder, and at least 32 characters.',
+    }));
+}
+
 function buildHighTrafficReadiness({
   databaseConfigured,
   databaseOnly,
@@ -160,16 +176,8 @@ function buildHighTrafficReadiness({
     });
   }
 
-  const secretChecks = [
-    ['session_secret_not_strong', auth.session.signingSecret],
-    ['identity_secret_not_strong', auth.signup.identitySigningSecret],
-    ['account_recovery_secret_not_strong', auth.accountRecovery.signingSecret],
-    ['password_hash_secret_not_strong', auth.passwordHash.secret],
-  ];
-  for (const [code, status] of secretChecks) {
-    if (status?.productionEnforced && !status.strong) {
-      addReadinessIssue(blockers, code, 'Production signing and password secrets must be configured, non-placeholder, and at least 32 characters.');
-    }
+  for (const issue of getProductionSecretReadinessIssues(auth)) {
+    addReadinessIssue(blockers, issue.code, issue.message);
   }
 
   return {
@@ -183,6 +191,145 @@ function buildHighTrafficReadiness({
       'Run npm.cmd run ops:public:check after deploy.',
       'Monitor 429, 5xx, database connection timeouts, and backup failures during campaign traffic.',
     ],
+  };
+}
+
+function buildObjectiveReadiness({
+  storage,
+  auth,
+  peExamData,
+  highTrafficReadiness,
+}) {
+  const databaseConfigured = storage.postgres.configured;
+  const databaseOnly = storage.postgres.databaseOnly;
+  const runtimeSchemaSyncDisabled = storage.postgres.runtimeSchemaSyncDisabled;
+  const databaseSchema = storage.postgres.schema;
+  const googleDriveBackup = storage.googleDriveBackup;
+  const retentionCronSecretConfigured = hasEnv('CRON_SECRET', 'RP_MAINTENANCE_CRON_SECRET');
+  const retentionCronApplyEnabled = ['true', '1', 'yes', 'on'].includes(
+    cleanEnvValue(process.env.RP_RETENTION_CRON_APPLY).toLowerCase(),
+  );
+
+  const customerDataBlockers = [];
+  const customerDataWarnings = [];
+  if (!databaseConfigured) {
+    addReadinessIssue(customerDataBlockers, 'postgres_not_configured', 'Customer data should be stored in PostgreSQL before production traffic.');
+  }
+  if (databaseConfigured && databaseSchema?.error) {
+    addReadinessIssue(customerDataBlockers, 'schema_check_failed', 'PostgreSQL schema readiness could not be verified.', {
+      error: databaseSchema.error,
+    });
+  }
+  if (googleDriveBackup.enabled && !googleDriveBackup.configured) {
+    addReadinessIssue(customerDataBlockers, 'google_backup_enabled_but_not_configured', 'Google backup is enabled without all required backup settings.');
+  }
+  if (googleDriveBackup.enabled) {
+    addReadinessIssue(customerDataWarnings, 'google_backup_enabled', 'Google backup is enabled; verify sheet access, restore readiness, and retention before relying on it.');
+  }
+
+  const authBlockers = [];
+  const authWarnings = [];
+  for (const issue of getProductionSecretReadinessIssues(auth)) {
+    addReadinessIssue(authBlockers, issue.code, issue.message);
+  }
+  if (!databaseConfigured) {
+    addReadinessIssue(authBlockers, 'postgres_not_configured', 'Signup, account recovery, AI approval, and duplicate-contact protection require PostgreSQL.');
+  }
+  if (!databaseSchema?.verifiedContactUniquenessReady) {
+    addReadinessIssue(authBlockers, 'auth_verified_contact_uniqueness_not_ready', 'Apply the verified-contact uniqueness migration and resolve duplicate verified contacts.');
+  }
+  if (process.env.NODE_ENV === 'production' && auth.seedAccounts.allowed) {
+    addReadinessIssue(authBlockers, 'production_env_auth_accounts_enabled', 'Disable production environment-variable auth accounts after bootstrap.');
+  }
+  if (!auth.signup.phoneWebhookConfigured && !auth.signup.emailWebhookConfigured && !auth.signup.kakaoWebhookConfigured) {
+    addReadinessIssue(authWarnings, 'identity_delivery_not_configured', 'No identity verification delivery webhook is configured.');
+  }
+  if (!auth.accountRecovery.phoneWebhookConfigured) {
+    addReadinessIssue(authWarnings, 'phone_recovery_delivery_not_configured', 'Phone-based account recovery requires an SMS webhook before production use.');
+  }
+
+  const peExamBlockers = [];
+  if (!peExamData.ok) {
+    addReadinessIssue(peExamBlockers, 'pe_exam_data_not_fresh', 'Refresh and verify KUSF/ADIGA PE exam source snapshots.', {
+      failureCount: peExamData.failures.length,
+    });
+  }
+
+  const dataScaleBlockers = [];
+  const dataScaleWarnings = [];
+  if (!databaseConfigured) {
+    addReadinessIssue(dataScaleBlockers, 'postgres_not_configured', 'Data scale management requires PostgreSQL instead of local or manual storage.');
+  }
+  if (!runtimeSchemaSyncDisabled) {
+    addReadinessIssue(dataScaleBlockers, 'runtime_schema_sync_enabled', 'Disable runtime schema sync after migrations are applied for high-traffic production.');
+  }
+  if (databaseConfigured && databaseSchema?.error) {
+    addReadinessIssue(dataScaleBlockers, 'schema_check_failed', 'Database schema readiness could not be verified for data-scale operations.', {
+      error: databaseSchema.error,
+    });
+  }
+  if (!databaseOnly) {
+    addReadinessIssue(dataScaleWarnings, 'database_only_mode_not_enabled', 'Set RP_DATA_SOURCE=database before campaigns to avoid fallback write paths.');
+  }
+  if (!retentionCronSecretConfigured) {
+    addReadinessIssue(dataScaleWarnings, 'retention_cron_secret_not_configured', 'Configure CRON_SECRET or RP_MAINTENANCE_CRON_SECRET before relying on scheduled retention maintenance.');
+  }
+  if (retentionCronApplyEnabled) {
+    addReadinessIssue(dataScaleWarnings, 'retention_cron_apply_enabled', 'Retention cron apply mode is enabled; confirm deletion approval and restore readiness.');
+  }
+
+  return {
+    customerDataSecurity: {
+      ready: customerDataBlockers.length === 0,
+      blockers: customerDataBlockers,
+      warnings: customerDataWarnings,
+      evidence: [
+        'storage.postgres.configured',
+        'storage.googleDriveBackup.explicitOptInRequired',
+        'storage.googleDriveBackup.enabled',
+      ],
+    },
+    signupLoginSecurity: {
+      ready: authBlockers.length === 0,
+      blockers: authBlockers,
+      warnings: authWarnings,
+      evidence: [
+        'auth.session.signingSecret',
+        'auth.signup.identitySigningSecret',
+        'auth.accountRecovery.signingSecret',
+        'auth.passwordHash.secret',
+        'storage.postgres.schema.verifiedContactUniquenessReady',
+      ],
+    },
+    peExamDataMaintenance: {
+      ready: peExamBlockers.length === 0,
+      blockers: peExamBlockers,
+      warnings: [],
+      commands: [
+        peExamData.refreshCommand,
+        peExamData.verifyCommand,
+      ],
+    },
+    trafficSurgeReadiness: {
+      ready: highTrafficReadiness.ready,
+      blockers: highTrafficReadiness.blockers,
+      warnings: highTrafficReadiness.warnings,
+      requiredManualChecks: highTrafficReadiness.requiredManualChecks,
+    },
+    dataScaleManagement: {
+      ready: dataScaleBlockers.length === 0,
+      blockers: dataScaleBlockers,
+      warnings: dataScaleWarnings,
+      retentionCron: {
+        secretConfigured: retentionCronSecretConfigured,
+        applyEnabled: retentionCronApplyEnabled,
+      },
+      requiredManualChecks: [
+        'Run npm.cmd run data:retention:audit monthly and before campaigns.',
+        'Run npm.cmd run ops:campaign:check -- --database --retention-strict before paid or admission-season traffic.',
+        'Apply retention only after backup restore readiness and deletion approval are confirmed.',
+      ],
+    },
   };
 }
 
@@ -275,6 +422,12 @@ async function buildStatus() {
     auth,
     peExamData,
   });
+  const objectiveReadiness = buildObjectiveReadiness({
+    storage,
+    auth,
+    peExamData,
+    highTrafficReadiness,
+  });
 
   return {
     ok: true,
@@ -283,6 +436,7 @@ async function buildStatus() {
     auth,
     peExamData,
     highTrafficReadiness,
+    objectiveReadiness,
   };
 }
 

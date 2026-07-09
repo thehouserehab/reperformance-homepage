@@ -589,6 +589,33 @@ addCheck(
     ]),
 );
 addCheck(
+  "traffic",
+  "System status summarizes objective-level readiness",
+  includesAll("app/api/rp/system-status/route.js", [
+    "buildObjectiveReadiness",
+    "objectiveReadiness",
+    "customerDataSecurity",
+    "signupLoginSecurity",
+    "peExamDataMaintenance",
+    "trafficSurgeReadiness",
+    "dataScaleManagement",
+    "retentionCron",
+  ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "objectiveReadiness",
+      "customerDataSecurity",
+      "signupLoginSecurity",
+      "peExamDataMaintenance",
+      "trafficSurgeReadiness",
+      "dataScaleManagement",
+    ])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
+      "objectiveReadiness.customerDataSecurity",
+      "objectiveReadiness.signupLoginSecurity",
+      "objectiveReadiness.dataScaleManagement",
+    ]),
+);
+addCheck(
   "pe-data",
   "System status reports PE exam source freshness",
   fileExists("app/pe-exam/peExamSourceStatus.js")
