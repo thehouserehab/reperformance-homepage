@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { peExamSourceStatusSnapshot } from '../../../pe-exam/peExamSourceStatus';
 import {
   ADMIN_COOKIE_NAME,
   areEnvironmentAuthAccountsAllowed,
@@ -24,6 +25,16 @@ export const dynamic = 'force-dynamic';
 const STATUS_LIMIT = 120;
 const STATUS_WINDOW_MS = 15 * 60 * 1000;
 
+function getKstYear(date = new Date()) {
+  return new Date(date.getTime() + (9 * 60 * 60 * 1000)).getUTCFullYear();
+}
+
+function daysSince(value) {
+  const time = Date.parse(value);
+  if (!Number.isFinite(time)) return null;
+  return Math.floor((Date.now() - time) / (24 * 60 * 60 * 1000));
+}
+
 function cleanEnvValue(value) {
   return String(value || '')
     .trim()
@@ -46,6 +57,63 @@ function getFirstEnv(...keys) {
 
 function buildSecretStatus(...keys) {
   return getProductionSecretStatus(getFirstEnv(...keys));
+}
+
+function buildPeExamDataStatus() {
+  const currentKoreaYear = getKstYear();
+  const maxAgeDays = Number(peExamSourceStatusSnapshot.defaults?.maxAgeDays || 120);
+  const sources = (peExamSourceStatusSnapshot.sources || []).map((source) => {
+    const ageDays = daysSince(source.generatedAt);
+    const expectedSchoolYear = currentKoreaYear + Number(source.minSchoolYearOffset || 0);
+    const hasResultYearThreshold = source.minResultYearOffset !== null
+      && source.minResultYearOffset !== undefined
+      && source.minResultYearOffset !== '';
+    const expectedResultYear = hasResultYearThreshold && Number.isFinite(Number(source.minResultYearOffset))
+      ? currentKoreaYear + Number(source.minResultYearOffset)
+      : null;
+    const schoolYear = Number(source.schoolYear || 0);
+    const resultYear = Number(source.resultYear || 0);
+    const universityCount = Number(source.universityCount || 0);
+    const admissionCount = Number(source.admissionCount || 0);
+    const issues = [];
+
+    if (schoolYear < expectedSchoolYear) issues.push('school_year_stale');
+    if (expectedResultYear !== null && resultYear < expectedResultYear) issues.push('result_year_stale');
+    if (ageDays === null || ageDays < 0 || ageDays > maxAgeDays) issues.push('generated_at_stale');
+    if (universityCount < Number(source.minUniversities || 0)) issues.push('university_count_low');
+    if (admissionCount < Number(source.minAdmissions || 0)) issues.push('admission_count_low');
+
+    return {
+      key: source.key,
+      label: source.label,
+      file: source.file,
+      sourceName: source.sourceName,
+      sourceUrl: source.sourceUrl,
+      schoolYear: source.schoolYear,
+      resultYear: source.resultYear || null,
+      generatedAt: source.generatedAt,
+      ageDays,
+      universityCount,
+      admissionCount,
+      expectedSchoolYear,
+      expectedResultYear,
+      maxAgeDays,
+      ok: issues.length === 0,
+      issues,
+    };
+  });
+  const failures = sources.filter((source) => !source.ok);
+
+  return {
+    ok: failures.length === 0,
+    currentKoreaYear,
+    maxAgeDays,
+    sourceSnapshotsMaxGeneratedAt: peExamSourceStatusSnapshot.sourceSnapshotsMaxGeneratedAt || '',
+    refreshCommand: 'npm.cmd run pe-exam:data:refresh',
+    verifyCommand: 'npm.cmd run pe-exam:data:verify',
+    sources,
+    failures,
+  };
 }
 
 async function buildStatus() {
@@ -130,6 +198,7 @@ async function buildStatus() {
         trainerUsersConfigured: hasEnv('RP_TRAINER_USERS', 'RP_TRAINER_USERNAME'),
       },
     },
+    peExamData: buildPeExamDataStatus(),
   };
 }
 

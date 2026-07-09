@@ -166,6 +166,14 @@ npm.cmd run pe-exam:data:refresh
 
 `pe-exam:data:refresh` fetches all KUSF/ADIGA source snapshots and then runs freshness/source-year and university coverage gates. Use `npm.cmd run pe-exam:data:verify` when the source snapshots have already been refreshed and only the gates need to be rerun.
 
+After source snapshots change, run:
+
+```powershell
+npm.cmd run pe-exam:data:status
+```
+
+This updates the small `peExamSourceStatus` summary used by `/api/rp/system-status`. After deploy, verify `peExamData.ok=true` with a staff session and review any `peExamData.failures` before publishing admission-season traffic.
+
 Publish only when:
 
 - the freshness gate confirms generated dates, source years, and minimum row counts

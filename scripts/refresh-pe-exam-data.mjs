@@ -19,6 +19,7 @@ Options:
   --verify-only  Skip source fetches and run freshness/coverage gates only.
   --skip-fetch   Alias for --verify-only.
   --build        Run npm run build after data gates pass.
+  --status       Regenerate the system-status PE source summary without fetching.
 `);
 }
 
@@ -51,6 +52,7 @@ if (args.has("--help") || args.has("-h")) {
 
 const verifyOnly = args.has("--verify-only") || args.has("--skip-fetch");
 const runBuild = args.has("--build");
+const statusOnly = args.has("--status");
 
 const fetchSteps = [
   ["KUSF early admission summary fetch", [process.execPath, "scripts/fetch-kusf-pe-exam-data.mjs"]],
@@ -65,13 +67,22 @@ const gateSteps = [
 ];
 
 console.log("RePERFORMANCE PE exam data refresh");
-console.log(`mode: ${verifyOnly ? "verify-only" : "fetch-and-verify"}`);
+console.log(`mode: ${statusOnly ? "status-only" : verifyOnly ? "verify-only" : "fetch-and-verify"}`);
+
+if (statusOnly) {
+  runStep("System-status source summary", [process.execPath, "scripts/write-pe-exam-source-status.mjs"]);
+  process.exit(0);
+}
 
 if (!verifyOnly) {
   for (const [label, command] of fetchSteps) runStep(label, command);
 }
 
 for (const [label, command] of gateSteps) runStep(label, command);
+
+if (!verifyOnly) {
+  runStep("System-status source summary", [process.execPath, "scripts/write-pe-exam-source-status.mjs"]);
+}
 
 if (runBuild) {
   runStep("Next.js production build", [npmCommand, "run", "build"]);

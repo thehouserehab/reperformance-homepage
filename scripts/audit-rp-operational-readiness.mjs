@@ -495,12 +495,26 @@ addCheck(
   "pe-data",
   "PE exam data freshness gate is wired into snapshot verification",
   Boolean(scripts["pe-exam:data:freshness"])
+    && Boolean(scripts["pe-exam:data:status"])
     && includesAll("scripts/check-pe-exam-data-freshness.mjs", [
       "schoolYear",
       "generatedAt",
       "min-kusf-year",
       "min-adiga-year",
       "max-age-days",
+    ])
+    && includesAll("scripts/lib/peExamSourceStatus.mjs", [
+      "buildPeExamSourceStatus",
+      "PE_EXAM_SOURCE_FILES",
+      "DEFAULT_PE_EXAM_MAX_AGE_DAYS",
+    ])
+    && includesAll("scripts/write-pe-exam-source-status.mjs", [
+      "peExamSourceStatusSnapshot",
+      "sourceSnapshotsMaxGeneratedAt",
+    ])
+    && includesAll("scripts/refresh-pe-exam-data.mjs", [
+      "write-pe-exam-source-status.mjs",
+      "status-only",
     ])
     && includesAll("scripts/check-rp-campaign-readiness.mjs", ["pe-exam:data:verify", "PE exam source snapshot gates"]),
 );
@@ -553,6 +567,26 @@ addCheck(
     && includesAll("docs/RP_DATABASE_MIGRATION_RUNBOOK.md", [
       "/api/rp/system-status",
       "verifiedContactUniquenessReady",
+    ]),
+);
+addCheck(
+  "pe-data",
+  "System status reports PE exam source freshness",
+  fileExists("app/pe-exam/peExamSourceStatus.js")
+    && includesAll("app/pe-exam/peExamSourceStatus.js", [
+      "peExamSourceStatusSnapshot",
+      "sourceSnapshotsMaxGeneratedAt",
+      "maxAgeDays",
+    ])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "peExamSourceStatusSnapshot",
+      "buildPeExamDataStatus",
+      "peExamData",
+      "refreshCommand",
+    ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "peExamData.ok",
+      "pe-exam:data:status",
     ]),
 );
 addCheck(

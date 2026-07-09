@@ -18,6 +18,7 @@
     "pe-exam:data:audit": "node scripts/audit-pe-exam-university-coverage.mjs",
     "pe-exam:data:freshness": "node scripts/check-pe-exam-data-freshness.mjs",
     "pe-exam:data:refresh": "node scripts/refresh-pe-exam-data.mjs",
+    "pe-exam:data:status": "node scripts/write-pe-exam-source-status.mjs",
     "pe-exam:data:verify": "node scripts/refresh-pe-exam-data.mjs --verify-only"
   },
   "dependencies": {
