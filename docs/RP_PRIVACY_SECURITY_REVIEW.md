@@ -99,6 +99,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Run `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
 - Run `npm run ops:public:check` after deploy to verify public pages, security headers, public page/cache headers, hashed static asset immutable caching, API no-store behavior, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation.
+- Verify `/api/rp/system-status` reports `highTrafficReadiness.ready=true`; if not, treat `highTrafficReadiness.blockers` as campaign blockers.
 - When `DATABASE_URL` and `VERCEL_TOKEN` are available, run `npm run ops:campaign:check -- --build --typecheck --database --vercel` to include database and production Vercel gates.
 - Review `docs/RP_SHARED_RATE_LIMITING.md` before campaign traffic or paid advertising bursts.
 - Complete the manual gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.

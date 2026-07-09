@@ -75,6 +75,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
+- `/api/rp/system-status` reports `highTrafficReadiness.ready=true`. If false, resolve every item in `highTrafficReadiness.blockers` before increasing traffic.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.

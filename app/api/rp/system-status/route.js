@@ -116,89 +116,173 @@ function buildPeExamDataStatus() {
   };
 }
 
+function addReadinessIssue(list, code, message, detail = {}) {
+  list.push({ code, message, detail });
+}
+
+function buildHighTrafficReadiness({
+  databaseConfigured,
+  databaseOnly,
+  runtimeSchemaSyncDisabled,
+  databaseSchema,
+  googleDriveBackup,
+  auth,
+  peExamData,
+}) {
+  const blockers = [];
+  const warnings = [];
+  const productionRuntime = process.env.NODE_ENV === 'production';
+
+  if (!databaseConfigured) {
+    addReadinessIssue(blockers, 'postgres_not_configured', 'Production traffic requires PostgreSQL as the primary customer-data store.');
+  }
+  if (!databaseOnly) {
+    addReadinessIssue(warnings, 'database_only_mode_not_enabled', 'Set RP_DATA_SOURCE=database before high-traffic campaigns to avoid fallback write paths.');
+  }
+  if (!runtimeSchemaSyncDisabled) {
+    addReadinessIssue(blockers, 'runtime_schema_sync_enabled', 'Apply checked-in migrations, then set RP_DISABLE_RUNTIME_SCHEMA_SYNC=true before high-traffic campaigns.');
+  }
+  if (!databaseSchema?.verifiedContactUniquenessReady) {
+    addReadinessIssue(blockers, 'auth_verified_contact_uniqueness_not_ready', 'Apply auth contact uniqueness migration and resolve duplicate verified contacts.');
+  }
+  if (googleDriveBackup.enabled) {
+    addReadinessIssue(warnings, 'google_backup_enabled', 'Google Drive/Sheets backup is enabled; confirm restore readiness, access controls, and retention before campaign traffic.');
+  }
+  if (googleDriveBackup.enabled && !googleDriveBackup.configured) {
+    addReadinessIssue(blockers, 'google_backup_enabled_but_not_configured', 'Google backup is enabled without a complete backup web app URL and API secret configuration.');
+  }
+  if (productionRuntime && auth.seedAccounts.allowed) {
+    addReadinessIssue(blockers, 'production_env_auth_accounts_enabled', 'Disable RP_ALLOW_ENV_AUTH_ACCOUNTS after bootstrap so PostgreSQL accounts are the production login source.');
+  }
+  if (!peExamData.ok) {
+    addReadinessIssue(blockers, 'pe_exam_data_not_fresh', 'Refresh and verify PE exam source snapshots before admission-season traffic.', {
+      failureCount: peExamData.failures.length,
+    });
+  }
+
+  const secretChecks = [
+    ['session_secret_not_strong', auth.session.signingSecret],
+    ['identity_secret_not_strong', auth.signup.identitySigningSecret],
+    ['account_recovery_secret_not_strong', auth.accountRecovery.signingSecret],
+    ['password_hash_secret_not_strong', auth.passwordHash.secret],
+  ];
+  for (const [code, status] of secretChecks) {
+    if (status?.productionEnforced && !status.strong) {
+      addReadinessIssue(blockers, code, 'Production signing and password secrets must be configured, non-placeholder, and at least 32 characters.');
+    }
+  }
+
+  return {
+    ready: blockers.length === 0,
+    blockers,
+    warnings,
+    requiredManualChecks: [
+      'Run npm.cmd run db:migration:check against production PostgreSQL.',
+      'Run npm.cmd run ops:campaign:check -- --database --retention-strict with production database access.',
+      'Confirm Vercel Firewall or equivalent edge controls protect auth, signup, service application, AI, client, and admin APIs.',
+      'Run npm.cmd run ops:public:check after deploy.',
+      'Monitor 429, 5xx, database connection timeouts, and backup failures during campaign traffic.',
+    ],
+  };
+}
+
 async function buildStatus() {
   const databaseConfigured = isDatabaseConfigured();
   const databaseOnly = isDatabaseOnlyMode();
   const databaseSchema = await checkDatabaseSchemaReadiness();
+  const runtimeSchemaSyncDisabled = isRuntimeSchemaSyncDisabled();
   const sheetsWebAppConfigured = hasEnv('RP_SHEETS_WEBAPP_URL');
   const authWebAppConfigured = hasEnv('RP_AUTH_WEBAPP_URL', 'RP_SIGNUP_WEBAPP_URL', 'RP_SHEETS_WEBAPP_URL');
   const backupWebAppConfigured = authWebAppConfigured;
   const apiSecretConfigured = hasEnv('RP_API_SECRET');
   const googleDriveBackupEnabled = isGoogleDriveBackupEnabled();
   const sessionTtlSeconds = getAdminSessionTtlSeconds();
+  const storage = {
+    primary: databaseConfigured ? 'postgres' : 'google-drive',
+    postgres: {
+      configured: databaseConfigured,
+      databaseOnly,
+      runtimeSchemaSyncDisabled,
+      schema: databaseSchema,
+    },
+    googleDriveBackup: {
+      configured: backupWebAppConfigured && apiSecretConfigured,
+      enabled: googleDriveBackupEnabled,
+      explicitOptInRequired: true,
+      skipReason: googleDriveBackupEnabled ? null : getGoogleDriveBackupSkipReason(),
+      backupWebAppConfigured,
+      sheetsWebAppConfigured,
+      authWebAppConfigured,
+      apiSecretConfigured,
+    },
+  };
+  const auth = {
+    session: {
+      cookieName: ADMIN_COOKIE_NAME,
+      ttlSeconds: sessionTtlSeconds,
+      minimumOneDay: sessionTtlSeconds >= 60 * 60 * 24,
+      signingSecretConfigured: hasEnv('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+      signingSecret: buildSecretStatus('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+    },
+    signup: {
+      defaultRole: 'member',
+      identitySigningSecretConfigured: hasEnv(
+        'RP_IDENTITY_VERIFICATION_SECRET',
+        'RP_ADMIN_SESSION_SECRET',
+        'RP_API_SECRET',
+      ),
+      identitySigningSecret: buildSecretStatus(
+        'RP_IDENTITY_VERIFICATION_SECRET',
+        'RP_ACCOUNT_RECOVERY_SECRET',
+        'RP_ADMIN_SESSION_SECRET',
+        'RP_API_SECRET',
+      ),
+      phoneWebhookConfigured: hasEnv('RP_SMS_WEBHOOK_URL', 'SMS_WEBHOOK_URL'),
+      emailWebhookConfigured: hasEnv('RP_EMAIL_WEBHOOK_URL', 'EMAIL_WEBHOOK_URL'),
+      kakaoWebhookConfigured: hasEnv('RP_KAKAO_WEBHOOK_URL', 'KAKAO_WEBHOOK_URL'),
+    },
+    accountRecovery: {
+      signingSecretConfigured: hasEnv('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+      signingSecret: buildSecretStatus('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+      phoneWebhookConfigured: hasEnv('RP_SMS_WEBHOOK_URL', 'SMS_WEBHOOK_URL'),
+      webhookSecretConfigured: hasEnv('RP_IDENTITY_WEBHOOK_SECRET', 'RP_SMS_WEBHOOK_SECRET', 'RP_API_SECRET'),
+      passwordResetStore: databaseConfigured ? 'postgres' : 'manual',
+      requestLimit: {
+        perPhone: '5 / 15min',
+        perIp: '20 / 15min',
+        verifyAttempts: '8 / 5min',
+      },
+    },
+    passwordHash: {
+      secretConfigured: hasEnv('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+      secret: buildSecretStatus('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+    },
+    seedAccounts: {
+      allowed: areEnvironmentAuthAccountsAllowed(),
+      productionOptInRequired: process.env.NODE_ENV === 'production',
+      authUsersConfigured: hasEnv('RP_AUTH_USERS'),
+      adminUsersConfigured: hasEnv('RP_ADMIN_USERS', 'RP_ADMIN_USERNAME'),
+      trainerUsersConfigured: hasEnv('RP_TRAINER_USERS', 'RP_TRAINER_USERNAME'),
+    },
+  };
+  const peExamData = buildPeExamDataStatus();
+  const highTrafficReadiness = buildHighTrafficReadiness({
+    databaseConfigured,
+    databaseOnly,
+    runtimeSchemaSyncDisabled,
+    databaseSchema,
+    googleDriveBackup: storage.googleDriveBackup,
+    auth,
+    peExamData,
+  });
 
   return {
     ok: true,
     checkedAt: new Date().toISOString(),
-    storage: {
-      primary: databaseConfigured ? 'postgres' : 'google-drive',
-      postgres: {
-        configured: databaseConfigured,
-        databaseOnly,
-        runtimeSchemaSyncDisabled: isRuntimeSchemaSyncDisabled(),
-        schema: databaseSchema,
-      },
-      googleDriveBackup: {
-        configured: backupWebAppConfigured && apiSecretConfigured,
-        enabled: googleDriveBackupEnabled,
-        explicitOptInRequired: true,
-        skipReason: googleDriveBackupEnabled ? null : getGoogleDriveBackupSkipReason(),
-        backupWebAppConfigured,
-        sheetsWebAppConfigured,
-        authWebAppConfigured,
-        apiSecretConfigured,
-      },
-    },
-    auth: {
-      session: {
-        cookieName: ADMIN_COOKIE_NAME,
-        ttlSeconds: sessionTtlSeconds,
-        minimumOneDay: sessionTtlSeconds >= 60 * 60 * 24,
-        signingSecretConfigured: hasEnv('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
-        signingSecret: buildSecretStatus('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
-      },
-      signup: {
-        defaultRole: 'member',
-        identitySigningSecretConfigured: hasEnv(
-          'RP_IDENTITY_VERIFICATION_SECRET',
-          'RP_ADMIN_SESSION_SECRET',
-          'RP_API_SECRET',
-        ),
-        identitySigningSecret: buildSecretStatus(
-          'RP_IDENTITY_VERIFICATION_SECRET',
-          'RP_ACCOUNT_RECOVERY_SECRET',
-          'RP_ADMIN_SESSION_SECRET',
-          'RP_API_SECRET',
-        ),
-        phoneWebhookConfigured: hasEnv('RP_SMS_WEBHOOK_URL', 'SMS_WEBHOOK_URL'),
-        emailWebhookConfigured: hasEnv('RP_EMAIL_WEBHOOK_URL', 'EMAIL_WEBHOOK_URL'),
-        kakaoWebhookConfigured: hasEnv('RP_KAKAO_WEBHOOK_URL', 'KAKAO_WEBHOOK_URL'),
-      },
-      accountRecovery: {
-        signingSecretConfigured: hasEnv('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
-        signingSecret: buildSecretStatus('RP_ACCOUNT_RECOVERY_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
-        phoneWebhookConfigured: hasEnv('RP_SMS_WEBHOOK_URL', 'SMS_WEBHOOK_URL'),
-        webhookSecretConfigured: hasEnv('RP_IDENTITY_WEBHOOK_SECRET', 'RP_SMS_WEBHOOK_SECRET', 'RP_API_SECRET'),
-        passwordResetStore: databaseConfigured ? 'postgres' : 'manual',
-        requestLimit: {
-          perPhone: '5 / 15min',
-          perIp: '20 / 15min',
-          verifyAttempts: '8 / 5min',
-        },
-      },
-      passwordHash: {
-        secretConfigured: hasEnv('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
-        secret: buildSecretStatus('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
-      },
-      seedAccounts: {
-        allowed: areEnvironmentAuthAccountsAllowed(),
-        productionOptInRequired: process.env.NODE_ENV === 'production',
-        authUsersConfigured: hasEnv('RP_AUTH_USERS'),
-        adminUsersConfigured: hasEnv('RP_ADMIN_USERS', 'RP_ADMIN_USERNAME'),
-        trainerUsersConfigured: hasEnv('RP_TRAINER_USERS', 'RP_TRAINER_USERNAME'),
-      },
-    },
-    peExamData: buildPeExamDataStatus(),
+    storage,
+    auth,
+    peExamData,
+    highTrafficReadiness,
   };
 }
 

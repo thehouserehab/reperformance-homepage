@@ -570,6 +570,25 @@ addCheck(
     ]),
 );
 addCheck(
+  "traffic",
+  "System status summarizes high-traffic readiness",
+  includesAll("app/api/rp/system-status/route.js", [
+    "buildHighTrafficReadiness",
+    "highTrafficReadiness",
+    "runtime_schema_sync_enabled",
+    "auth_verified_contact_uniqueness_not_ready",
+    "pe_exam_data_not_fresh",
+    "requiredManualChecks",
+  ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "highTrafficReadiness.ready",
+      "highTrafficReadiness.blockers",
+    ])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
+      "highTrafficReadiness.ready",
+    ]),
+);
+addCheck(
   "pe-data",
   "System status reports PE exam source freshness",
   fileExists("app/pe-exam/peExamSourceStatus.js")
