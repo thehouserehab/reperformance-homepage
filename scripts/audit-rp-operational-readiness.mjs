@@ -246,6 +246,24 @@ addCheck(
 );
 addCheck(
   "security",
+  "Auth account lockout controls are available",
+  includesAll("lib/rpDatabase.js", [
+    "failed_login_count",
+    "failed_login_window_started_at",
+    "locked_until",
+    "getDatabaseAuthLockoutPolicy",
+    "verifyDatabaseAuthAccount",
+    "recordDatabaseAuthLoginFailure",
+    "resetDatabaseAuthLoginFailure",
+    "rp_auth_accounts_locked_until_idx",
+  ])
+    && includesAll("lib/rpAuthStores.js", ["verifyAuthAccountFromStores", "accountFound", "databaseResult"])
+    && includesAll("app/api/auth/login/route.js", ["verifyAuthAccountFromStores", "failedLoginCount", "lockedUntil"])
+    && includesAll("app/api/admin/login/route.js", ["verifyAuthAccountFromStores", "failedLoginCount", "lockedUntil"])
+    && includesAll("app/api/rp/system-status/route.js", ["loginLockout", "auth_lockout_store_not_ready"]),
+);
+addCheck(
+  "security",
   "AI approval and daily usage buckets are available",
   includesAll("lib/rpDatabase.js", ["ai_approved", "ai_daily_limit", "rp_ai_usage_buckets", "AI_USAGE_DAILY_ROUTE_KEY", "daily_usage", "route_usage", "consumeDatabaseAiUsage"])
     && includesAll("lib/rpAiAccess.js", ["checkAiServiceAccess", "RP_AI_MEMBER_DAILY_LIMIT", "RP_AI_DAILY_LIMIT_MAX", "AI_APPROVAL_REQUIRED"]),
@@ -357,7 +375,17 @@ addCheck(
 addCheck(
   "security",
   "Baseline SQL migration exists",
-  includesAll("database/migrations/20260630_security_scale_baseline.sql", ["rp_auth_accounts", "rp_service_applications", "rp_rate_limit_buckets", "rp_ai_usage_buckets"]),
+  includesAll("database/migrations/20260630_security_scale_baseline.sql", ["rp_auth_accounts", "rp_service_applications", "rp_rate_limit_buckets", "rp_ai_usage_buckets", "failed_login_count", "rp_auth_accounts_locked_until_idx"]),
+);
+addCheck(
+  "security",
+  "Auth account lockout SQL migration exists",
+  includesAll("database/migrations/20260710_auth_account_lockout.sql", [
+    "failed_login_count",
+    "failed_login_window_started_at",
+    "locked_until",
+    "rp_auth_accounts_locked_until_idx",
+  ]),
 );
 addCheck(
   "security",
@@ -782,6 +810,8 @@ addCheck(
       "storage.postgres.schema.aiUsageBucketsReady",
       "storage.postgres.schema.retentionIndexesReady",
       "storage.postgres.schema.securityEventsReady",
+      "auth login lockout policy is reported",
+      "auth?.loginLockout",
       "storage.postgres.pool.max",
       "storage.postgres.pool.validMax",
       "postgres pool max is reported",

@@ -214,6 +214,22 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
         && Number(aiUsage?.defaultMemberDailyLimit) > 0,
       `max=${aiUsage?.dailyLimitMax ?? "missing"} member=${aiUsage?.defaultMemberDailyLimit ?? "missing"} staff=${aiUsage?.defaultStaffDailyLimit ?? "missing"}`,
     );
+    const loginLockout = status.auth?.loginLockout;
+    addResult(
+      "auth",
+      `${label} auth login lockout policy is reported`,
+      loginLockout?.enabled === true
+        && loginLockout?.store === "postgres"
+        && Number.isFinite(Number(loginLockout?.failureLimit))
+        && Number(loginLockout?.failureLimit) >= 3
+        && Number.isFinite(Number(loginLockout?.windowSeconds))
+        && Number(loginLockout?.windowSeconds) > 0
+        && Number.isFinite(Number(loginLockout?.lockSeconds))
+        && Number(loginLockout?.lockSeconds) > 0
+        && loginLockout?.failureCountColumn === "rp_auth_accounts.failed_login_count"
+        && loginLockout?.lockedUntilColumn === "rp_auth_accounts.locked_until",
+      `enabled=${loginLockout?.enabled ?? "missing"} store=${loginLockout?.store ?? "missing"} limit=${loginLockout?.failureLimit ?? "missing"} lockSeconds=${loginLockout?.lockSeconds ?? "missing"}`,
+    );
 
     const securityMonitoring = status.securityMonitoring;
     addResult(

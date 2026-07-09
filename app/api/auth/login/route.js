@@ -5,7 +5,7 @@ import {
   getAdminCookieOptions,
   hasStaffRole,
 } from '../../../../lib/rpAdminAuth';
-import { findAuthAccountFromStores } from '../../../../lib/rpAuthStores';
+import { verifyAuthAccountFromStores } from '../../../../lib/rpAuthStores';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -116,10 +116,16 @@ export async function POST(request) {
     return redirectToLogin(request, payload.next, 'rate-limited');
   }
 
-  const account = await findAuthAccountFromStores(payload.username, payload.password);
+  const authResult = await verifyAuthAccountFromStores(payload.username, payload.password);
+  const account = authResult.account;
 
   if (!account) {
-    await logLoginEvent(request, 'failure', payload, { reason: 'invalid_credentials' });
+    await logLoginEvent(request, 'failure', payload, {
+      reason: authResult.reason || 'invalid_credentials',
+      source: authResult.source || 'unknown',
+      failedLoginCount: authResult.failedLoginCount,
+      lockedUntil: authResult.lockedUntil,
+    });
     return redirectToLogin(request, payload.next, 'invalid');
   }
 

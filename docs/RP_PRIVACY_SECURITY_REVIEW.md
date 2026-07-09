@@ -36,6 +36,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Production environment-variable auth accounts now require explicit `RP_ALLOW_ENV_AUTH_ACCOUNTS=true` opt-in; otherwise `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_ADMIN_USERNAME`, and trainer env accounts are ignored so PostgreSQL accounts remain the default production login store.
 - Signup now enforces one account per verified contact through an app-level precheck and the PostgreSQL partial unique index `rp_auth_accounts_verified_contact_unique_idx`.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
+- PostgreSQL auth accounts now track repeated failed password attempts with `failed_login_count`, `failed_login_window_started_at`, and `locked_until`; repeated failures temporarily lock the account while public login responses remain generic.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
 - Token-backed AI usage now requires approval and records account-wide daily use in PostgreSQL; staff can set per-account daily limits in `/admin/clients`, capped by `RP_AI_DAILY_LIMIT_MAX`.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
@@ -77,7 +78,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
 - PE exam data freshness depends on annual KUSF/ADIGA/source refresh. Run `npm run pe-exam:data:refresh` to update snapshots and verify source year, generated date, minimum data volume, and university coverage whenever generated data is updated.
 - AI consult output must remain a preparation guide, not final admissions, medical, or legal advice.
-- `/admin/security` is an operational audit view, not a full SIEM or fraud platform. Review repeated failures and unusual IP prefixes manually, and escalate to Vercel Firewall or account lockout policy work if abuse becomes recurring.
+- `/admin/security` is an operational audit view, not a full SIEM or fraud platform. Review repeated failures, unusual IP prefixes, and account-lockout events manually, then escalate recurring patterns to Vercel Firewall or stronger identity verification policy work.
 
 ## Operational Checklist
 
@@ -90,6 +91,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
 - Use unique production secrets with at least 32 characters and no placeholder terms like `change-this`, `example`, or `default`; `/api/rp/system-status` reports only strength status, not the secret values.
 - Keep `RP_ALLOW_ENV_AUTH_ACCOUNTS` unset or false in production except during a short emergency bootstrap window, then move staff/member accounts into PostgreSQL.
+- Apply `database/migrations/20260710_auth_account_lockout.sql` before relying on account-level login lockout; `/api/rp/system-status` should report the login lockout policy and no `auth_lockout_store_not_ready` blocker.
 - Use `docs/RP_PRODUCTION_SECRET_POLICY.md` when rotating production auth, recovery, and password-hash secrets.
 - Keep `NEXT_PUBLIC_SITE_URL` or `RP_SITE_URL` aligned with the production domain; add extra trusted domains to `RP_ALLOWED_ORIGINS` only when a deliberate same-site form host is needed.
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.

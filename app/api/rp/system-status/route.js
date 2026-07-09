@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/rpAdminAuth';
 import {
   checkDatabaseSchemaReadiness,
+  getDatabaseAuthLockoutPolicy,
   getDatabasePoolConfig,
   isDatabaseConfigured,
   isDatabaseOnlyMode,
@@ -462,6 +463,9 @@ function buildObjectiveReadiness({
   if (!databaseSchema?.securityEventsReady) {
     addReadinessIssue(authBlockers, 'security_event_store_not_ready', 'Security event table and review indexes must be ready for sensitive auth and AI approval audit trails.');
   }
+  if (!databaseSchema?.authLockoutReady) {
+    addReadinessIssue(authBlockers, 'auth_lockout_store_not_ready', 'Auth account lockout columns and indexes must be ready before signup/login traffic increases.');
+  }
   if (process.env.NODE_ENV === 'production' && auth.seedAccounts.allowed) {
     addReadinessIssue(authBlockers, 'production_env_auth_accounts_enabled', 'Disable production environment-variable auth accounts after bootstrap.');
   }
@@ -586,6 +590,7 @@ async function buildStatus() {
   const databaseOnly = isDatabaseOnlyMode();
   const databaseSchema = await checkDatabaseSchemaReadiness();
   const databasePool = getDatabasePoolConfig();
+  const loginLockout = getDatabaseAuthLockoutPolicy();
   const runtimeSchemaSyncDisabled = isRuntimeSchemaSyncDisabled();
   const sheetsWebAppConfigured = hasEnv('RP_SHEETS_WEBAPP_URL');
   const authWebAppConfigured = hasEnv('RP_AUTH_WEBAPP_URL', 'RP_SIGNUP_WEBAPP_URL', 'RP_SHEETS_WEBAPP_URL');
@@ -654,6 +659,7 @@ async function buildStatus() {
       secretConfigured: hasEnv('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
       secret: buildSecretStatus('RP_PASSWORD_HASH_SECRET', 'RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
     },
+    loginLockout,
     seedAccounts: {
       allowed: areEnvironmentAuthAccountsAllowed(),
       productionOptInRequired: process.env.NODE_ENV === 'production',

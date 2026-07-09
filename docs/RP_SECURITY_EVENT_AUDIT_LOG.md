@@ -12,6 +12,7 @@ Staff can review recent event patterns at `/admin/security` or through the staff
 
 - Member login: `auth.login`
 - Admin login: `auth.admin_login`
+- Account lockout signals are recorded as `auth.login` or `auth.admin_login` failures with sanitized metadata such as `reason`, `failedLoginCount`, and `lockedUntil`.
 - Signup: `auth.signup`
 - Account recovery code request: `auth.account_recovery.request_code`
 - Account recovery code verification and ID lookup: `auth.account_recovery.verify_code`, `auth.account_recovery.find_id`

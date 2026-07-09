@@ -48,6 +48,9 @@ const requiredColumns = {
     "ai_approved_at",
     "ai_approved_by",
     "ai_daily_limit",
+    "failed_login_count",
+    "failed_login_window_started_at",
+    "locked_until",
     "created_at",
     "updated_at",
   ],
@@ -130,6 +133,7 @@ const requiredColumns = {
 
 const requiredIndexes = [
   "rp_auth_accounts_verified_contact_unique_idx",
+  "rp_auth_accounts_locked_until_idx",
   "rp_clients_name_idx",
   "rp_clients_phone_idx",
   "rp_consultations_client_id_idx",

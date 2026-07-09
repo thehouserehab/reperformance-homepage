@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS rp_auth_accounts (
   ai_approved_at TIMESTAMPTZ,
   ai_approved_by TEXT,
   ai_daily_limit INTEGER,
+  failed_login_count INTEGER NOT NULL DEFAULT 0,
+  failed_login_window_started_at TIMESTAMPTZ,
+  locked_until TIMESTAMPTZ,
   requested_at TIMESTAMPTZ DEFAULT NOW(),
   approved_at TIMESTAMPTZ,
   message TEXT,
@@ -37,6 +40,9 @@ ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_approved BOOLEAN NOT NU
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_approved_at TIMESTAMPTZ;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_approved_by TEXT;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_daily_limit INTEGER;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS failed_login_window_started_at TIMESTAMPTZ;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS rp_clients (
   id TEXT PRIMARY KEY,
@@ -166,6 +172,7 @@ CREATE TABLE IF NOT EXISTS rp_ai_usage_buckets (
 );
 
 CREATE INDEX IF NOT EXISTS rp_clients_name_idx ON rp_clients (name);
+CREATE INDEX IF NOT EXISTS rp_auth_accounts_locked_until_idx ON rp_auth_accounts (locked_until) WHERE locked_until IS NOT NULL;
 CREATE INDEX IF NOT EXISTS rp_clients_phone_idx ON rp_clients (phone);
 CREATE INDEX IF NOT EXISTS rp_consultations_client_id_idx ON rp_consultations (client_id);
 CREATE INDEX IF NOT EXISTS rp_service_applications_client_id_idx ON rp_service_applications (client_id);
