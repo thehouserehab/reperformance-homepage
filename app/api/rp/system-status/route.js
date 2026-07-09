@@ -17,7 +17,12 @@ import {
   getGoogleDriveBackupSkipReason,
   isGoogleDriveBackupEnabled,
 } from '../../../../lib/rpGoogleDriveBackup';
-import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
+import {
+  buildRateLimitResponse,
+  checkSharedRequestRateLimit,
+  getSharedRateLimitFailureRetrySeconds,
+  isSharedRateLimitFailClosed,
+} from '../../../../lib/rpRateLimit';
 import { getProductionSecretStatus } from '../../../../lib/rpSecurity';
 
 export const dynamic = 'force-dynamic';
@@ -144,6 +149,7 @@ function buildHighTrafficReadiness({
   googleDriveBackup,
   auth,
   peExamData,
+  trafficControls,
 }) {
   const blockers = [];
   const warnings = [];
@@ -176,6 +182,9 @@ function buildHighTrafficReadiness({
   }
   if (!databaseSchema?.aiUsageBucketsReady) {
     addReadinessIssue(blockers, 'ai_usage_buckets_not_ready', 'AI usage buckets and usage-date index must be ready before token-backed AI services are enabled at scale.');
+  }
+  if (!trafficControls?.sharedRateLimit?.failClosed) {
+    addReadinessIssue(warnings, 'rate_limit_fail_closed_not_enabled', 'Consider RP_RATE_LIMIT_FAIL_CLOSED=true during paid campaigns so DB limiter failures do not silently degrade to instance-local limits.');
   }
   if (googleDriveBackup.enabled) {
     addReadinessIssue(warnings, 'google_backup_enabled', 'Google Drive/Sheets backup is enabled; confirm restore readiness, access controls, and retention before campaign traffic.');
@@ -215,6 +224,7 @@ function buildObjectiveReadiness({
   auth,
   peExamData,
   highTrafficReadiness,
+  trafficControls,
 }) {
   const databaseConfigured = storage.postgres.configured;
   const databaseOnly = storage.postgres.databaseOnly;
@@ -301,6 +311,9 @@ function buildObjectiveReadiness({
   }
   if (!databaseSchema?.aiUsageBucketsReady) {
     addReadinessIssue(dataScaleBlockers, 'ai_usage_buckets_not_ready', 'AI usage buckets must be ready before token-backed AI usage increases.');
+  }
+  if (!trafficControls?.sharedRateLimit?.failClosed) {
+    addReadinessIssue(dataScaleWarnings, 'rate_limit_fail_closed_not_enabled', 'For campaign windows, enable RP_RATE_LIMIT_FAIL_CLOSED=true if DB limiter degradation should block instead of falling back to in-memory limits.');
   }
   if (!databaseOnly) {
     addReadinessIssue(dataScaleWarnings, 'database_only_mode_not_enabled', 'Set RP_DATA_SOURCE=database before campaigns to avoid fallback write paths.');
@@ -447,6 +460,14 @@ async function buildStatus() {
     },
   };
   const peExamData = buildPeExamDataStatus();
+  const trafficControls = {
+    sharedRateLimit: {
+      store: databaseConfigured ? 'postgres-with-memory-fallback' : 'memory-only',
+      failClosed: isSharedRateLimitFailClosed(),
+      failClosedRetryAfterSeconds: getSharedRateLimitFailureRetrySeconds(),
+      failureMode: isSharedRateLimitFailClosed() ? 'block_with_429' : 'fallback_to_in_memory',
+    },
+  };
   const highTrafficReadiness = buildHighTrafficReadiness({
     databaseConfigured,
     databaseOnly,
@@ -455,12 +476,14 @@ async function buildStatus() {
     googleDriveBackup: storage.googleDriveBackup,
     auth,
     peExamData,
+    trafficControls,
   });
   const objectiveReadiness = buildObjectiveReadiness({
     storage,
     auth,
     peExamData,
     highTrafficReadiness,
+    trafficControls,
   });
 
   return {
@@ -468,6 +491,7 @@ async function buildStatus() {
     checkedAt: new Date().toISOString(),
     storage,
     auth,
+    trafficControls,
     peExamData,
     highTrafficReadiness,
     objectiveReadiness,

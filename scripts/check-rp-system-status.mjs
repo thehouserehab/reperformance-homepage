@@ -154,6 +154,14 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
     checkBooleanPath(label, status, "peExamData.ok", true);
     checkBooleanPath(label, status, "highTrafficReadiness.ready", true);
 
+    const sharedRateLimit = status.trafficControls?.sharedRateLimit;
+    addResult(
+      "traffic-controls",
+      `${label} shared rate-limit failure mode is reported`,
+      typeof sharedRateLimit?.failClosed === "boolean" && Boolean(sharedRateLimit?.failureMode),
+      sharedRateLimit?.failureMode || "missing",
+    );
+
     addResult(
       "high-traffic-readiness",
       `${label} highTrafficReadiness has no blockers`,

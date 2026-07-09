@@ -23,7 +23,15 @@ Protected flows:
 
 The shared limiter writes fixed-window counters to `rp_rate_limit_buckets` using an atomic `INSERT ... ON CONFLICT ... DO UPDATE` query. This means multiple serverless instances see the same counters instead of each instance keeping a separate memory-only count.
 
-If the shared limiter is unavailable, the app keeps the request flow available by falling back to the existing instance-local memory limiter.
+If the shared limiter is unavailable, the app keeps the request flow available by falling back to the existing instance-local memory limiter by default.
+
+For paid campaigns, offline events, or abuse-sensitive windows, set:
+
+```powershell
+RP_RATE_LIMIT_FAIL_CLOSED=true
+```
+
+With this enabled, a PostgreSQL shared-limiter failure returns a temporary `429` instead of silently degrading to instance-local memory limits. `RP_RATE_LIMIT_FAIL_CLOSED_RETRY_SECONDS` can tune the retry window between 5 and 300 seconds; the default is 60 seconds.
 
 ## Production traffic guidance
 
@@ -38,6 +46,8 @@ The PostgreSQL limiter is a practical app-layer guard, but it still consumes app
 - `/api/rp/auth-accounts`
 
 Use the DB limiter for correctness across app instances, and edge/WAF controls to reject abusive traffic before it reaches the app or database.
+
+During high-traffic campaign windows, prefer `RP_RATE_LIMIT_FAIL_CLOSED=true` after the production database migration check passes. Keep it disabled only when preserving form availability during a database incident is more important than strict abuse control.
 
 Server-side outbound calls are also timeout-bound with `fetchWithTimeout`. Keep Google/Auth/Webhook defaults near 8 seconds and OpenAI near 25 seconds unless a campaign load test proves a larger value is necessary.
 

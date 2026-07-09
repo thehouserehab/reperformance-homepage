@@ -75,7 +75,7 @@ To include it in the campaign command:
 npm.cmd run ops:campaign:check -- --status
 ```
 
-The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs.
+The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `trafficControls.sharedRateLimit`, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs.
 
 ## 2. Production gates
 
@@ -98,6 +98,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
+- For paid campaigns or abuse-sensitive traffic windows, set `RP_RATE_LIMIT_FAIL_CLOSED=true` after the production migration check passes so shared limiter failures return temporary `429` responses instead of falling back to instance-local memory limits.
 - `/api/*` responses include `Cache-Control: private, no-store, max-age=0, must-revalidate`.
 - Public SSG pages are not marked `no-store`, and hashed `/_next/static` assets return `Cache-Control: public, max-age=31536000, immutable`.
 - `npm.cmd run ops:public:check` passes against both production URLs after deploy.

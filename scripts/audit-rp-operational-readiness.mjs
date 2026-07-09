@@ -211,7 +211,13 @@ addCheck(
 addCheck(
   "security",
   "Shared rate limit helper exists",
-  includesAll("lib/rpRateLimit.js", ["checkSharedRequestRateLimit", "checkDatabaseRateLimit", "checkRateLimit(key"]),
+  includesAll("lib/rpRateLimit.js", [
+    "checkSharedRequestRateLimit",
+    "checkDatabaseRateLimit",
+    "checkRateLimit(key",
+    "isSharedRateLimitFailClosed",
+    "RP_RATE_LIMIT_FAIL_CLOSED",
+  ]),
 );
 addCheck(
   "security",
@@ -596,6 +602,7 @@ addCheck(
     "auth_verified_contact_uniqueness_not_ready",
     "shared_rate_limit_store_not_ready",
     "ai_usage_buckets_not_ready",
+    "rate_limit_fail_closed_not_enabled",
     "pe_exam_data_not_fresh",
     "requiredManualChecks",
   ])
@@ -619,6 +626,7 @@ addCheck(
     "trafficSurgeReadiness",
     "dataScaleManagement",
     "retentionCron",
+    "rate_limit_fail_closed_not_enabled",
   ])
     && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
       "objectiveReadiness",
@@ -706,6 +714,8 @@ addCheck(
       "storage.postgres.schema.aiUsageBucketsReady",
       "storage.postgres.schema.retentionIndexesReady",
       "storage.postgres.schema.securityEventsReady",
+      "trafficControls?.sharedRateLimit",
+      "shared rate-limit failure mode is reported",
       "highTrafficReadiness.ready",
       "objectiveReadiness",
       "cookie=provided via env; value is never printed",
@@ -722,6 +732,7 @@ addCheck(
       "storage.postgres.configured",
       "storage.postgres.schema.allRequiredTablesPresent",
       "storage.postgres.schema.rateLimitBucketsReady",
+      "RP_RATE_LIMIT_FAIL_CLOSED",
       "objectiveReadiness.*.ready",
     ])
     && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [

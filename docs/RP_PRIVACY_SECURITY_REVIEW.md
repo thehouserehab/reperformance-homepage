@@ -90,6 +90,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Keep `RP_BACKUP_SECRET_IN_QUERY=false` unless a legacy Apps Script cannot yet read headers/body.
 - Leave `RP_GOOGLE_DRIVE_BACKUP_ENABLED` unset or false unless backup access, restore testing, and retention policy are ready.
 - Keep outbound timeout settings conservative: `RP_OUTBOUND_FETCH_TIMEOUT_MS`, `RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS`, `RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS`, `RP_WEBHOOK_FETCH_TIMEOUT_MS`, and `RP_OPENAI_FETCH_TIMEOUT_MS` should stay within the documented caps unless a campaign test proves more time is required.
+- For paid campaigns or abuse-sensitive windows, set `RP_RATE_LIMIT_FAIL_CLOSED=true` after confirming shared rate-limit tables and indexes are ready. This trades some availability during a DB limiter incident for stricter abuse control.
 - Run `npm run data:retention:audit` monthly and before high-traffic campaigns.
 - For paid ads, offline events, or admission-season traffic, run `npm run ops:campaign:check -- --build --typecheck --database --retention-strict` with a production database URL before increasing traffic.
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
