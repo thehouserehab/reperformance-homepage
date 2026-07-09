@@ -53,7 +53,7 @@ Key fields:
 - `securityMonitoring.topIpPrefixes`: high-volume masked IP prefixes, never raw IP addresses.
 - `securityMonitoring.thresholds`: configured review thresholds.
 
-`review_required` is an operational warning, not an automatic deployment failure. Staff should review `/admin/security`, then adjust Vercel Firewall rules, rate-limit policy, or future account-lockout policy if the pattern is recurring.
+`review_required` is an operational warning, not an automatic deployment failure in the default status check. Before paid campaigns, admission-season campaigns, or other abuse-sensitive traffic windows, run `npm.cmd run ops:status:check -- --security-strict` or `npm.cmd run ops:campaign:check -- --security-strict`; strict mode fails unless `securityMonitoring.status=normal`. Staff should review `/admin/security`, then adjust Vercel Firewall rules, rate-limit policy, or future account-lockout policy if the pattern is recurring.
 
 ## Non-Storage Rules
 

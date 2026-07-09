@@ -19,6 +19,7 @@ const namedArgs = new Map(
 );
 
 const results = [];
+const securityStrict = flags.has("--security-strict") || isEnabledFlag(process.env.RP_STATUS_SECURITY_STRICT);
 
 function addResult(area, name, ok, detail = "") {
   results.push({ area, name, ok: Boolean(ok), detail });
@@ -29,6 +30,14 @@ function splitCsv(value) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeFlag(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
+}
+
+function isEnabledFlag(value) {
+  return ["1", "true", "yes", "on", "enabled"].includes(normalizeFlag(value));
 }
 
 function normalizeBaseUrl(value) {
@@ -232,6 +241,16 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
         && Number.isFinite(Number(securityMonitoring?.thresholds?.ipPrefixWarningThreshold)),
       `authFailureThreshold=${securityMonitoring?.thresholds?.authFailureWarningThreshold ?? "missing"} ipPrefixThreshold=${securityMonitoring?.thresholds?.ipPrefixWarningThreshold ?? "missing"}`,
     );
+    if (securityStrict) {
+      addResult(
+        "security-monitoring",
+        `${label} securityMonitoring.status is normal in strict mode`,
+        securityMonitoring?.available === true
+          && securityMonitoring?.status === "normal"
+          && (!Array.isArray(securityMonitoring?.warnings) || securityMonitoring.warnings.length === 0),
+        `status=${securityMonitoring?.status ?? "missing"} warnings=${issueSummary(securityMonitoring?.warnings)}`,
+      );
+    }
 
     addResult(
       "high-traffic-readiness",
@@ -264,6 +283,7 @@ function printResults(targets) {
   console.log("RePERFORMANCE production system-status check");
   console.log(`baseUrls=${targets.join(", ")}`);
   console.log("cookie=provided via env; value is never printed");
+  console.log(`securityStrict=${securityStrict ? "enabled" : "disabled"}`);
 
   for (const [area, areaResults] of byArea.entries()) {
     console.log(`\n[${area}]`);

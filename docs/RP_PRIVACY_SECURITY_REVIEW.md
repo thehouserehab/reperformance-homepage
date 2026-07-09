@@ -101,6 +101,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
 - Review `/admin/security` after deploys, campaigns, and repeated login/account-recovery failures. Treat raw PII absence as intentional; do not add raw phone, email, or IP fields to the view.
 - Verify `/api/rp/system-status` reports `securityMonitoring.available=true`; if `securityMonitoring.status=review_required`, review `/admin/security` before increasing traffic.
+- For paid campaigns or admission-season traffic, set `RP_SYSTEM_STATUS_COOKIE` or `RP_ADMIN_SESSION_COOKIE` locally and run `npm run ops:campaign:check -- --security-strict`; this fails unless the staff-only status endpoint reports `securityMonitoring.status=normal`.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
 - Confirm `db:migration:check` reports `Auth verified contact duplicates are resolved` before applying or relying on the verified-contact unique index.
@@ -111,7 +112,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - When `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, run `npm run ops:vercel:check` to verify both production projects expose required env keys for database-only mode, runtime schema sync disablement, DB pool sizing, auth/recovery/password secrets, SMS verification, site origin, shared rate-limit fail-closed mode, and retention cron.
 - Verify `/api/rp/system-status` reports `highTrafficReadiness.ready=true`; if not, treat `highTrafficReadiness.blockers` as campaign blockers.
 - Verify `/api/rp/system-status` reports `objectiveReadiness.customerDataSecurity.ready=true`, `objectiveReadiness.signupLoginSecurity.ready=true`, and `objectiveReadiness.dataScaleManagement.ready=true` before paid traffic or admission-season traffic.
-- When a current staff session cookie is available, set `RP_SYSTEM_STATUS_COOKIE` or `RP_ADMIN_SESSION_COOKIE` locally and run `npm run ops:status:check` to automate the staff-only readiness check without printing the cookie value.
+- When a current staff session cookie is available, set `RP_SYSTEM_STATUS_COOKIE` or `RP_ADMIN_SESSION_COOKIE` locally and run `npm run ops:status:check` to automate the staff-only readiness check without printing the cookie value. Use `npm run ops:status:check -- --security-strict` before paid or admission-season traffic to require a normal security-monitoring state.
 - When `DATABASE_URL` and `VERCEL_TOKEN` are available, run `npm run ops:campaign:check -- --build --typecheck --database --vercel` to include database and production Vercel gates.
 - Review `docs/RP_SHARED_RATE_LIMITING.md` before campaign traffic or paid advertising bursts.
 - Complete the manual gates in `docs/RP_CAMPAIGN_READINESS_RUNBOOK.md`.

@@ -8,7 +8,8 @@ const includeVercel = args.has("--vercel");
 const includeDatabase = args.has("--database");
 const includePublic = args.has("--public");
 const includeRetentionStrict = args.has("--retention-strict");
-const includeStatus = args.has("--status") || args.has("--system-status");
+const includeSecurityStrict = args.has("--security-strict");
+const includeStatus = args.has("--status") || args.has("--system-status") || includeSecurityStrict;
 
 const retentionCommand = [npmCommand, "run", "data:retention:audit"];
 
@@ -67,9 +68,16 @@ if (includePublic) {
 }
 
 if (includeStatus) {
+  const statusCommand = [npmCommand, "run", "ops:status:check"];
+  if (includeSecurityStrict) {
+    statusCommand.push("--", "--security-strict");
+  }
+
   steps.push({
-    name: "Production system-status readiness gates",
-    command: [npmCommand, "run", "ops:status:check"],
+    name: includeSecurityStrict
+      ? "Production system-status readiness gates with security strict mode"
+      : "Production system-status readiness gates",
+    command: statusCommand,
   });
 }
 
@@ -110,6 +118,7 @@ console.log("Use --database with DATABASE_URL, POSTGRES_URL, or RP_DATABASE_URL 
 console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates and deployed HEAD matching.");
 console.log("Use --public to verify public production URLs without Vercel secrets.");
 console.log("Use --status with RP_SYSTEM_STATUS_COOKIE or RP_ADMIN_SESSION_COOKIE to verify staff-only system readiness.");
+console.log("Use --security-strict with a staff cookie before paid/admission traffic to require securityMonitoring.status=normal.");
 console.log("Use --retention-strict with a production database URL to require retention tables and zero auto-prunable candidates.");
 
 let ok = true;
@@ -129,6 +138,7 @@ Manual gates before a high-traffic campaign:
 - Apply all checked-in SQL files in database/migrations with npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION and confirm no pending migration drift.
 - Run npm.cmd run db:migration:check against production PostgreSQL.
 - Verify /api/rp/system-status with a staff session in production, or run npm.cmd run ops:campaign:check -- --status with RP_SYSTEM_STATUS_COOKIE.
+- For paid/admission campaigns, run npm.cmd run ops:campaign:check -- --security-strict with RP_SYSTEM_STATUS_COOKIE so securityMonitoring.status=normal is enforced before traffic increases.
 - Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, /api/rp/clients, /api/rp/auth-accounts, and /api/rp/security-events.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
 - Confirm production RP_DATA_SOURCE, RP_DISABLE_RUNTIME_SCHEMA_SYNC or RP_RUNTIME_SCHEMA_SYNC, RP_DATABASE_POOL_MAX, RP_SMS_WEBHOOK_URL or SMS_WEBHOOK_URL, NEXT_PUBLIC_SITE_URL or RP_SITE_URL, and RP_RATE_LIMIT_FAIL_CLOSED are configured for both production Vercel projects.

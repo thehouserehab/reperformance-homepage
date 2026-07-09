@@ -284,6 +284,8 @@ addCheck(
       "securityMonitoring is available",
       "auth security event counters are reported",
       "auth abuse thresholds are reported",
+      "--security-strict",
+      "securityMonitoring.status is normal in strict mode",
     ])
     && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
       "securityMonitoring",
@@ -517,7 +519,10 @@ addCheck(
       "--vercel",
       "--public",
       "--retention-strict",
+      "--security-strict",
       "--max-prunable-candidates=0",
+      "includeSecurityStrict",
+      "securityMonitoring.status=normal",
       "Manual gates before a high-traffic campaign",
       "RP_DATA_SOURCE",
       "RP_DATABASE_POOL_MAX",
@@ -789,6 +794,7 @@ addCheck(
     && includesAll("scripts/check-rp-campaign-readiness.mjs", [
       "--status",
       "--system-status",
+      "--security-strict",
       "ops:status:check",
       "Production system-status readiness gates",
     ])

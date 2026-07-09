@@ -75,7 +75,17 @@ To include it in the campaign command:
 npm.cmd run ops:campaign:check -- --status
 ```
 
-The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.pool.max`, `storage.postgres.pool.explicitMax`, `storage.postgres.pool.validMax`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `trafficControls.sharedRateLimit`, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs.
+For paid traffic, admission-season campaigns, or abuse-sensitive windows, use security strict mode:
+
+```powershell
+$env:RP_SYSTEM_STATUS_COOKIE="rp_admin_session=..."
+npm.cmd run ops:status:check -- --security-strict
+npm.cmd run ops:campaign:check -- --security-strict
+```
+
+`--security-strict` includes the staff-only system-status gate and fails unless `securityMonitoring.available=true`, `securityMonitoring.status=normal`, and no security-monitoring warnings are reported.
+
+The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.pool.max`, `storage.postgres.pool.explicitMax`, `storage.postgres.pool.validMax`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `trafficControls.sharedRateLimit`, `securityMonitoring.available`, security-event counters, abuse thresholds, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs. In strict mode, it also requires `securityMonitoring.status=normal`.
 
 ## 2. Production gates
 
@@ -92,9 +102,10 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/system-status` reports all required PostgreSQL tables and indexes as ready, including rate-limit, AI usage, retention, and security-event indexes.
+- `/api/rp/system-status` reports `securityMonitoring.available=true`; before paid or admission-season traffic, `npm.cmd run ops:campaign:check -- --security-strict` passes with a staff session cookie and `securityMonitoring.status=normal`.
 - `/api/rp/system-status` reports `highTrafficReadiness.ready=true`. If false, resolve every item in `highTrafficReadiness.blockers` before increasing traffic.
 - `/api/rp/system-status` reports `objectiveReadiness` for `customerDataSecurity`, `signupLoginSecurity`, `peExamDataMaintenance`, `trafficSurgeReadiness`, and `dataScaleManagement`; treat any blocker in these sections as unresolved campaign work.
-- If a staff session cookie is available, `npm.cmd run ops:campaign:check -- --status` passes against the production URLs.
+- If a staff session cookie is available, `npm.cmd run ops:campaign:check -- --status` passes against the production URLs. For paid or admission-season campaigns, use `npm.cmd run ops:campaign:check -- --security-strict` instead.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - `/api/rp/security-events` rejects unauthenticated requests before returning audit-event summaries.
