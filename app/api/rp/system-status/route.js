@@ -6,7 +6,12 @@ import {
   hasStaffAccess,
   verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
-import { isDatabaseConfigured, isDatabaseOnlyMode, isRuntimeSchemaSyncDisabled } from '../../../../lib/rpDatabase';
+import {
+  checkDatabaseSchemaReadiness,
+  isDatabaseConfigured,
+  isDatabaseOnlyMode,
+  isRuntimeSchemaSyncDisabled,
+} from '../../../../lib/rpDatabase';
 import {
   getGoogleDriveBackupSkipReason,
   isGoogleDriveBackupEnabled,
@@ -43,9 +48,10 @@ function buildSecretStatus(...keys) {
   return getProductionSecretStatus(getFirstEnv(...keys));
 }
 
-function buildStatus() {
+async function buildStatus() {
   const databaseConfigured = isDatabaseConfigured();
   const databaseOnly = isDatabaseOnlyMode();
+  const databaseSchema = await checkDatabaseSchemaReadiness();
   const sheetsWebAppConfigured = hasEnv('RP_SHEETS_WEBAPP_URL');
   const authWebAppConfigured = hasEnv('RP_AUTH_WEBAPP_URL', 'RP_SIGNUP_WEBAPP_URL', 'RP_SHEETS_WEBAPP_URL');
   const backupWebAppConfigured = authWebAppConfigured;
@@ -62,6 +68,7 @@ function buildStatus() {
         configured: databaseConfigured,
         databaseOnly,
         runtimeSchemaSyncDisabled: isRuntimeSchemaSyncDisabled(),
+        schema: databaseSchema,
       },
       googleDriveBackup: {
         configured: backupWebAppConfigured && apiSecretConfigured,
@@ -148,5 +155,5 @@ export async function GET(request) {
   });
   if (retryAfterSeconds) return buildRateLimitResponse(retryAfterSeconds);
 
-  return Response.json(buildStatus());
+  return Response.json(await buildStatus());
 }

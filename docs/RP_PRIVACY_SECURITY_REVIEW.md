@@ -95,6 +95,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
 - Confirm `db:migration:check` reports `Auth verified contact duplicates are resolved` before applying or relying on the verified-contact unique index.
+- After deploy, confirm `/api/rp/system-status` reports `storage.postgres.schema.verifiedContactUniquenessReady=true` with a staff session.
 - Run `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
 - Run `npm run ops:public:check` after deploy to verify public pages, security headers, public page/cache headers, hashed static asset immutable caching, API no-store behavior, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation.

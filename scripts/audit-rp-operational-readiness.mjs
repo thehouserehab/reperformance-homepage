@@ -539,6 +539,23 @@ addCheck(
     ]),
 );
 addCheck(
+  "data",
+  "System status reports production schema readiness",
+  includesAll("lib/rpDatabase.js", [
+    "checkDatabaseSchemaReadiness",
+    "verifiedContactUniquenessReady",
+    "schema_check_failed",
+  ])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "checkDatabaseSchemaReadiness",
+      "schema: databaseSchema",
+    ])
+    && includesAll("docs/RP_DATABASE_MIGRATION_RUNBOOK.md", [
+      "/api/rp/system-status",
+      "verifiedContactUniquenessReady",
+    ]),
+);
+addCheck(
   "traffic",
   "Vercel production check command exists",
   Boolean(scripts["ops:vercel:check"])
