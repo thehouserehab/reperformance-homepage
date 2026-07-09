@@ -14,6 +14,7 @@
     "ops:audit": "node scripts/audit-rp-operational-readiness.mjs",
     "ops:campaign:check": "node scripts/check-rp-campaign-readiness.mjs",
     "ops:public:check": "node scripts/check-rp-public-production.mjs",
+    "ops:status:check": "node scripts/check-rp-system-status.mjs",
     "ops:vercel:check": "node scripts/check-rp-vercel-production.mjs",
     "pe-exam:data:audit": "node scripts/audit-pe-exam-university-coverage.mjs",
     "pe-exam:data:freshness": "node scripts/check-pe-exam-data-freshness.mjs",

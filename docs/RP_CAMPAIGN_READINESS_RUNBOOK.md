@@ -62,6 +62,21 @@ npm.cmd run ops:campaign:check -- --public
 
 The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, public SSG pages are not marked `no-store`, hashed `/_next/static` assets are served with immutable public cache headers, protected APIs reject unauthenticated requests, state-changing APIs reject foreign `Origin` requests, API responses are not cached, response times stay below the configured public-check thresholds, and the external management service remains separated from the homepage.
 
+To automate the staff-only `/api/rp/system-status` gate, provide a current staff session cookie through an environment variable. The script sends the cookie in the request header and never prints the value:
+
+```powershell
+$env:RP_SYSTEM_STATUS_COOKIE="rp_admin_session=..."
+npm.cmd run ops:status:check
+```
+
+To include it in the campaign command:
+
+```powershell
+npm.cmd run ops:campaign:check -- --status
+```
+
+The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.schema.verifiedContactUniquenessReady`, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs.
+
 ## 2. Production gates
 
 Do not start a high-traffic campaign until these manual gates are checked:
@@ -77,6 +92,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/system-status` reports `highTrafficReadiness.ready=true`. If false, resolve every item in `highTrafficReadiness.blockers` before increasing traffic.
 - `/api/rp/system-status` reports `objectiveReadiness` for `customerDataSecurity`, `signupLoginSecurity`, `peExamDataMaintenance`, `trafficSurgeReadiness`, and `dataScaleManagement`; treat any blocker in these sections as unresolved campaign work.
+- If a staff session cookie is available, `npm.cmd run ops:campaign:check -- --status` passes against the production URLs.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.

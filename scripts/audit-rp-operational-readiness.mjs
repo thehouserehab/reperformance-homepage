@@ -673,6 +673,37 @@ addCheck(
 );
 addCheck(
   "traffic",
+  "Staff system-status production check command exists",
+  Boolean(scripts["ops:status:check"])
+    && includesAll("scripts/check-rp-system-status.mjs", [
+      "RP_SYSTEM_STATUS_COOKIE",
+      "RP_ADMIN_SESSION_COOKIE",
+      "storage.postgres.configured",
+      "storage.postgres.runtimeSchemaSyncDisabled",
+      "storage.postgres.schema.verifiedContactUniquenessReady",
+      "highTrafficReadiness.ready",
+      "objectiveReadiness",
+      "cookie=provided via env; value is never printed",
+    ])
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", [
+      "--status",
+      "--system-status",
+      "ops:status:check",
+      "Production system-status readiness gates",
+    ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "npm.cmd run ops:status:check",
+      "RP_SYSTEM_STATUS_COOKIE",
+      "storage.postgres.configured",
+      "objectiveReadiness.*.ready",
+    ])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
+      "npm run ops:status:check",
+      "RP_SYSTEM_STATUS_COOKIE",
+    ]),
+);
+addCheck(
+  "traffic",
   "Server outbound fetches are timeout-bound",
   includesAll("lib/rpOutboundFetch.js", [
     "fetchWithTimeout",

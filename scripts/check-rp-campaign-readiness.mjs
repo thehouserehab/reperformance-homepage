@@ -8,6 +8,7 @@ const includeVercel = args.has("--vercel");
 const includeDatabase = args.has("--database");
 const includePublic = args.has("--public");
 const includeRetentionStrict = args.has("--retention-strict");
+const includeStatus = args.has("--status") || args.has("--system-status");
 
 const retentionCommand = [npmCommand, "run", "data:retention:audit"];
 
@@ -65,6 +66,13 @@ if (includePublic) {
   });
 }
 
+if (includeStatus) {
+  steps.push({
+    name: "Production system-status readiness gates",
+    command: [npmCommand, "run", "ops:status:check"],
+  });
+}
+
 function formatCommand(command) {
   return command.join(" ");
 }
@@ -101,6 +109,7 @@ console.log("Use --build --typecheck for final pre-deploy verification.");
 console.log("Use --database with DATABASE_URL, POSTGRES_URL, or RP_DATABASE_URL to verify production migration state.");
 console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates and deployed HEAD matching.");
 console.log("Use --public to verify public production URLs without Vercel secrets.");
+console.log("Use --status with RP_SYSTEM_STATUS_COOKIE or RP_ADMIN_SESSION_COOKIE to verify staff-only system readiness.");
 console.log("Use --retention-strict with a production database URL to require retention tables and zero auto-prunable candidates.");
 
 let ok = true;
@@ -119,7 +128,7 @@ console.log(`
 Manual gates before a high-traffic campaign:
 - Apply all checked-in SQL files in database/migrations with npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION and confirm no pending migration drift.
 - Run npm.cmd run db:migration:check against production PostgreSQL.
-- Verify /api/rp/system-status with a staff session in production.
+- Verify /api/rp/system-status with a staff session in production, or run npm.cmd run ops:campaign:check -- --status with RP_SYSTEM_STATUS_COOKIE.
 - Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, /api/rp/clients, and /api/rp/auth-accounts.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
 - Confirm RP_ALLOW_ENV_AUTH_ACCOUNTS remains unset or false unless a short emergency bootstrap window is intentionally open.
