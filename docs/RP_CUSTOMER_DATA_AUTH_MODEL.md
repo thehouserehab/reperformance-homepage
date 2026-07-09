@@ -157,3 +157,7 @@ RP_KAKAO_WEBHOOK_URL=https://...
 - `/signup`에서 전화번호, 이메일, 카카오톡 중 하나로 인증 후 `member` 계정이 생성되는지 확인합니다.
 - `/admin/login`에서 `member` 계정이 차단되고 `trainer`, `admin`, `owner` 계정만 통과하는지 확인합니다.
 - `/find-account`에서 아이디 찾기와 PostgreSQL 계정 비밀번호 재설정이 작동하는지 확인합니다.
+
+## Signup Verified Contact Policy
+
+One verified contact can create only one account. If the same phone, email, or Kakao contact is already registered, signup is rejected and the user should use account recovery.

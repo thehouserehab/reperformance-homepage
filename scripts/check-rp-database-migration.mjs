@@ -129,6 +129,7 @@ const requiredColumns = {
 };
 
 const requiredIndexes = [
+  "rp_auth_accounts_verified_contact_unique_idx",
   "rp_clients_name_idx",
   "rp_clients_phone_idx",
   "rp_consultations_client_id_idx",
@@ -247,6 +248,29 @@ async function checkDatabase(client) {
       `,
     );
     addResult("data", "Legacy plaintext passwords with hashes are cleared", legacyPlainCount === 0, legacyPlainCount === null ? "count unavailable" : `count=${legacyPlainCount}`);
+
+    const duplicateVerifiedContactGroups = await countIfPossible(
+      client,
+      `
+        SELECT COUNT(*)::int AS count
+        FROM (
+          SELECT
+            LOWER(TRIM(verification_method)) AS method_key,
+            LOWER(TRIM(verified_contact)) AS contact_key
+          FROM rp_auth_accounts
+          WHERE COALESCE(TRIM(verification_method), '') <> ''
+            AND COALESCE(TRIM(verified_contact), '') <> ''
+          GROUP BY 1, 2
+          HAVING COUNT(*) > 1
+        ) duplicate_contacts
+      `,
+    );
+    addResult(
+      "data",
+      "Auth verified contact duplicates are resolved",
+      duplicateVerifiedContactGroups === 0,
+      duplicateVerifiedContactGroups === null ? "count unavailable" : `duplicateGroups=${duplicateVerifiedContactGroups}`,
+    );
   }
 
   if (existingTables.has("rp_rate_limit_buckets")) {

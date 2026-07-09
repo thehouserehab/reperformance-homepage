@@ -1,6 +1,6 @@
 # RePERFORMANCE database migration runbook
 
-Last updated: 2026-07-03
+Last updated: 2026-07-09
 
 Use this before high-traffic campaigns, production data migration, or any deploy that changes login, customer, application, PE exam AI, or rate-limit storage.
 
@@ -29,6 +29,7 @@ The script also accepts `POSTGRES_URL` or `RP_DATABASE_URL`. It verifies:
 - required columns added by checked-in SQL migrations, including AI approval fields
 - required indexes for customer lookup, application lookup, PE exam lookup, broad-payload retention cleanup, expired rate-limit cleanup, AI usage lookup, and security event review
 - remaining legacy `password_plain` rows that already have `password_hash`
+- duplicate auth verified-contact groups that must be resolved before enforcing one account per verified contact
 - expired rate-limit bucket rows older than seven days
 - AI usage bucket rows older than 400 days for retention review
 
@@ -49,6 +50,7 @@ database/migrations/20260630_security_scale_baseline.sql
 database/migrations/20260701_ai_access_controls.sql
 database/migrations/20260701_security_event_log.sql
 database/migrations/20260702_retention_scale_indexes.sql
+database/migrations/20260703_auth_contact_uniqueness.sql
 ```
 
 To inspect the migration metadata without connecting to a database:
@@ -64,6 +66,8 @@ npm.cmd run db:migration:check
 ```
 
 Treat any failed table, column, or index check as a no-go for campaign traffic.
+
+If `db:migration:check` reports duplicate auth verified-contact groups, resolve those rows before applying `20260703_auth_contact_uniqueness.sql`. The unique index is intentionally strict so the same verified phone, email, or Kakao contact cannot create multiple login accounts.
 
 ## 4. Disable runtime schema sync for heavy traffic
 

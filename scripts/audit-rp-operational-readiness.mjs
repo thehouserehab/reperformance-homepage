@@ -328,6 +328,28 @@ addCheck(
 );
 addCheck(
   "security",
+  "Signup verified contacts are unique per account",
+  includesAll("database/migrations/20260703_auth_contact_uniqueness.sql", [
+    "rp_auth_accounts_verified_contact_unique_idx",
+    "LOWER(TRIM(verification_method))",
+    "LOWER(TRIM(verified_contact))",
+  ])
+    && includesAll("lib/rpDatabase.js", [
+      "assertVerifiedContactAvailable",
+      "isUniqueViolation",
+      "rp_auth_accounts_verified_contact_unique_idx",
+    ])
+    && includesAll("scripts/check-rp-database-migration.mjs", [
+      "rp_auth_accounts_verified_contact_unique_idx",
+      "Auth verified contact duplicates are resolved",
+    ])
+    && includesAll("scripts/apply-rp-database-migration.mjs", [
+      "CREATE UNIQUE INDEX IF NOT EXISTS rp_auth_accounts_verified_contact_unique_idx",
+    ])
+    && includesAll("docs/RP_CUSTOMER_DATA_AUTH_MODEL.md", ["verified contact", "one account"]),
+);
+addCheck(
+  "security",
   "Security event SQL migration exists",
   includesAll("database/migrations/20260701_security_event_log.sql", ["rp_security_events", "actor_hash", "target_hash", "ip_hash"]),
 );

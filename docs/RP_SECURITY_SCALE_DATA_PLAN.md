@@ -88,6 +88,7 @@ npm run pe-exam:data:refresh
 - `npm run build`
 - `npm run ops:audit` confirms production signing and password secrets are strength-gated in code and documented in `docs/RP_PRODUCTION_SECRET_POLICY.md`.
 - `npm run ops:audit` confirms production environment-variable auth accounts require explicit `RP_ALLOW_ENV_AUTH_ACCOUNTS=true` opt-in.
+- `npm run ops:audit` confirms signup verified contacts are limited to one account through app precheck, migration, and database check coverage.
 - `npm run ops:audit` also confirms public-facing API catch responses use sanitized fallback messages instead of raw database, secret, webhook, Apps Script, or OpenAI errors.
 - `npm run ops:audit` also confirms server-side outbound calls use `fetchWithTimeout`; default `RP_OUTBOUND_FETCH_TIMEOUT_MS=10000`, Google/Auth/Webhook defaults `8000`, and OpenAI defaults to `25000`.
 - `git diff --check`

@@ -1,6 +1,6 @@
 # RePERFORMANCE privacy and security review
 
-Last updated: 2026-07-03
+Last updated: 2026-07-09
 
 ## Scope
 
@@ -34,6 +34,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Session cookie creation and clearing use centralized options with `httpOnly`, production-only `secure`, `sameSite=lax`, and root path settings.
 - Production session, identity verification, account recovery, and password-hash secrets now reject weak placeholder values and require at least 32 characters before signing or hashing.
 - Production environment-variable auth accounts now require explicit `RP_ALLOW_ENV_AUTH_ACCOUNTS=true` opt-in; otherwise `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_ADMIN_USERNAME`, and trainer env accounts are ignored so PostgreSQL accounts remain the default production login store.
+- Signup now enforces one account per verified contact through an app-level precheck and the PostgreSQL partial unique index `rp_auth_accounts_verified_contact_unique_idx`.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
@@ -67,6 +68,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Existing older `rp_pe_exam_ai_consults.payload` and `conversation_record` rows may still contain broader AI consultation source records until retention pruning is reviewed and applied.
 - Existing older `rp_pe_exam_questions.payload` rows may still contain duplicated question data until retention pruning is reviewed and applied.
 - `rp_auth_accounts` still supports legacy `password_plain` fallback for migration. Successful DB fallback logins now clear it automatically, but remaining rows should still be audited and cleaned.
+- Existing duplicate `verification_method` + `verified_contact` groups must be resolved before applying `20260703_auth_contact_uniqueness.sql`; otherwise PostgreSQL will correctly reject the unique index.
 - App-level rate limits now share `rp_rate_limit_buckets` through PostgreSQL when configured. Add Vercel Firewall or Redis/edge rate limiting before major campaigns so abusive traffic is blocked before it reaches the app and DB.
 - If explicitly enabled, Google Drive/Sheets backup can still contain contact and structured consultation routing fields. Use it only as a transition/backup path, restrict sheet access, and mirror the retention process in `docs/RP_DATA_RETENTION.md`.
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.
@@ -92,6 +94,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Review `docs/RP_SECURITY_EVENT_AUDIT_LOG.md` before giving staff access to security event data.
 - Configure `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` before enabling the monthly Vercel retention cron, and keep `RP_RETENTION_CRON_APPLY` off until deletion approval is complete.
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
+- Confirm `db:migration:check` reports `Auth verified contact duplicates are resolved` before applying or relying on the verified-contact unique index.
 - Run `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
 - Run `npm run ops:public:check` after deploy to verify public pages, security headers, public page/cache headers, hashed static asset immutable caching, API no-store behavior, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation.
