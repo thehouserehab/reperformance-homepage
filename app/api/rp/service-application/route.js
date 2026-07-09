@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  getDatabasePoolConfig,
   isDatabaseConfigured,
   isRuntimeSchemaSyncDisabled,
   saveDatabaseClient,
@@ -321,11 +322,13 @@ async function getPool() {
 
       if (!Pool) throw new Error('PostgreSQL Pool을 불러오지 못했습니다.');
 
+      const poolConfig = getDatabasePoolConfig(databaseUrl);
+
       return new Pool({
         connectionString: databaseUrl,
-        max: Number(process.env.RP_DATABASE_POOL_MAX) || 5,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 10000,
+        max: poolConfig.max,
+        idleTimeoutMillis: poolConfig.idleTimeoutMillis,
+        connectionTimeoutMillis: poolConfig.connectionTimeoutMillis,
         ssl: getSslConfig(databaseUrl),
       });
     })();

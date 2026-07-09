@@ -9,6 +9,7 @@ import {
 } from '../../../../lib/rpAdminAuth';
 import {
   checkDatabaseSchemaReadiness,
+  getDatabasePoolConfig,
   isDatabaseConfigured,
   isDatabaseOnlyMode,
   isRuntimeSchemaSyncDisabled,
@@ -141,6 +142,54 @@ function getProductionSecretReadinessIssues(auth) {
     }));
 }
 
+function addDatabasePoolReadinessWarnings(list, databaseConfigured, databasePool) {
+  if (!databaseConfigured) return;
+
+  const max = Number(databasePool?.max || 0);
+  const minRecommendedMax = Number(databasePool?.minRecommendedMax || 0);
+  const maxRecommendedMax = Number(databasePool?.maxRecommendedMax || 0);
+  const detail = {
+    max,
+    minRecommendedMax,
+    maxRecommendedMax,
+    explicitMax: Boolean(databasePool?.explicitMax),
+    validMax: databasePool?.validMax !== false,
+  };
+
+  if (!databasePool?.explicitMax) {
+    addReadinessIssue(
+      list,
+      'database_pool_max_not_explicit',
+      'Set RP_DATABASE_POOL_MAX explicitly before high-traffic campaigns so connection pressure is intentional.',
+      detail,
+    );
+  }
+  if (databasePool?.explicitMax && !databasePool?.validMax) {
+    addReadinessIssue(
+      list,
+      'database_pool_max_invalid',
+      'RP_DATABASE_POOL_MAX is configured but is not a positive integer; the app is using the default pool max.',
+      detail,
+    );
+  }
+  if (minRecommendedMax && max < minRecommendedMax) {
+    addReadinessIssue(
+      list,
+      'database_pool_max_low',
+      'RP_DATABASE_POOL_MAX is below the minimum recommended value for production traffic.',
+      detail,
+    );
+  }
+  if (maxRecommendedMax && max > maxRecommendedMax) {
+    addReadinessIssue(
+      list,
+      'database_pool_max_high',
+      'RP_DATABASE_POOL_MAX is above the conservative recommendation; confirm the managed PostgreSQL plan supports this many connections.',
+      detail,
+    );
+  }
+}
+
 function buildHighTrafficReadiness({
   databaseConfigured,
   databaseOnly,
@@ -150,6 +199,7 @@ function buildHighTrafficReadiness({
   auth,
   peExamData,
   trafficControls,
+  databasePool,
 }) {
   const blockers = [];
   const warnings = [];
@@ -186,6 +236,7 @@ function buildHighTrafficReadiness({
   if (!trafficControls?.sharedRateLimit?.failClosed) {
     addReadinessIssue(warnings, 'rate_limit_fail_closed_not_enabled', 'Consider RP_RATE_LIMIT_FAIL_CLOSED=true during paid campaigns so DB limiter failures do not silently degrade to instance-local limits.');
   }
+  addDatabasePoolReadinessWarnings(warnings, databaseConfigured, databasePool);
   if (googleDriveBackup.enabled) {
     addReadinessIssue(warnings, 'google_backup_enabled', 'Google Drive/Sheets backup is enabled; confirm restore readiness, access controls, and retention before campaign traffic.');
   }
@@ -230,6 +281,7 @@ function buildObjectiveReadiness({
   const databaseOnly = storage.postgres.databaseOnly;
   const runtimeSchemaSyncDisabled = storage.postgres.runtimeSchemaSyncDisabled;
   const databaseSchema = storage.postgres.schema;
+  const databasePool = storage.postgres.pool;
   const googleDriveBackup = storage.googleDriveBackup;
   const retentionCronSecretConfigured = hasEnv('CRON_SECRET', 'RP_MAINTENANCE_CRON_SECRET');
   const retentionCronApplyEnabled = ['true', '1', 'yes', 'on'].includes(
@@ -315,6 +367,7 @@ function buildObjectiveReadiness({
   if (!trafficControls?.sharedRateLimit?.failClosed) {
     addReadinessIssue(dataScaleWarnings, 'rate_limit_fail_closed_not_enabled', 'For campaign windows, enable RP_RATE_LIMIT_FAIL_CLOSED=true if DB limiter degradation should block instead of falling back to in-memory limits.');
   }
+  addDatabasePoolReadinessWarnings(dataScaleWarnings, databaseConfigured, databasePool);
   if (!databaseOnly) {
     addReadinessIssue(dataScaleWarnings, 'database_only_mode_not_enabled', 'Set RP_DATA_SOURCE=database before campaigns to avoid fallback write paths.');
   }
@@ -371,6 +424,7 @@ function buildObjectiveReadiness({
         secretConfigured: retentionCronSecretConfigured,
         applyEnabled: retentionCronApplyEnabled,
       },
+      databasePool,
       requiredManualChecks: [
         'Run npm.cmd run data:retention:audit monthly and before campaigns.',
         'Run npm.cmd run ops:campaign:check -- --database --retention-strict before paid or admission-season traffic.',
@@ -384,6 +438,7 @@ async function buildStatus() {
   const databaseConfigured = isDatabaseConfigured();
   const databaseOnly = isDatabaseOnlyMode();
   const databaseSchema = await checkDatabaseSchemaReadiness();
+  const databasePool = getDatabasePoolConfig();
   const runtimeSchemaSyncDisabled = isRuntimeSchemaSyncDisabled();
   const sheetsWebAppConfigured = hasEnv('RP_SHEETS_WEBAPP_URL');
   const authWebAppConfigured = hasEnv('RP_AUTH_WEBAPP_URL', 'RP_SIGNUP_WEBAPP_URL', 'RP_SHEETS_WEBAPP_URL');
@@ -397,6 +452,7 @@ async function buildStatus() {
       configured: databaseConfigured,
       databaseOnly,
       runtimeSchemaSyncDisabled,
+      pool: databasePool,
       schema: databaseSchema,
     },
     googleDriveBackup: {
@@ -477,6 +533,7 @@ async function buildStatus() {
     auth,
     peExamData,
     trafficControls,
+    databasePool,
   });
   const objectiveReadiness = buildObjectiveReadiness({
     storage,

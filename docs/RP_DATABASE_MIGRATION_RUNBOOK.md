@@ -69,7 +69,7 @@ Treat any failed table, column, or index check as a no-go for campaign traffic.
 
 If `db:migration:check` reports duplicate auth verified-contact groups, resolve those rows before applying `20260703_auth_contact_uniqueness.sql`. The unique index is intentionally strict so the same verified phone, email, or Kakao contact cannot create multiple login accounts.
 
-After deploy, verify `/api/rp/system-status` with a staff session. `storage.postgres.schema.allRequiredTablesPresent`, `allRequiredIndexesPresent`, `verifiedContactUniquenessReady`, `rateLimitBucketsReady`, `aiUsageBucketsReady`, `retentionIndexesReady`, and `securityEventsReady` should all be `true`. `verifiedContactUniqueIndexPresent` should be `true`, and `verifiedContactDuplicateGroups` should be `0`.
+After deploy, verify `/api/rp/system-status` with a staff session. `storage.postgres.schema.allRequiredTablesPresent`, `allRequiredIndexesPresent`, `verifiedContactUniquenessReady`, `rateLimitBucketsReady`, `aiUsageBucketsReady`, `retentionIndexesReady`, and `securityEventsReady` should all be `true`. `verifiedContactUniqueIndexPresent` should be `true`, and `verifiedContactDuplicateGroups` should be `0`. Also confirm `storage.postgres.pool.explicitMax=true`, `storage.postgres.pool.validMax=true`, and review `storage.postgres.pool.max` against the managed PostgreSQL plan before campaign traffic.
 
 ## 4. Disable runtime schema sync for heavy traffic
 

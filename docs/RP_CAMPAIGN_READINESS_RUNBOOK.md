@@ -75,13 +75,14 @@ To include it in the campaign command:
 npm.cmd run ops:campaign:check -- --status
 ```
 
-The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `trafficControls.sharedRateLimit`, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs.
+The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.pool.max`, `storage.postgres.pool.explicitMax`, `storage.postgres.pool.validMax`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `trafficControls.sharedRateLimit`, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs.
 
 ## 2. Production gates
 
 Do not start a high-traffic campaign until these manual gates are checked:
 
 - Production has `DATABASE_URL`, `POSTGRES_URL`, or `RP_DATABASE_URL`.
+- Production has an explicit `RP_DATABASE_POOL_MAX` reviewed against the managed PostgreSQL connection limit.
 - All checked-in SQL files in `database/migrations` have been applied in production.
 - If migrations have not been applied, use `npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` with `RP_DATABASE_MIGRATION_ALLOW_APPLY=true`.
 - `npm.cmd run db:migration:check` passes against the production PostgreSQL database.
@@ -151,6 +152,7 @@ Before the campaign:
 
 - Run `npm.cmd run db:migration:check` with a production database URL.
 - Confirm `/api/rp/system-status` reports `storage.postgres.runtimeSchemaSyncDisabled=true` after migrations are applied and the production env is updated.
+- Confirm `/api/rp/system-status` reports `storage.postgres.pool.explicitMax=true`, `storage.postgres.pool.validMax=true`, and a `storage.postgres.pool.max` value that fits the managed PostgreSQL plan.
 - Run `npm.cmd run data:retention:audit`.
 - Run `npm.cmd run ops:campaign:check -- --database --retention-strict` when preparing for paid traffic or admission-season spikes.
 - Review old broad payload counts for `rp_service_applications`, `rp_pe_exam_ai_consults`, and `rp_pe_exam_questions`.
@@ -168,7 +170,7 @@ During the campaign:
 
 - Monitor database connection timeouts.
 - Monitor backup failures if Google Drive/Sheets backup is enabled.
-- Keep `RP_DATABASE_POOL_MAX` aligned with the managed PostgreSQL plan.
+- Keep `RP_DATABASE_POOL_MAX` aligned with the managed PostgreSQL plan. Do not increase it beyond the plan's connection budget; Vercel instances can multiply concurrent pools.
 
 After the campaign:
 

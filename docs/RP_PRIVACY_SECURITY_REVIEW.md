@@ -81,6 +81,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Apply all checked-in SQL files in `database/migrations` before high-traffic production use, then keep runtime schema creation as a safety net only.
 - After `npm run db:migration:check` passes against production, set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` and verify `/api/rp/system-status` reports `storage.postgres.runtimeSchemaSyncDisabled=true`.
 - Verify `/api/rp/system-status` reports `storage.postgres.schema.allRequiredTablesPresent=true`, `storage.postgres.schema.allRequiredIndexesPresent=true`, `storage.postgres.schema.rateLimitBucketsReady=true`, `storage.postgres.schema.aiUsageBucketsReady=true`, `storage.postgres.schema.retentionIndexesReady=true`, and `storage.postgres.schema.securityEventsReady=true` before campaign traffic.
+- Verify `/api/rp/system-status` reports `storage.postgres.pool.explicitMax=true`, `storage.postgres.pool.validMax=true`, and review `storage.postgres.pool.max` against the managed PostgreSQL connection budget before campaign traffic.
 - Prefer the guarded `npm run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION` flow over manual SQL paste when applying migrations.
 - Set strong `RP_ADMIN_SESSION_SECRET`, `RP_PASSWORD_HASH_SECRET`, `RP_IDENTITY_VERIFICATION_SECRET`, and `RP_ACCOUNT_RECOVERY_SECRET`.
 - Use unique production secrets with at least 32 characters and no placeholder terms like `change-this`, `example`, or `default`; `/api/rp/system-status` reports only strength status, not the secret values.

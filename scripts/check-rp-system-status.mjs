@@ -154,6 +154,38 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
     checkBooleanPath(label, status, "peExamData.ok", true);
     checkBooleanPath(label, status, "highTrafficReadiness.ready", true);
 
+    const postgresPoolMaxPath = "storage.postgres.pool.max";
+    const postgresPoolExplicitMaxPath = "storage.postgres.pool.explicitMax";
+    const postgresPoolValidMaxPath = "storage.postgres.pool.validMax";
+    const postgresPool = status.storage?.postgres?.pool;
+    const postgresPoolMax = Number(postgresPool?.max);
+    const postgresPoolMinRecommended = Number(postgresPool?.minRecommendedMax);
+    const postgresPoolMaxRecommended = Number(postgresPool?.maxRecommendedMax);
+    addResult(
+      "storage",
+      `${label} postgres pool max is reported at ${postgresPoolMaxPath}`,
+      Number.isFinite(postgresPoolMax)
+        && postgresPoolMax > 0
+        && typeof postgresPool?.explicitMax === "boolean"
+        && postgresPool?.validMax !== false,
+      `max=${postgresPool?.max ?? "missing"} explicitMax=${postgresPool?.explicitMax ?? "missing"} validMax=${postgresPool?.validMax ?? "missing"}`,
+    );
+    addResult(
+      "storage",
+      `${label} ${postgresPoolExplicitMaxPath} is reported`,
+      typeof postgresPool?.explicitMax === "boolean",
+      `explicitMax=${postgresPool?.explicitMax ?? "missing"}`,
+    );
+    checkBooleanPath(label, status, postgresPoolValidMaxPath, true);
+    addResult(
+      "storage",
+      `${label} postgres pool max is within reported guidance`,
+      Number.isFinite(postgresPoolMax)
+        && (!Number.isFinite(postgresPoolMinRecommended) || postgresPoolMax >= postgresPoolMinRecommended)
+        && (!Number.isFinite(postgresPoolMaxRecommended) || postgresPoolMax <= postgresPoolMaxRecommended),
+      `max=${postgresPool?.max ?? "missing"} range=${postgresPool?.minRecommendedMax ?? "?"}-${postgresPool?.maxRecommendedMax ?? "?"}`,
+    );
+
     const sharedRateLimit = status.trafficControls?.sharedRateLimit;
     addResult(
       "traffic-controls",

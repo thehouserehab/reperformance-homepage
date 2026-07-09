@@ -595,6 +595,7 @@ addCheck(
   "System status summarizes high-traffic readiness",
   includesAll("app/api/rp/system-status/route.js", [
     "buildHighTrafficReadiness",
+    "getDatabasePoolConfig",
     "highTrafficReadiness",
     "database_required_tables_missing",
     "database_required_indexes_missing",
@@ -603,15 +604,24 @@ addCheck(
     "shared_rate_limit_store_not_ready",
     "ai_usage_buckets_not_ready",
     "rate_limit_fail_closed_not_enabled",
+    "database_pool_max_not_explicit",
+    "database_pool_max_invalid",
+    "database_pool_max_low",
+    "database_pool_max_high",
     "pe_exam_data_not_fresh",
     "requiredManualChecks",
   ])
     && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
       "highTrafficReadiness.ready",
       "highTrafficReadiness.blockers",
+      "storage.postgres.pool.max",
+      "storage.postgres.pool.validMax",
+      "RP_DATABASE_POOL_MAX",
     ])
     && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
       "highTrafficReadiness.ready",
+      "storage.postgres.pool.max",
+      "storage.postgres.pool.validMax",
     ]),
 );
 addCheck(
@@ -627,6 +637,7 @@ addCheck(
     "dataScaleManagement",
     "retentionCron",
     "rate_limit_fail_closed_not_enabled",
+    "databasePool",
   ])
     && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
       "objectiveReadiness",
@@ -714,6 +725,9 @@ addCheck(
       "storage.postgres.schema.aiUsageBucketsReady",
       "storage.postgres.schema.retentionIndexesReady",
       "storage.postgres.schema.securityEventsReady",
+      "storage.postgres.pool.max",
+      "storage.postgres.pool.validMax",
+      "postgres pool max is reported",
       "trafficControls?.sharedRateLimit",
       "shared rate-limit failure mode is reported",
       "highTrafficReadiness.ready",
@@ -730,6 +744,8 @@ addCheck(
       "npm.cmd run ops:status:check",
       "RP_SYSTEM_STATUS_COOKIE",
       "storage.postgres.configured",
+      "storage.postgres.pool.max",
+      "storage.postgres.pool.validMax",
       "storage.postgres.schema.allRequiredTablesPresent",
       "storage.postgres.schema.rateLimitBucketsReady",
       "RP_RATE_LIMIT_FAIL_CLOSED",
