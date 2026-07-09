@@ -37,6 +37,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Signup now enforces one account per verified contact through an app-level precheck and the PostgreSQL partial unique index `rp_auth_accounts_verified_contact_unique_idx`.
 - Login, admin login, identity verification, account recovery, signup, and service application routes now use shared PostgreSQL-backed rate limiting when the DB is configured, with in-memory fallback.
 - PE exam question, PE exam AI consult, and consultation-summary routes also use shared rate limiting.
+- Token-backed AI usage now requires approval and records account-wide daily use in PostgreSQL; staff can set per-account daily limits in `/admin/clients`, capped by `RP_AI_DAILY_LIMIT_MAX`.
 - Customer clients and system-status APIs now require a valid staff session and use shared rate limiting.
 - Public and expensive POST routes reject oversized request bodies before parsing.
 - Customer client writes reject oversized request bodies before parsing.

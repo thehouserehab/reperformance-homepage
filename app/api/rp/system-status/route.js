@@ -24,6 +24,10 @@ import {
   getSharedRateLimitFailureRetrySeconds,
   isSharedRateLimitFailClosed,
 } from '../../../../lib/rpRateLimit';
+import {
+  getAiDailyLimitForRole,
+  getAiDailyLimitMax,
+} from '../../../../lib/rpAiAccess';
 import { getProductionSecretStatus } from '../../../../lib/rpSecurity';
 
 export const dynamic = 'force-dynamic';
@@ -522,6 +526,14 @@ async function buildStatus() {
       failClosed: isSharedRateLimitFailClosed(),
       failClosedRetryAfterSeconds: getSharedRateLimitFailureRetrySeconds(),
       failureMode: isSharedRateLimitFailClosed() ? 'block_with_429' : 'fallback_to_in_memory',
+    },
+    aiUsage: {
+      store: databaseConfigured ? 'postgres' : 'unavailable',
+      memberApprovalRequired: true,
+      perAccountLimitColumn: 'rp_auth_accounts.ai_daily_limit',
+      dailyLimitMax: getAiDailyLimitMax(),
+      defaultMemberDailyLimit: getAiDailyLimitForRole('member'),
+      defaultStaffDailyLimit: getAiDailyLimitForRole('admin'),
     },
   };
   const highTrafficReadiness = buildHighTrafficReadiness({

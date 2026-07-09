@@ -1,6 +1,6 @@
 # RePERFORMANCE 보안, 데이터, 확장 운영 대책
 
-Last updated: 2026-07-03
+Last updated: 2026-07-09
 
 이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
 
@@ -28,7 +28,9 @@ Last updated: 2026-07-03
 - `/api/rp/service-application`: 연락처 기준 1시간 8회, IP 기준 1시간 50회 제한.
 - `/api/auth/account-recovery`: 전화번호 15분 5회, IP 15분 20회, 인증 확인 5분 8회 제한.
 - 신규 회원가입과 비밀번호 재설정의 최소 비밀번호 길이는 8자입니다.
-- 토큰을 사용하는 AI 기능은 별도 승인 플래그(`rp_auth_accounts.ai_approved`)와 일일 사용량 버킷(`rp_ai_usage_buckets`)으로 제한합니다.
+- 토큰을 사용하는 AI 기능은 별도 승인 플래그(`rp_auth_accounts.ai_approved`), 회원별 일일 한도(`rp_auth_accounts.ai_daily_limit`), 일일 사용량 버킷(`rp_ai_usage_buckets`)으로 제한합니다.
+- 회원별 AI 일일 한도는 `/admin/clients`의 AI ACCESS CONTROL 패널에서 조정하고, `RP_AI_DAILY_LIMIT_MAX` 서버 상한을 넘길 수 없습니다.
+- 일일 한도는 기능별이 아니라 계정별 하루 총량으로 먼저 차감합니다. 기능별 `route_key` 기록은 사용 분석용으로만 유지합니다.
 - 회원은 홈페이지와 일반 로그인은 이용할 수 있지만, AI 서비스는 관리자 승인 후에만 이용할 수 있습니다.
 - 전역 보안 헤더: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`.
 

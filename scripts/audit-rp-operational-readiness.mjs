@@ -247,8 +247,8 @@ addCheck(
 addCheck(
   "security",
   "AI approval and daily usage buckets are available",
-  includesAll("lib/rpDatabase.js", ["ai_approved", "rp_ai_usage_buckets", "consumeDatabaseAiUsage"])
-    && includesAll("lib/rpAiAccess.js", ["checkAiServiceAccess", "RP_AI_MEMBER_DAILY_LIMIT", "AI_APPROVAL_REQUIRED"]),
+  includesAll("lib/rpDatabase.js", ["ai_approved", "ai_daily_limit", "rp_ai_usage_buckets", "AI_USAGE_DAILY_ROUTE_KEY", "daily_usage", "route_usage", "consumeDatabaseAiUsage"])
+    && includesAll("lib/rpAiAccess.js", ["checkAiServiceAccess", "RP_AI_MEMBER_DAILY_LIMIT", "RP_AI_DAILY_LIMIT_MAX", "AI_APPROVAL_REQUIRED"]),
 );
 addCheck(
   "security",
@@ -302,13 +302,13 @@ addCheck(
 );
 addCheck(
   "security",
-  "Admin account API can manage AI approvals",
-  includesAll("app/api/rp/auth-accounts/route.js", ["updateDatabaseAuthAccountAiApproval", "PATCH", "aiApproved"]),
+  "Admin account API can manage AI approvals and daily limits",
+  includesAll("app/api/rp/auth-accounts/route.js", ["updateDatabaseAuthAccountAiAccess", "PATCH", "aiApproved", "aiDailyLimit", "getAiDailyLimitMax"]),
 );
 addCheck(
   "security",
-  "Admin client manager exposes AI approval controls",
-  includesAll("components/rp-consultation/RPClientManager.jsx", ["/api/rp/auth-accounts", "AI ACCESS CONTROL", "AI 사용 승인"]),
+  "Admin client manager exposes AI approval and daily limit controls",
+  includesAll("components/rp-consultation/RPClientManager.jsx", ["/api/rp/auth-accounts", "AI ACCESS CONTROL", "AI 사용 승인", "회원별 일일 한도", "한도 저장"]),
 );
 addCheck(
   "security",
@@ -330,7 +330,7 @@ addCheck(
 addCheck(
   "security",
   "AI access SQL migration exists",
-  includesAll("database/migrations/20260701_ai_access_controls.sql", ["ai_approved", "rp_ai_usage_buckets", "rp_ai_usage_buckets_usage_date_idx"]),
+  includesAll("database/migrations/20260701_ai_access_controls.sql", ["ai_approved", "ai_daily_limit", "rp_ai_usage_buckets", "rp_ai_usage_buckets_usage_date_idx"]),
 );
 addCheck(
   "security",

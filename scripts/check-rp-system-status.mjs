@@ -193,6 +193,18 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
       typeof sharedRateLimit?.failClosed === "boolean" && Boolean(sharedRateLimit?.failureMode),
       sharedRateLimit?.failureMode || "missing",
     );
+    const aiUsage = status.trafficControls?.aiUsage;
+    addResult(
+      "traffic-controls",
+      `${label} AI usage approval and daily limits are reported`,
+      aiUsage?.memberApprovalRequired === true
+        && aiUsage?.perAccountLimitColumn === "rp_auth_accounts.ai_daily_limit"
+        && Number.isFinite(Number(aiUsage?.dailyLimitMax))
+        && Number(aiUsage?.dailyLimitMax) > 0
+        && Number.isFinite(Number(aiUsage?.defaultMemberDailyLimit))
+        && Number(aiUsage?.defaultMemberDailyLimit) > 0,
+      `max=${aiUsage?.dailyLimitMax ?? "missing"} member=${aiUsage?.defaultMemberDailyLimit ?? "missing"} staff=${aiUsage?.defaultStaffDailyLimit ?? "missing"}`,
+    );
 
     addResult(
       "high-traffic-readiness",

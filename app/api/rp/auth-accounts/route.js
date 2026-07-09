@@ -8,8 +8,9 @@ import {
 import {
   isDatabaseConfigured,
   listDatabaseAuthAccounts,
-  updateDatabaseAuthAccountAiApproval,
+  updateDatabaseAuthAccountAiAccess,
 } from '../../../../lib/rpDatabase';
+import { getAiDailyLimitMax } from '../../../../lib/rpAiAccess';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -25,6 +26,31 @@ export const dynamic = 'force-dynamic';
 const ACCOUNT_READ_LIMIT = 80;
 const ACCOUNT_WRITE_LIMIT = 40;
 const ACCOUNT_WINDOW_MS = 10 * 60 * 1000;
+
+function hasOwnValue(source, key) {
+  return Object.prototype.hasOwnProperty.call(source || {}, key);
+}
+
+function parseAiDailyLimit(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+
+  const parsed = Number(value);
+  const max = getAiDailyLimitMax();
+
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    const error = new Error('AI daily limit must be a positive integer.');
+    error.status = 400;
+    throw error;
+  }
+
+  if (parsed > max) {
+    const error = new Error(`AI daily limit must be ${max} or less.`);
+    error.status = 400;
+    throw error;
+  }
+
+  return parsed;
+}
 
 async function requireStaffSession() {
   const cookieStore = await cookies();
@@ -103,12 +129,28 @@ export async function PATCH(request) {
 
   const payload = await request.json().catch(() => ({}));
   const username = String(payload.username || '').trim();
+  const hasAiApprovedUpdate = hasOwnValue(payload, 'aiApproved');
+  const hasAiDailyLimitUpdate = hasOwnValue(payload, 'aiDailyLimit');
 
   if (!username) {
     return NextResponse.json({ ok: false, error: 'username is required.' }, { status: 400 });
   }
 
-  const account = await updateDatabaseAuthAccountAiApproval(username, Boolean(payload.aiApproved), session.sub);
+  if (!hasAiApprovedUpdate && !hasAiDailyLimitUpdate) {
+    return NextResponse.json({ ok: false, error: 'AI approval or daily limit update is required.' }, { status: 400 });
+  }
+
+  let updates;
+  try {
+    updates = {
+      ...(hasAiApprovedUpdate ? { aiApproved: Boolean(payload.aiApproved) } : {}),
+      ...(hasAiDailyLimitUpdate ? { aiDailyLimit: parseAiDailyLimit(payload.aiDailyLimit) } : {}),
+    };
+  } catch (error) {
+    return NextResponse.json({ ok: false, error: error.message }, { status: error.status || 400 });
+  }
+
+  const account = await updateDatabaseAuthAccountAiAccess(username, updates, session.sub);
 
   if (!account) {
     await recordSecurityEvent({
@@ -117,7 +159,13 @@ export async function PATCH(request) {
       outcome: 'failure',
       actor: session.sub,
       target: username,
-      metadata: { reason: 'account_not_found', aiApproved: Boolean(payload.aiApproved) },
+      metadata: {
+        reason: 'account_not_found',
+        aiApproved: updates.aiApproved,
+        aiDailyLimit: updates.aiDailyLimit,
+        changedAiApproval: hasAiApprovedUpdate,
+        changedAiDailyLimit: hasAiDailyLimitUpdate,
+      },
     });
     return NextResponse.json({ ok: false, error: 'Account not found.' }, { status: 404 });
   }
@@ -125,10 +173,16 @@ export async function PATCH(request) {
   await recordSecurityEvent({
     request,
     eventType: 'admin.ai_access_update',
-    outcome: account.aiApproved ? 'approved' : 'revoked',
+    outcome: hasAiApprovedUpdate ? (account.aiApproved ? 'approved' : 'revoked') : 'limit_updated',
     actor: session.sub,
     target: username,
-    metadata: { aiApproved: account.aiApproved, accountRole: account.role },
+    metadata: {
+      aiApproved: account.aiApproved,
+      aiDailyLimit: account.aiDailyLimit,
+      accountRole: account.role,
+      changedAiApproval: hasAiApprovedUpdate,
+      changedAiDailyLimit: hasAiDailyLimitUpdate,
+    },
   });
 
   return NextResponse.json({ ok: true, account });

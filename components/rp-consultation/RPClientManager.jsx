@@ -90,6 +90,23 @@ function formatDateTime(value) {
   }
 }
 
+function buildAiLimitDrafts(accounts) {
+  return Object.fromEntries(
+    accounts.map((account) => [
+      account.username,
+      Number(account.aiDailyLimit) > 0 ? String(account.aiDailyLimit) : '',
+    ]),
+  );
+}
+
+function getAiLimitInputId(account) {
+  return `ai-limit-${String(account?.id || account?.username || 'account').replace(/[^a-z0-9_-]/gi, '-')}`;
+}
+
+function formatAiLimit(account) {
+  return Number(account?.aiDailyLimit) > 0 ? `${account.aiDailyLimit}회` : '역할 기본값';
+}
+
 function getParqLevel(client) {
   const status = client?.parqStatus || '';
   const hasYesItems = Array.isArray(client?.parqYesItems) && client.parqYesItems.length > 0;
@@ -131,6 +148,7 @@ export default function RPClientManager() {
   const [authAccounts, setAuthAccounts] = useState([]);
   const [authStatus, setAuthStatus] = useState('AI 승인 계정 확인 중...');
   const [authError, setAuthError] = useState('');
+  const [aiLimitDrafts, setAiLimitDrafts] = useState({});
   const [updatingAiUsername, setUpdatingAiUsername] = useState('');
 
   useEffect(() => {
@@ -195,10 +213,12 @@ export default function RPClientManager() {
 
         const accounts = Array.isArray(payload.accounts) ? payload.accounts : [];
         setAuthAccounts(accounts);
+        setAiLimitDrafts(buildAiLimitDrafts(accounts));
         setAuthStatus(accounts.length ? `계정 ${accounts.length}개 확인` : '승인 관리할 계정이 아직 없습니다.');
       } catch (error) {
         if (cancelled) return;
         setAuthAccounts([]);
+        setAiLimitDrafts({});
         setAuthStatus('AI 승인 계정 확인 실패');
         setAuthError(error?.message || 'AI 승인 계정을 불러오지 못했습니다.');
       }
@@ -303,6 +323,21 @@ export default function RPClientManager() {
     }
   }
 
+  function updateAuthAccount(account) {
+    setAuthAccounts((current) => current.map((item) => (
+      item.username === account.username ? account : item
+    )));
+    setAiLimitDrafts((current) => ({
+      ...current,
+      [account.username]: Number(account.aiDailyLimit) > 0 ? String(account.aiDailyLimit) : '',
+    }));
+  }
+
+  function updateAiLimitDraft(username, value) {
+    const sanitized = String(value || '').replace(/[^\d]/g, '');
+    setAiLimitDrafts((current) => ({ ...current, [username]: sanitized }));
+  }
+
   async function handleToggleAiApproval(account) {
     if (!account?.username) return;
 
@@ -327,12 +362,52 @@ export default function RPClientManager() {
         throw new Error(payload?.error || `AI 승인 상태를 저장하지 못했습니다. (${response.status})`);
       }
 
-      setAuthAccounts((current) => current.map((item) => (
-        item.username === account.username ? payload.account : item
-      )));
+      updateAuthAccount(payload.account);
       setAuthStatus(`${payload.account.name || payload.account.username} AI 사용 ${payload.account.aiApproved ? '승인' : '해제'} 완료`);
     } catch (error) {
       setAuthError(error?.message || 'AI 승인 상태를 저장하지 못했습니다.');
+    } finally {
+      setUpdatingAiUsername('');
+    }
+  }
+
+  async function handleSaveAiDailyLimit(event, account) {
+    event.preventDefault();
+    if (!account?.username) return;
+
+    const rawLimit = String(aiLimitDrafts[account.username] || '').trim();
+    const aiDailyLimit = rawLimit ? Number(rawLimit) : null;
+
+    if (rawLimit && (!Number.isInteger(aiDailyLimit) || aiDailyLimit < 1)) {
+      setAuthError('AI 일일 한도는 1 이상의 정수로 입력해야 합니다.');
+      return;
+    }
+
+    try {
+      setUpdatingAiUsername(account.username);
+      setAuthError('');
+
+      const response = await fetch('/api/rp/auth-accounts', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          username: account.username,
+          aiDailyLimit,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.error || `AI 일일 한도를 저장하지 못했습니다. (${response.status})`);
+      }
+
+      updateAuthAccount(payload.account);
+      setAuthStatus(`${payload.account.name || payload.account.username} AI 일일 한도 저장 완료`);
+    } catch (error) {
+      setAuthError(error?.message || 'AI 일일 한도를 저장하지 못했습니다.');
     } finally {
       setUpdatingAiUsername('');
     }
@@ -401,13 +476,39 @@ export default function RPClientManager() {
               <dl>
                 <div>
                   <dt>오늘 사용량</dt>
-                  <dd>{Number(account.aiUsageToday) || 0}회</dd>
+                  <dd>{Number(account.aiUsageToday) || 0}회 / {formatAiLimit(account)}</dd>
+                </div>
+                <div>
+                  <dt>일일 한도</dt>
+                  <dd>{formatAiLimit(account)}</dd>
                 </div>
                 <div>
                   <dt>승인일</dt>
                   <dd>{formatDateTime(account.aiApprovedAt)}</dd>
                 </div>
               </dl>
+              <form className={styles.aiLimitForm} onSubmit={(event) => handleSaveAiDailyLimit(event, account)}>
+                <label htmlFor={getAiLimitInputId(account)}>
+                  <span>회원별 일일 한도</span>
+                  <input
+                    id={getAiLimitInputId(account)}
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    value={aiLimitDrafts[account.username] ?? ''}
+                    onChange={(event) => updateAiLimitDraft(account.username, event.target.value)}
+                    placeholder="역할 기본값"
+                    disabled={updatingAiUsername === account.username}
+                  />
+                </label>
+                <button
+                  className={styles.ghostButton}
+                  type="submit"
+                  disabled={updatingAiUsername === account.username}
+                >
+                  한도 저장
+                </button>
+              </form>
               <button
                 className={account.aiApproved ? styles.dangerButton : styles.primaryButton}
                 type="button"

@@ -275,6 +275,43 @@
   overflow-wrap: anywhere;
 }
 
+.aiLimitForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.aiLimitForm label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.aiLimitForm label span {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.aiLimitForm input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: #17191d;
+  font: inherit;
+  font-weight: 850;
+  outline: none;
+}
+
+.aiLimitForm input:focus {
+  border-color: #087b72;
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+}
+
 .addPanelHeader {
   display: flex;
   align-items: flex-start;
@@ -664,6 +701,7 @@
   .twoColumn,
   .addForm,
   .aiAccountGrid,
+  .aiLimitForm,
   .aiAccountCard dl {
     grid-template-columns: 1fr;
   }
