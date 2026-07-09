@@ -558,15 +558,30 @@ addCheck(
   includesAll("lib/rpDatabase.js", [
     "checkDatabaseSchemaReadiness",
     "verifiedContactUniquenessReady",
+    "allRequiredTablesPresent",
+    "allRequiredIndexesPresent",
+    "rateLimitBucketsReady",
+    "aiUsageBucketsReady",
+    "retentionIndexesReady",
+    "securityEventsReady",
     "schema_check_failed",
   ])
     && includesAll("app/api/rp/system-status/route.js", [
       "checkDatabaseSchemaReadiness",
       "schema: databaseSchema",
+      "database_required_tables_missing",
+      "database_required_indexes_missing",
+      "shared_rate_limit_store_not_ready",
+      "ai_usage_buckets_not_ready",
+      "retention_indexes_not_ready",
+      "security_event_store_not_ready",
     ])
     && includesAll("docs/RP_DATABASE_MIGRATION_RUNBOOK.md", [
       "/api/rp/system-status",
       "verifiedContactUniquenessReady",
+      "allRequiredTablesPresent",
+      "rateLimitBucketsReady",
+      "retentionIndexesReady",
     ]),
 );
 addCheck(
@@ -575,8 +590,12 @@ addCheck(
   includesAll("app/api/rp/system-status/route.js", [
     "buildHighTrafficReadiness",
     "highTrafficReadiness",
+    "database_required_tables_missing",
+    "database_required_indexes_missing",
     "runtime_schema_sync_enabled",
     "auth_verified_contact_uniqueness_not_ready",
+    "shared_rate_limit_store_not_ready",
+    "ai_usage_buckets_not_ready",
     "pe_exam_data_not_fresh",
     "requiredManualChecks",
   ])
@@ -680,7 +699,13 @@ addCheck(
       "RP_ADMIN_SESSION_COOKIE",
       "storage.postgres.configured",
       "storage.postgres.runtimeSchemaSyncDisabled",
+      "storage.postgres.schema.allRequiredTablesPresent",
+      "storage.postgres.schema.allRequiredIndexesPresent",
       "storage.postgres.schema.verifiedContactUniquenessReady",
+      "storage.postgres.schema.rateLimitBucketsReady",
+      "storage.postgres.schema.aiUsageBucketsReady",
+      "storage.postgres.schema.retentionIndexesReady",
+      "storage.postgres.schema.securityEventsReady",
       "highTrafficReadiness.ready",
       "objectiveReadiness",
       "cookie=provided via env; value is never printed",
@@ -695,6 +720,8 @@ addCheck(
       "npm.cmd run ops:status:check",
       "RP_SYSTEM_STATUS_COOKIE",
       "storage.postgres.configured",
+      "storage.postgres.schema.allRequiredTablesPresent",
+      "storage.postgres.schema.rateLimitBucketsReady",
       "objectiveReadiness.*.ready",
     ])
     && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [

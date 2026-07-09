@@ -144,7 +144,13 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
     checkBooleanPath(label, status, "ok", true);
     checkBooleanPath(label, status, "storage.postgres.configured", true);
     checkBooleanPath(label, status, "storage.postgres.runtimeSchemaSyncDisabled", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.allRequiredTablesPresent", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.allRequiredIndexesPresent", true);
     checkBooleanPath(label, status, "storage.postgres.schema.verifiedContactUniquenessReady", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.rateLimitBucketsReady", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.aiUsageBucketsReady", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.retentionIndexesReady", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.securityEventsReady", true);
     checkBooleanPath(label, status, "peExamData.ok", true);
     checkBooleanPath(label, status, "highTrafficReadiness.ready", true);
 

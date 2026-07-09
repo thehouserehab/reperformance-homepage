@@ -158,8 +158,24 @@ function buildHighTrafficReadiness({
   if (!runtimeSchemaSyncDisabled) {
     addReadinessIssue(blockers, 'runtime_schema_sync_enabled', 'Apply checked-in migrations, then set RP_DISABLE_RUNTIME_SCHEMA_SYNC=true before high-traffic campaigns.');
   }
+  if (!databaseSchema?.allRequiredTablesPresent) {
+    addReadinessIssue(blockers, 'database_required_tables_missing', 'Apply checked-in migrations so all production tables exist before high-traffic campaigns.', {
+      missingCount: databaseSchema?.missingRequiredTables?.length ?? null,
+    });
+  }
+  if (!databaseSchema?.allRequiredIndexesPresent) {
+    addReadinessIssue(blockers, 'database_required_indexes_missing', 'Apply checked-in migrations so lookup, rate-limit, AI usage, security event, and retention indexes exist.', {
+      missingCount: databaseSchema?.missingRequiredIndexes?.length ?? null,
+    });
+  }
   if (!databaseSchema?.verifiedContactUniquenessReady) {
     addReadinessIssue(blockers, 'auth_verified_contact_uniqueness_not_ready', 'Apply auth contact uniqueness migration and resolve duplicate verified contacts.');
+  }
+  if (!databaseSchema?.rateLimitBucketsReady) {
+    addReadinessIssue(blockers, 'shared_rate_limit_store_not_ready', 'PostgreSQL shared rate-limit buckets and expiry index must be ready before traffic spikes.');
+  }
+  if (!databaseSchema?.aiUsageBucketsReady) {
+    addReadinessIssue(blockers, 'ai_usage_buckets_not_ready', 'AI usage buckets and usage-date index must be ready before token-backed AI services are enabled at scale.');
   }
   if (googleDriveBackup.enabled) {
     addReadinessIssue(warnings, 'google_backup_enabled', 'Google Drive/Sheets backup is enabled; confirm restore readiness, access controls, and retention before campaign traffic.');
@@ -220,6 +236,9 @@ function buildObjectiveReadiness({
       error: databaseSchema.error,
     });
   }
+  if (!databaseSchema?.allRequiredTablesPresent) {
+    addReadinessIssue(customerDataBlockers, 'database_required_tables_missing', 'Customer, application, PE exam, auth, rate-limit, AI usage, and security event tables must exist.');
+  }
   if (googleDriveBackup.enabled && !googleDriveBackup.configured) {
     addReadinessIssue(customerDataBlockers, 'google_backup_enabled_but_not_configured', 'Google backup is enabled without all required backup settings.');
   }
@@ -237,6 +256,9 @@ function buildObjectiveReadiness({
   }
   if (!databaseSchema?.verifiedContactUniquenessReady) {
     addReadinessIssue(authBlockers, 'auth_verified_contact_uniqueness_not_ready', 'Apply the verified-contact uniqueness migration and resolve duplicate verified contacts.');
+  }
+  if (!databaseSchema?.securityEventsReady) {
+    addReadinessIssue(authBlockers, 'security_event_store_not_ready', 'Security event table and review indexes must be ready for sensitive auth and AI approval audit trails.');
   }
   if (process.env.NODE_ENV === 'production' && auth.seedAccounts.allowed) {
     addReadinessIssue(authBlockers, 'production_env_auth_accounts_enabled', 'Disable production environment-variable auth accounts after bootstrap.');
@@ -267,6 +289,18 @@ function buildObjectiveReadiness({
     addReadinessIssue(dataScaleBlockers, 'schema_check_failed', 'Database schema readiness could not be verified for data-scale operations.', {
       error: databaseSchema.error,
     });
+  }
+  if (!databaseSchema?.allRequiredIndexesPresent) {
+    addReadinessIssue(dataScaleBlockers, 'database_required_indexes_missing', 'Required lookup, rate-limit, AI usage, security event, and retention indexes are missing.');
+  }
+  if (!databaseSchema?.retentionIndexesReady) {
+    addReadinessIssue(dataScaleBlockers, 'retention_indexes_not_ready', 'Retention cleanup indexes must exist before running cleanup on a large production dataset.');
+  }
+  if (!databaseSchema?.rateLimitBucketsReady) {
+    addReadinessIssue(dataScaleBlockers, 'shared_rate_limit_store_not_ready', 'Shared PostgreSQL rate-limit buckets must be ready before traffic spikes.');
+  }
+  if (!databaseSchema?.aiUsageBucketsReady) {
+    addReadinessIssue(dataScaleBlockers, 'ai_usage_buckets_not_ready', 'AI usage buckets must be ready before token-backed AI usage increases.');
   }
   if (!databaseOnly) {
     addReadinessIssue(dataScaleWarnings, 'database_only_mode_not_enabled', 'Set RP_DATA_SOURCE=database before campaigns to avoid fallback write paths.');
