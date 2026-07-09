@@ -13,6 +13,7 @@ import {
   isDatabaseConfigured,
   isDatabaseOnlyMode,
   isRuntimeSchemaSyncDisabled,
+  listDatabaseSecurityEvents,
 } from '../../../../lib/rpDatabase';
 import {
   getGoogleDriveBackupSkipReason,
@@ -63,6 +64,12 @@ function getFirstEnv(...keys) {
   }
 
   return '';
+}
+
+function parsePositiveInteger(value, fallback, min = 1, max = Number.MAX_SAFE_INTEGER) {
+  const parsed = Number(cleanEnvValue(value));
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(parsed)));
 }
 
 function buildSecretStatus(...keys) {
@@ -194,6 +201,134 @@ function addDatabasePoolReadinessWarnings(list, databaseConfigured, databasePool
   }
 }
 
+function isAuthSecurityEvent(eventType) {
+  const normalized = cleanEnvValue(eventType).toLowerCase();
+  return normalized === 'admin.ai_access_update' || normalized.startsWith('auth.');
+}
+
+function isRiskySecurityOutcome(outcome) {
+  return ['failure', 'forbidden', 'rate_limited'].includes(cleanEnvValue(outcome).toLowerCase());
+}
+
+function buildSecurityMonitoringWarning(code, message, detail = {}) {
+  return { code, message, detail };
+}
+
+async function buildSecurityMonitoringStatus({ databaseConfigured, databaseSchema }) {
+  const windowHours = parsePositiveInteger(process.env.RP_AUTH_SECURITY_WINDOW_HOURS, 24, 1, 24 * 30);
+  const authFailureWarningThreshold = parsePositiveInteger(
+    process.env.RP_AUTH_SECURITY_FAILURE_WARNING_THRESHOLD,
+    30,
+    1,
+    10000,
+  );
+  const ipPrefixWarningThreshold = parsePositiveInteger(
+    process.env.RP_AUTH_SECURITY_IP_PREFIX_WARNING_THRESHOLD,
+    20,
+    1,
+    10000,
+  );
+  const thresholds = {
+    authFailureWarningThreshold,
+    ipPrefixWarningThreshold,
+  };
+
+  if (!databaseConfigured) {
+    return {
+      available: false,
+      status: 'postgres_not_configured',
+      windowHours,
+      thresholds,
+      warnings: [
+        buildSecurityMonitoringWarning(
+          'security_monitoring_postgres_not_configured',
+          'Security event monitoring requires PostgreSQL.',
+        ),
+      ],
+    };
+  }
+
+  if (!databaseSchema?.securityEventsReady) {
+    return {
+      available: false,
+      status: 'schema_not_ready',
+      windowHours,
+      thresholds,
+      warnings: [
+        buildSecurityMonitoringWarning(
+          'security_event_store_not_ready',
+          'Security event table and indexes must be ready before auth abuse monitoring is reliable.',
+        ),
+      ],
+    };
+  }
+
+  try {
+    const securityEvents = await listDatabaseSecurityEvents({
+      limit: 5,
+      windowHours,
+    });
+    const authSummary = (securityEvents.summary || [])
+      .filter((row) => isAuthSecurityEvent(row.eventType));
+    const riskyAuthSummary = authSummary.filter((row) => isRiskySecurityOutcome(row.outcome));
+    const authFailureCount = riskyAuthSummary.reduce((sum, row) => sum + Number(row.count || 0), 0);
+    const rateLimitedCount = authSummary
+      .filter((row) => cleanEnvValue(row.outcome).toLowerCase() === 'rate_limited')
+      .reduce((sum, row) => sum + Number(row.count || 0), 0);
+    const topIpPrefixes = (securityEvents.ipPrefixes || []).slice(0, 5);
+    const topIpPrefixCount = Math.max(0, ...topIpPrefixes.map((row) => Number(row.count || 0)));
+    const warnings = [];
+
+    if (authFailureCount >= authFailureWarningThreshold) {
+      warnings.push(buildSecurityMonitoringWarning(
+        'auth_failure_volume_high',
+        'Recent auth failure volume is above the configured review threshold.',
+        { count: authFailureCount, threshold: authFailureWarningThreshold, windowHours },
+      ));
+    }
+    if (rateLimitedCount > 0) {
+      warnings.push(buildSecurityMonitoringWarning(
+        'auth_rate_limit_triggered',
+        'Auth rate limiting was triggered during the monitoring window; review security events before campaign traffic.',
+        { count: rateLimitedCount, windowHours },
+      ));
+    }
+    if (topIpPrefixCount >= ipPrefixWarningThreshold) {
+      warnings.push(buildSecurityMonitoringWarning(
+        'security_event_ip_prefix_volume_high',
+        'One or more IP prefixes generated high security-event volume during the monitoring window.',
+        { topIpPrefixCount, threshold: ipPrefixWarningThreshold, windowHours },
+      ));
+    }
+
+    return {
+      available: true,
+      status: warnings.length ? 'review_required' : 'normal',
+      windowHours,
+      thresholds,
+      recentEventCount: Number(securityEvents.count || 0),
+      authFailureCount,
+      rateLimitedCount,
+      topIpPrefixes,
+      authSummary: authSummary.slice(0, 12),
+      warnings,
+    };
+  } catch (_) {
+    return {
+      available: false,
+      status: 'summary_failed',
+      windowHours,
+      thresholds,
+      warnings: [
+        buildSecurityMonitoringWarning(
+          'security_event_summary_failed',
+          'Security event monitoring summary could not be loaded.',
+        ),
+      ],
+    };
+  }
+}
+
 function buildHighTrafficReadiness({
   databaseConfigured,
   databaseOnly,
@@ -280,6 +415,7 @@ function buildObjectiveReadiness({
   peExamData,
   highTrafficReadiness,
   trafficControls,
+  securityMonitoring,
 }) {
   const databaseConfigured = storage.postgres.configured;
   const databaseOnly = storage.postgres.databaseOnly;
@@ -334,6 +470,12 @@ function buildObjectiveReadiness({
   }
   if (!auth.accountRecovery.phoneWebhookConfigured) {
     addReadinessIssue(authWarnings, 'phone_recovery_delivery_not_configured', 'Phone-based account recovery requires an SMS webhook before production use.');
+  }
+  if (!securityMonitoring?.available) {
+    addReadinessIssue(authWarnings, 'security_monitoring_unavailable', 'Security event monitoring summary is unavailable; review schema and database configuration.');
+  }
+  for (const warning of securityMonitoring?.warnings || []) {
+    addReadinessIssue(authWarnings, warning.code, warning.message, warning.detail || {});
   }
 
   const peExamBlockers = [];
@@ -403,6 +545,7 @@ function buildObjectiveReadiness({
         'auth.accountRecovery.signingSecret',
         'auth.passwordHash.secret',
         'storage.postgres.schema.verifiedContactUniquenessReady',
+        'securityMonitoring',
       ],
     },
     peExamDataMaintenance: {
@@ -520,6 +663,10 @@ async function buildStatus() {
     },
   };
   const peExamData = buildPeExamDataStatus();
+  const securityMonitoring = await buildSecurityMonitoringStatus({
+    databaseConfigured,
+    databaseSchema,
+  });
   const trafficControls = {
     sharedRateLimit: {
       store: databaseConfigured ? 'postgres-with-memory-fallback' : 'memory-only',
@@ -553,6 +700,7 @@ async function buildStatus() {
     peExamData,
     highTrafficReadiness,
     trafficControls,
+    securityMonitoring,
   });
 
   return {
@@ -561,6 +709,7 @@ async function buildStatus() {
     storage,
     auth,
     trafficControls,
+    securityMonitoring,
     peExamData,
     highTrafficReadiness,
     objectiveReadiness,

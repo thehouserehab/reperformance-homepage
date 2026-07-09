@@ -40,6 +40,21 @@ Actor, target, and IP values are HMAC-hashed with `RP_SECURITY_EVENT_SECRET` whe
 - Returned rows use `actorHashPrefix`, `targetHashPrefix`, `ipHashPrefix`, and `ipPrefix`; raw actor, target, phone, email, and IP values are not returned.
 - Metadata is sanitized and truncated before display so it remains useful for pattern review without becoming a second sensitive-data store.
 
+## System Status Summary
+
+The staff-only `/api/rp/system-status` endpoint also reports a compact `securityMonitoring` object built from `rp_security_events`.
+
+Key fields:
+
+- `securityMonitoring.available`: whether the summary could be loaded from PostgreSQL.
+- `securityMonitoring.status`: `normal` or `review_required`.
+- `securityMonitoring.authFailureCount`: recent `auth.*` failures, forbidden attempts, and rate-limited events.
+- `securityMonitoring.rateLimitedCount`: recent auth events that hit app-level rate limiting.
+- `securityMonitoring.topIpPrefixes`: high-volume masked IP prefixes, never raw IP addresses.
+- `securityMonitoring.thresholds`: configured review thresholds.
+
+`review_required` is an operational warning, not an automatic deployment failure. Staff should review `/admin/security`, then adjust Vercel Firewall rules, rate-limit policy, or future account-lockout policy if the pattern is recurring.
+
 ## Non-Storage Rules
 
 Do not store these values in security event metadata:

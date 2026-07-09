@@ -206,6 +206,33 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
       `max=${aiUsage?.dailyLimitMax ?? "missing"} member=${aiUsage?.defaultMemberDailyLimit ?? "missing"} staff=${aiUsage?.defaultStaffDailyLimit ?? "missing"}`,
     );
 
+    const securityMonitoring = status.securityMonitoring;
+    addResult(
+      "security-monitoring",
+      `${label} securityMonitoring is available`,
+      securityMonitoring?.available === true
+        && ["normal", "review_required"].includes(String(securityMonitoring?.status || ""))
+        && Number.isFinite(Number(securityMonitoring?.windowHours))
+        && Array.isArray(securityMonitoring?.authSummary)
+        && Array.isArray(securityMonitoring?.topIpPrefixes),
+      `status=${securityMonitoring?.status ?? "missing"} warnings=${issueSummary(securityMonitoring?.warnings)}`,
+    );
+    addResult(
+      "security-monitoring",
+      `${label} auth security event counters are reported`,
+      Number.isFinite(Number(securityMonitoring?.authFailureCount))
+        && Number.isFinite(Number(securityMonitoring?.rateLimitedCount))
+        && Number.isFinite(Number(securityMonitoring?.recentEventCount)),
+      `authFailures=${securityMonitoring?.authFailureCount ?? "missing"} rateLimited=${securityMonitoring?.rateLimitedCount ?? "missing"} recent=${securityMonitoring?.recentEventCount ?? "missing"}`,
+    );
+    addResult(
+      "security-monitoring",
+      `${label} auth abuse thresholds are reported`,
+      Number.isFinite(Number(securityMonitoring?.thresholds?.authFailureWarningThreshold))
+        && Number.isFinite(Number(securityMonitoring?.thresholds?.ipPrefixWarningThreshold)),
+      `authFailureThreshold=${securityMonitoring?.thresholds?.authFailureWarningThreshold ?? "missing"} ipPrefixThreshold=${securityMonitoring?.thresholds?.ipPrefixWarningThreshold ?? "missing"}`,
+    );
+
     addResult(
       "high-traffic-readiness",
       `${label} highTrafficReadiness has no blockers`,

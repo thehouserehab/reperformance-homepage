@@ -271,6 +271,28 @@ addCheck(
 );
 addCheck(
   "security",
+  "System status summarizes auth security monitoring",
+  includesAll("app/api/rp/system-status/route.js", [
+    "buildSecurityMonitoringStatus",
+    "listDatabaseSecurityEvents",
+    "securityMonitoring",
+    "auth_failure_volume_high",
+    "auth_rate_limit_triggered",
+    "security_event_ip_prefix_volume_high",
+  ])
+    && includesAll("scripts/check-rp-system-status.mjs", [
+      "securityMonitoring is available",
+      "auth security event counters are reported",
+      "auth abuse thresholds are reported",
+    ])
+    && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
+      "securityMonitoring",
+      "authFailureCount",
+      "rateLimitedCount",
+    ]),
+);
+addCheck(
+  "security",
   "Account recovery request response avoids account enumeration",
   includesAll("app/api/auth/account-recovery/route.js", [
     "GENERIC_REQUEST_MESSAGE",
