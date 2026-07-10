@@ -32,6 +32,8 @@ export const dynamic = 'force-dynamic';
 const CLIENTS_READ_LIMIT = 120;
 const CLIENTS_WRITE_LIMIT = 60;
 const CLIENTS_WINDOW_MS = 15 * 60 * 1000;
+const DEFAULT_CLIENT_LIST_LIMIT = 200;
+const MAX_CLIENT_LIST_LIMIT = 500;
 const DEFAULT_SHEET_ID = '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E';
 const DEFAULT_MEMBERS_GID = '122819871';
 
@@ -67,6 +69,48 @@ async function checkClientsLimit(request, session, action) {
   return retryAfterSeconds
     ? buildRateLimitResponse(retryAfterSeconds, 'Too many customer data requests. Please try again later.')
     : null;
+}
+
+function clampIntegerParam(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.floor(parsed)));
+}
+
+function getClientListWindow(request) {
+  const url = new URL(request.url);
+  const limit = clampIntegerParam(
+    url.searchParams.get('limit'),
+    DEFAULT_CLIENT_LIST_LIMIT,
+    1,
+    MAX_CLIENT_LIST_LIMIT,
+  );
+  const offset = clampIntegerParam(url.searchParams.get('offset'), 0, 0, 1000000);
+
+  return {
+    limit,
+    offset,
+    fetchLimit: Math.min(MAX_CLIENT_LIST_LIMIT + 1, limit + 1),
+    maxLimit: MAX_CLIENT_LIST_LIMIT,
+  };
+}
+
+function applyClientListWindow(clients, listWindow) {
+  const rows = Array.isArray(clients) ? clients : [];
+  const hasMore = rows.length > listWindow.limit;
+  const visibleRows = hasMore ? rows.slice(0, listWindow.limit) : rows;
+
+  return {
+    clients: visibleRows,
+    pagination: {
+      limit: listWindow.limit,
+      offset: listWindow.offset,
+      returned: visibleRows.length,
+      hasMore,
+      nextOffset: hasMore ? listWindow.offset + visibleRows.length : null,
+      maxLimit: listWindow.maxLimit,
+    },
+  };
 }
 
 function cleanEnvValue(value) {
@@ -105,6 +149,8 @@ function buildScriptUrl(webAppUrl, body, apiSecret) {
   const url = new URL(normalizedUrl);
   const action = body?.action || 'listClients';
   url.searchParams.set('action', action);
+  if (body?.limit) url.searchParams.set('limit', String(body.limit));
+  if (body?.offset) url.searchParams.set('offset', String(body.offset));
 
   if (apiSecret && shouldSendGoogleDriveSecretInQuery()) {
     url.searchParams.set('secret', apiSecret);
@@ -406,7 +452,7 @@ async function addClientWithAttempts(record) {
   throw new Error(`고객 추가 Apps Script 액션이 실패했습니다. ${errors.slice(0, 4).join(' / ')}`);
 }
 
-async function fetchMembersCsvClients() {
+async function fetchMembersCsvClients(listWindow = { fetchLimit: DEFAULT_CLIENT_LIST_LIMIT, offset: 0 }) {
   const { sheetId, membersGid } = getConfig();
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${membersGid}`;
   const response = await fetchWithTimeout(url, { cache: 'no-store', redirect: 'follow' }, {
@@ -419,10 +465,13 @@ async function fetchMembersCsvClients() {
   if (!response.ok) throw new Error(`Google Sheets CSV 조회 실패: ${response.status}`);
   if (/<!doctype html|<html/i.test(text)) throw new Error('Google Sheets CSV를 읽을 수 없습니다. 시트 공유 권한이 비공개이거나 CSV 접근이 차단되었습니다.');
 
-  return rowsToObjects(parseCsv(text)).map(mapClient).filter(Boolean);
+  return rowsToObjects(parseCsv(text))
+    .map(mapClient)
+    .filter(Boolean)
+    .slice(listWindow.offset, listWindow.offset + listWindow.fetchLimit);
 }
 
-async function listClientsWithFallbacks() {
+async function listClientsWithFallbacks(listWindow = { fetchLimit: DEFAULT_CLIENT_LIST_LIMIT, offset: 0 }) {
   const attempts = [
     { action: 'getClients', method: 'GET' },
     { action: 'listClients', method: 'GET' },
@@ -437,8 +486,11 @@ async function listClientsWithFallbacks() {
 
   for (const attempt of attempts) {
     try {
-      const data = await callSheetsApi({ action: attempt.action }, { method: attempt.method });
-      const clients = normalizeClients(data);
+      const data = await callSheetsApi(
+        { action: attempt.action, limit: listWindow.fetchLimit, offset: listWindow.offset },
+        { method: attempt.method },
+      );
+      const clients = normalizeClients(data).slice(0, listWindow.fetchLimit);
       if (clients.length) return { ok: true, source: 'apps-script', action: attempt.action, method: attempt.method, clients };
       errors.push(`${attempt.method} ${attempt.action}: 0명`);
     } catch (error) {
@@ -447,7 +499,7 @@ async function listClientsWithFallbacks() {
   }
 
   try {
-    const clients = await fetchMembersCsvClients();
+    const clients = await fetchMembersCsvClients(listWindow);
     if (clients.length) return { ok: true, source: 'google-sheets-csv', action: 'csvMembers', method: 'GET', clients };
     errors.push('CSV Members_회원: 0명');
   } catch (error) {
@@ -457,15 +509,15 @@ async function listClientsWithFallbacks() {
   throw new Error(`회원 데이터를 찾지 못했습니다. ${errors.slice(0, 5).join(' / ')}`);
 }
 
-async function listClientsFromPreferredStore() {
+async function listClientsFromPreferredStore(listWindow = { fetchLimit: DEFAULT_CLIENT_LIST_LIMIT, offset: 0 }) {
   if (isDatabaseConfigured()) {
     try {
-      const clients = await listDatabaseClients();
+      const clients = await listDatabaseClients({ limit: listWindow.fetchLimit, offset: listWindow.offset });
       return { ok: true, source: 'database', backupSource: 'google-drive', action: 'listDatabaseClients', method: 'SQL', clients };
     } catch (error) {
       if (isDatabaseOnlyMode()) throw error;
 
-      const fallback = await listClientsWithFallbacks();
+      const fallback = await listClientsWithFallbacks(listWindow);
       return {
         ...fallback,
         source: 'google-drive-backup',
@@ -475,7 +527,7 @@ async function listClientsFromPreferredStore() {
     }
   }
 
-  return listClientsWithFallbacks();
+  return listClientsWithFallbacks(listWindow);
 }
 
 async function backupClientToGoogleDrive(record) {
@@ -551,8 +603,18 @@ export async function GET(request) {
   if (rateLimitResponse) return rateLimitResponse;
 
   try {
-    const data = await listClientsFromPreferredStore();
-    return NextResponse.json({ ok: true, source: data.source, action: data.action, method: data.method, clients: data.clients, count: data.clients.length });
+    const listWindow = getClientListWindow(request);
+    const data = await listClientsFromPreferredStore(listWindow);
+    const list = applyClientListWindow(data.clients, listWindow);
+    return NextResponse.json({
+      ok: true,
+      source: data.source,
+      action: data.action,
+      method: data.method,
+      clients: list.clients,
+      count: list.clients.length,
+      pagination: list.pagination,
+    });
   } catch (error) {
     const message = error?.message || '고객 목록 조회 중 오류가 발생했습니다.';
     const setupRequired = !isDatabaseConfigured() && (

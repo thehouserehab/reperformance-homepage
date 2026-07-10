@@ -10,7 +10,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
-import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
+import { getPublicErrorStatus, getSafeLogErrorDetail, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 import { fetchWithTimeout } from '../../../../lib/rpOutboundFetch';
 import { assertStrongProductionSecret, safeEqual } from '../../../../lib/rpSecurity';
 import { recordSecurityEvent } from '../../../../lib/rpSecurityEvents';
@@ -403,7 +403,7 @@ export async function POST(request) {
 
     return Response.json({ ok: false, error: '지원하지 않는 요청입니다.' }, { status: 400 });
   } catch (error) {
-    console.error('account recovery failed', error);
+    console.error('account recovery failed', getSafeLogErrorDetail(error, 'account_recovery_failed'));
     return Response.json(
       { ok: false, error: getSafePublicErrorMessage(error, '계정 찾기 처리 중 오류가 발생했습니다.') },
       { status: getPublicErrorStatus(error) },

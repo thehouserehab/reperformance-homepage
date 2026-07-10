@@ -20,15 +20,31 @@ const namedArgs = new Map(
 );
 
 const pageChecks = [
-  { path: "/", label: "home", expectedText: "RePERFORMANCE" },
-  { path: "/pe-exam", label: "PE exam hub", expectedText: "체대입시" },
-  { path: "/services/pe-exam", label: "PE exam service", expectedText: "체대입시" },
-  { path: "/login", label: "login", expectedText: "로그인" },
-  { path: "/signup", label: "signup", expectedText: "회원가입" },
-  { path: "/find-account", label: "account recovery", expectedText: "계정" },
+  {
+    path: "/",
+    label: "home",
+    expectedTexts: ["RePERFORMANCE", "상담 신청하기", "홈페이지 둘러보기", "재활에서 퍼포먼스까지"],
+    requiredHrefs: ["/apply", "/services"],
+  },
+  {
+    path: "/services",
+    label: "service choice",
+    expectedTexts: ["지금 필요한 목적을 먼저 선택하세요", "시니어 재활", "체대입시", "선택하기"],
+    requiredHrefs: ["/services/senior-rehab", "/services/athlete-reconditioning", "/services/pe-exam", "/services/pain-care", "/apply"],
+  },
+  {
+    path: "/pe-exam",
+    label: "PE exam hub",
+    expectedTexts: ["대학정보 확인에서 실기 향상 관리까지", "실기 기록 추적", "합격 예측이 아니라 상담 준비", "대학 정보 검색"],
+    requiredHrefs: ["#university-search", "#training-management", "/apply?service=pe-exam"],
+  },
+  { path: "/services/pe-exam", label: "PE exam service", expectedTexts: ["체대입시"] },
+  { path: "/login", label: "login", expectedTexts: ["로그인"] },
+  { path: "/signup", label: "signup", expectedTexts: ["회원가입"] },
+  { path: "/find-account", label: "account recovery", expectedTexts: ["계정"] },
 ];
 
-const publicCachePagePaths = new Set(["/", "/pe-exam", "/services/pe-exam"]);
+const publicCachePagePaths = new Set(["/", "/services", "/pe-exam", "/services/pe-exam"]);
 
 const protectedApiChecks = [
   {
@@ -220,6 +236,27 @@ function checkNoExternalServiceText(area, label, body) {
   );
 }
 
+function pageExpectedTexts(page) {
+  if (Array.isArray(page.expectedTexts)) return page.expectedTexts;
+  return page.expectedText ? [page.expectedText] : [];
+}
+
+function checkRequiredPageContent(label, page, body) {
+  for (const expectedText of pageExpectedTexts(page)) {
+    addResult("pages", `${label} contains expected text: ${expectedText}`, body.includes(expectedText), expectedText);
+  }
+
+  for (const href of page.requiredHrefs || []) {
+    const encodedHref = href.replace(/&/g, "&amp;");
+    addResult(
+      "page-links",
+      `${label} exposes link ${href}`,
+      body.includes(`href="${href}"`) || body.includes(`href='${href}'`) || body.includes(`href="${encodedHref}"`) || body.includes(`href='${encodedHref}'`),
+      href,
+    );
+  }
+}
+
 async function checkPage(baseUrl, page) {
   const label = `${baseUrl} ${page.label}`;
   const url = absoluteUrl(baseUrl, page.path);
@@ -229,7 +266,7 @@ async function checkPage(baseUrl, page) {
     const body = await response.text();
 
     addResult("pages", `${label} returns 200`, response.status === 200, String(response.status));
-    addResult("pages", `${label} contains expected text`, body.includes(page.expectedText), page.expectedText);
+    checkRequiredPageContent(label, page, body);
     checkResponseTime("latency", label, durationMs, MAX_PAGE_RESPONSE_MS);
     checkHeaders("headers", label, response, requiredPageHeaders);
     if (publicCachePagePaths.has(page.path)) checkPublicPageCache(label, response);

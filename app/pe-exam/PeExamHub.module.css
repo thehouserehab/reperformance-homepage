@@ -4045,3 +4045,175 @@
 .admissionChoiceCard span {
   color: #777;
 }
+
+.trainingManagementSection {
+  scroll-margin-top: 156px;
+  background: #fff;
+}
+
+.trainingManagementLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: clamp(24px, 5vw, 64px);
+  align-items: center;
+}
+
+.trainingManagementLead {
+  min-width: 0;
+}
+
+.trainingManagementLead h2 {
+  margin-bottom: 16px;
+  color: #050505;
+  font-size: clamp(36px, 5vw, 66px);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.trainingManagementLead p:not(:global(.eyebrow)) {
+  max-width: 700px;
+  margin-bottom: 24px;
+  color: #686868;
+  font-size: clamp(16px, 1.45vw, 19px);
+  font-weight: 750;
+  line-height: 1.76;
+}
+
+.trainingPreviewPanel {
+  min-width: 0;
+  padding: clamp(24px, 4vw, 38px);
+  border-radius: 30px;
+  background: #10141d;
+  color: #fff;
+}
+
+.trainingPreviewHeader {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.trainingPreviewHeader span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.trainingPreviewHeader strong {
+  color: #fff;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.2;
+}
+
+.trainingPreviewRows {
+  display: grid;
+  gap: 10px;
+}
+
+.trainingPreviewRows div {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.15fr) repeat(3, minmax(0, 0.95fr));
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.trainingPreviewRows strong {
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.trainingPreviewRows span {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.trainingPreviewPanel p {
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.7;
+}
+
+.trainingCardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: clamp(24px, 4vw, 44px);
+}
+
+.trainingCardGrid article {
+  min-width: 0;
+  padding: clamp(20px, 3vw, 28px);
+  border-radius: 24px;
+  background: #f2f2f2;
+}
+
+.trainingCardGrid strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #050505;
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.25;
+}
+
+.trainingCardGrid p {
+  margin: 0;
+  color: #686868;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.65;
+}
+
+.aiGuardrailList {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.aiGuardrailList li {
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+@media (max-width: 1040px) {
+  .trainingManagementLayout,
+  .trainingCardGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .trainingManagementLayout,
+  .trainingCardGrid,
+  .trainingPreviewRows div {
+    grid-template-columns: 1fr;
+  }
+
+  .trainingPreviewRows span {
+    justify-content: flex-start;
+    border-radius: 14px;
+  }
+}

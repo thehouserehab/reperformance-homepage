@@ -24,13 +24,14 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true` is required before PostgreSQL saves are copied to Google Drive/Sheets; leaving it unset or false keeps PostgreSQL saves active without external backup copies.
 - Public service application JSON responses no longer return the full application/client payload.
 - Public and member-facing API catch responses now use sanitized fallback messages so database, secret, webhook, Apps Script, and OpenAI internals are not returned to browsers.
+- Bundled fallback customer records now use explicit demo placeholders only; realistic names or `010-xxxx-xxxx` style sample phone numbers should not be shipped in client-side bundles.
 - Service application and PE exam AI consult free-text inputs are length-limited before storage/backup.
 - New `rp_service_applications.payload` writes are minimized on insert; duplicate PII and raw free-text application details stay in structured follow-up columns instead of the broad JSON payload.
 - Service application Google Drive/Sheets backup requests now send a minimized backup payload instead of duplicating the full application/client objects.
 - New `rp_pe_exam_ai_consults.payload` and `conversation_record` writes are minimized on insert; detailed student inputs remain in structured columns and generated guidance remains in `consultation_summary`.
 - PE exam AI consult Google Drive/Sheets backup requests now send minimized metadata instead of duplicating raw student input or conversation records.
 - New `rp_pe_exam_questions.payload` writes are minimized on insert; the submitted question remains in the structured `question_text` column without being duplicated into broad JSON payloads.
-- Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`.
+- Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`. `/api/rp/system-status` reports the TTL policy, warns above 30 days, and blocks campaign readiness above 90 days.
 - Session cookie creation and clearing use centralized options with `httpOnly`, production-only `secure`, `sameSite=lax`, and root path settings.
 - Production session, identity verification, account recovery, and password-hash secrets now reject weak placeholder values and require at least 32 characters before signing or hashing.
 - Production environment-variable auth accounts now require explicit `RP_ALLOW_ENV_AUTH_ACCOUNTS=true` opt-in; otherwise `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_ADMIN_USERNAME`, and trainer env accounts are ignored so PostgreSQL accounts remain the default production login store.
@@ -51,7 +52,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Session signatures, verification-code hashes, and password fallbacks now use a shared constant-time-style comparison helper.
 - PostgreSQL legacy `password_plain` fallback is automatically migrated to `password_hash` and cleared after a successful login.
 - Global security headers are configured in `next.config.js`.
-- PE exam source data refresh is available through `npm run pe-exam:data:refresh`, which now includes freshness and coverage gates; `npm run pe-exam:data:verify` reruns those gates without fetching.
+- PE exam source data readiness is available through `npm run pe-exam:data:readiness`; refresh is available through `npm run pe-exam:data:refresh`, which includes freshness and coverage gates; `npm run pe-exam:data:verify` reruns those gates without fetching.
 - Customer data retention dry-run is available through `npm run data:retention:audit`.
 - Customer data retention gates now support `--require-database`, `--require-tables`, and candidate-count thresholds so campaign checks can fail while old auto-prunable data remains unresolved.
 - Sensitive auth and AI-approval actions now write hashed security events to `rp_security_events`; see `docs/RP_SECURITY_EVENT_AUDIT_LOG.md`.
@@ -108,7 +109,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Run `npm run db:migration:check` with a production database URL before high-traffic campaigns or migration-sensitive deploys.
 - Confirm `db:migration:check` reports `Auth verified contact duplicates are resolved` before applying or relying on the verified-contact unique index.
 - After deploy, confirm `/api/rp/system-status` reports `storage.postgres.schema.verifiedContactUniquenessReady=true` with a staff session.
-- Run `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
+- Run `npm run pe-exam:data:readiness` first, then `npm run pe-exam:data:refresh` before admission-season traffic or paid PE exam campaigns; use `npm run pe-exam:data:verify` for a quick pre-deploy snapshot gate.
 - Run `npm run ops:campaign:check -- --build --typecheck` before paid ads, offline events, or admission-season traffic spikes.
 - Run `npm run ops:public:check` after deploy to verify public pages, security headers, public page/cache headers, hashed static asset immutable caching, API no-store behavior, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation.
 - When `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, run `npm run ops:vercel:check` to verify both production projects expose required env keys for database-only mode, runtime schema sync disablement, DB pool sizing, auth/recovery/password secrets, SMS verification, site origin, shared rate-limit fail-closed mode, and retention cron.
@@ -123,4 +124,5 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Verify `/api/rp/system-status` after deploy with a staff session.
 - Verify `/api/rp/clients` rejects unauthenticated requests before exposing customer data.
 - Run `npm run ops:audit` to confirm the repo-level security, traffic, and PE exam data readiness checks.
+- Keep client-bundled fallback data as demo placeholders only; `npm run ops:audit` fails if realistic Korean mobile-number style sample contacts are reintroduced.
 - Run `npm run build` before deploy and treat `npm run lint` as intentionally unavailable until ESLint is configured.

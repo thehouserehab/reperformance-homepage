@@ -69,7 +69,7 @@ After deploy, run:
 npm.cmd run ops:public:check
 ```
 
-This no-secret public check now also verifies public page cache headers, hashed `/_next/static` immutable caching, and broad response-time thresholds so obvious CDN or routing regressions are caught before traffic is increased.
+This no-secret public check now also verifies public page cache headers, hashed `/_next/static` immutable caching, broad response-time thresholds, the first landing page CTA pair, the `/services` purpose-selection links, and the `/pe-exam` university-search/training-management entry points so obvious CDN, routing, or conversion-flow regressions are caught before traffic is increased.
 
 ## Verification
 

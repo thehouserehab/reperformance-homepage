@@ -9,6 +9,7 @@ const includeDatabase = args.has("--database");
 const includePublic = args.has("--public");
 const includeRetentionStrict = args.has("--retention-strict");
 const includeSecurityStrict = args.has("--security-strict");
+const includeRelease = args.has("--release") || args.has("--predeploy");
 const includeStatus = args.has("--status") || args.has("--system-status") || includeSecurityStrict;
 
 const retentionCommand = [npmCommand, "run", "data:retention:audit"];
@@ -19,18 +20,37 @@ if (includeRetentionStrict) {
 
 const steps = [
   {
+    name: "Objective readiness evidence report",
+    command: [npmCommand, "run", "ops:objective:check"],
+  },
+  {
     name: "Repo operational readiness",
     command: [npmCommand, "run", "ops:audit"],
+  },
+  {
+    name: "Sensitive data exposure static gate",
+    command: [npmCommand, "run", "ops:sensitive:check"],
   },
   {
     name: includeRetentionStrict ? "Data retention strict production gate" : "Data retention dry-run",
     command: retentionCommand,
   },
   {
+    name: "PE exam data readiness report",
+    command: [npmCommand, "run", "pe-exam:data:readiness"],
+  },
+  {
     name: "PE exam source snapshot gates",
     command: [npmCommand, "run", "pe-exam:data:verify"],
   },
 ];
+
+if (includeRelease) {
+  steps.push({
+    name: "Local release git state",
+    command: [npmCommand, "run", "ops:release:check"],
+  });
+}
 
 if (includeBuild) {
   steps.push({
@@ -120,6 +140,7 @@ console.log("Use --public to verify public production URLs without Vercel secret
 console.log("Use --status with RP_SYSTEM_STATUS_COOKIE or RP_ADMIN_SESSION_COOKIE to verify staff-only system readiness.");
 console.log("Use --security-strict with a staff cookie before paid/admission traffic to require securityMonitoring.status=normal.");
 console.log("Use --retention-strict with a production database URL to require retention tables and zero auto-prunable candidates.");
+console.log("Use --release before deployment to require a clean main branch synchronized with upstream.");
 
 let ok = true;
 for (const step of steps) {
@@ -135,6 +156,7 @@ if (!ok) {
 
 console.log(`
 Manual gates before a high-traffic campaign:
+- Before deployment, run npm.cmd run ops:campaign:check -- --build --typecheck --release from a clean local main branch synchronized with origin/main.
 - Apply all checked-in SQL files in database/migrations with npm.cmd run db:migration:apply -- --confirm=APPLY_RP_DB_MIGRATION and confirm no pending migration drift.
 - Run npm.cmd run db:migration:check against production PostgreSQL.
 - Verify /api/rp/system-status with a staff session in production, or run npm.cmd run ops:campaign:check -- --status with RP_SYSTEM_STATUS_COOKIE.
@@ -148,7 +170,7 @@ Manual gates before a high-traffic campaign:
 - Run npm.cmd run ops:campaign:check -- --retention-strict with a production database URL, then run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup remains disabled unless RP_GOOGLE_DRIVE_BACKUP_ENABLED=true, RP_API_SECRET, restore readiness, retention rules, and trusted staff-only sheet access are all confirmed.
 - Confirm outbound timeout env vars remain conservative: RP_OUTBOUND_FETCH_TIMEOUT_MS, RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS, RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS, RP_WEBHOOK_FETCH_TIMEOUT_MS, and RP_OPENAI_FETCH_TIMEOUT_MS.
-- Confirm PE exam source year and unresolved university coverage before publishing admission campaigns.
+- Confirm npm.cmd run pe-exam:data:readiness reports ready=true before publishing admission campaigns.
 - Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, foreign-origin write rejection, and external management separation.
 - Monitor Vercel logs, 429 rate, 5xx rate, database connection timeouts, and backup failures during the campaign.
 `);

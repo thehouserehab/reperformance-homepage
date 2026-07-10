@@ -6,6 +6,7 @@ import { MEMBER_TYPES, SAMPLE_CLIENTS } from './rpConsultationSchema';
 import { addRpClient, fetchRpClients } from './rpSheetsClient';
 
 const STATUS_FILTERS = ['전체', '상담 전', '상담 중', '등록', '보류', '추가 확인'];
+const CLIENT_PAGE_SIZE = 200;
 const DIRECT_CLIENT_INITIAL_STATE = {
   name: '',
   phone: '',
@@ -77,6 +78,19 @@ function buildLocalClient(record) {
   };
 }
 
+function mergeClientPages(currentClients, nextClients) {
+  const byId = new Map();
+
+  for (const client of currentClients) {
+    if (client?.id) byId.set(client.id, client);
+  }
+  for (const client of nextClients) {
+    if (client?.id) byId.set(client.id, client);
+  }
+
+  return Array.from(byId.values());
+}
+
 function formatDateTime(value) {
   if (!value) return '기록 없음';
 
@@ -138,6 +152,8 @@ export default function RPClientManager() {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('전체');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMoreClients, setIsLoadingMoreClients] = useState(false);
+  const [clientPagination, setClientPagination] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState('Postgres 고객 데이터 확인 중...');
   const [connectionError, setConnectionError] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -159,9 +175,12 @@ export default function RPClientManager() {
         setIsLoading(true);
         setConnectionError('');
         setConnectionStatus('Postgres 고객 데이터 확인 중...');
-        const loadedClients = await fetchRpClients();
+        const loadedClients = await fetchRpClients({ limit: CLIENT_PAGE_SIZE });
 
         if (cancelled) return;
+
+        const pagination = loadedClients.pagination || null;
+        setClientPagination(pagination);
 
         if (loadedClients.length) {
           setClients(loadedClients);
@@ -174,6 +193,7 @@ export default function RPClientManager() {
         }
       } catch (error) {
         if (cancelled) return;
+        setClientPagination(null);
         setClients(SAMPLE_CLIENTS);
         setSelectedId(SAMPLE_CLIENTS[0]?.id || '');
         setConnectionStatus('고객 데이터 연결 실패 · 샘플 고객 표시 중');
@@ -279,6 +299,30 @@ export default function RPClientManager() {
     setShowAddForm(false);
     setAddClientError('');
     setNewClient(DIRECT_CLIENT_INITIAL_STATE);
+  }
+
+  async function handleLoadMoreClients() {
+    const nextOffset = Number(clientPagination?.nextOffset);
+    if (!Number.isFinite(nextOffset) || nextOffset < 0 || isLoadingMoreClients) return;
+
+    try {
+      setIsLoadingMoreClients(true);
+      setConnectionError('');
+      const loadedClients = await fetchRpClients({ limit: CLIENT_PAGE_SIZE, offset: nextOffset });
+      const pagination = loadedClients.pagination || null;
+
+      setClients((current) => mergeClientPages(current, loadedClients));
+      setClientPagination(pagination);
+      setConnectionStatus(
+        pagination?.hasMore
+          ? `추가 고객 ${loadedClients.length}명 로드 완료. 다음 페이지가 남아 있습니다.`
+          : `추가 고객 ${loadedClients.length}명 로드 완료. 모든 표시 가능한 고객을 불러왔습니다.`,
+      );
+    } catch (error) {
+      setConnectionError(error?.message || '추가 고객 목록을 불러오지 못했습니다.');
+    } finally {
+      setIsLoadingMoreClients(false);
+    }
   }
 
   async function handleAddClient(event) {
@@ -653,6 +697,12 @@ export default function RPClientManager() {
             <span>{clients.length ? `전체 ${clients.length}명` : '고객 없음'}</span>
           </div>
 
+          {clientPagination?.hasMore ? (
+            <p className={styles.paginationNote}>
+              현재 {clientPagination.returned}명만 표시 중입니다. 다음 페이지 시작 위치: {clientPagination.nextOffset}
+            </p>
+          ) : null}
+
           <div className={styles.clientList}>
             {filteredClients.length ? filteredClients.map((client) => {
               const riskLabel = getRiskLabel(client);
@@ -674,6 +724,17 @@ export default function RPClientManager() {
               <div className={styles.emptyState}>조건에 맞는 고객이 없습니다.</div>
             )}
           </div>
+
+          {clientPagination?.hasMore ? (
+            <button
+              className={styles.loadMoreButton}
+              type="button"
+              onClick={handleLoadMoreClients}
+              disabled={isLoadingMoreClients}
+            >
+              {isLoadingMoreClients ? '불러오는 중...' : '고객 더 불러오기'}
+            </button>
+          ) : null}
         </aside>
 
         <section className={styles.detailPanel}>

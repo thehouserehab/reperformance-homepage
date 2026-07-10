@@ -120,6 +120,8 @@ const scripts = packageJson.scripts || {};
 const externalManagementDomain = ["no", "re", "app", ".com"].join("");
 const externalManagementPattern = /nore(?!ferrer)|noreapp|trainer\/home|7977D6D6/i;
 const apiRouteFiles = listFiles("app/api", (file) => path.basename(file) === "route.js");
+const bundledSampleClientText = readFile("components/rp-consultation/rpConsultationSchema.js");
+const realisticSamplePhonePattern = /phone:\s*['"]010-\d{4}-\d{4}['"]|phone:\s*['"]010\d{8}['"]/;
 
 addCheck("runtime", "Next.js is on a patched 15.5.x+ line", versionAtLeast(dependencies.next, "15.5.7"), `next=${dependencies.next}`);
 addCheck("runtime", "React is on a patched 19.2.x+ line", versionAtLeast(dependencies.react, "19.2.4"), `react=${dependencies.react}`);
@@ -237,6 +239,7 @@ addCheck(
     "buildForbiddenOriginResponse",
     "isProtectedApiPath(pathname) && isStateChangingMethod(request.method)",
     "verifyAdminSessionCookie",
+    "/api/rp/auth-accounts",
   ]),
 );
 addCheck(
@@ -330,6 +333,7 @@ addCheck(
     "INTERNAL_ERROR_PATTERN",
     "getSafePublicErrorMessage",
     "getPublicErrorStatus",
+    "getSafeLogErrorDetail",
     "exposePublicError",
   ])
     && includesAll("lib/rpIdentityVerification.js", ["exposePublicError"])
@@ -339,6 +343,34 @@ addCheck(
     && includesAll("app/api/rp/pe-exam-question/route.js", ["getSafePublicErrorMessage", "질문 저장소 설정"])
     && includesAll("app/api/rp/pe-exam-ai-consult/route.js", ["getSafePublicErrorMessage", "buildPublicBackupResult", "AI 상담 준비 저장소 설정"])
     && includesAll("app/api/rp/consultation-summary/route.js", ["getSafePublicErrorMessage"]),
+);
+addCheck(
+  "security",
+  "Sensitive data exposure static check exists",
+  Boolean(scripts["ops:sensitive:check"])
+    && includesAll("scripts/check-rp-sensitive-exposure.mjs", [
+      "API and library logs do not print raw error objects",
+      "getSafeLogErrorDetail",
+      "Public API catch responses use safe public error messages",
+      "Internal error keywords are redacted from public messages",
+      "Security-event metadata drops sensitive keys",
+      "Retention audit covers legacy plaintext passwords and broad payloads",
+    ])
+    && includesAll("app/api/auth/account-recovery/route.js", [
+      "getSafeLogErrorDetail",
+      "account_recovery_failed",
+    ])
+    && includesAll("lib/rpSheetAuthStore.js", [
+      "getSafeLogErrorDetail",
+      "auth_account_lookup_failed",
+    ]),
+);
+addCheck(
+  "security",
+  "Bundled sample client data uses non-personal demo placeholders",
+  bundledSampleClientText.includes("DEMO-CLIENT-001")
+    && bundledSampleClientText.includes("데모 고객")
+    && !realisticSamplePhonePattern.test(bundledSampleClientText),
 );
 addCheck(
   "security",
@@ -546,16 +578,63 @@ addCheck(
       "--database",
       "--vercel",
       "--public",
+      "--release",
       "--retention-strict",
       "--security-strict",
       "--max-prunable-candidates=0",
+      "ops:release:check",
+      "ops:objective:check",
+      "ops:sensitive:check",
+      "Objective readiness evidence report",
+      "Sensitive data exposure static gate",
+      "pe-exam:data:readiness",
+      "PE exam data readiness report",
       "includeSecurityStrict",
+      "includeRelease",
       "securityMonitoring.status=normal",
       "Manual gates before a high-traffic campaign",
       "RP_DATA_SOURCE",
       "RP_DATABASE_POOL_MAX",
       "RP_SMS_WEBHOOK_URL",
       "RP_RATE_LIMIT_FAIL_CLOSED",
+    ]),
+);
+addCheck(
+  "traffic",
+  "Objective readiness evidence report maps all active goal areas",
+  Boolean(scripts["ops:objective:check"])
+    && includesAll("scripts/check-rp-objective-readiness.mjs", [
+      "Customer data security",
+      "Signup and login security",
+      "PE exam data freshness and simplification",
+      "Traffic surge readiness",
+      "Data scale management",
+      "Production evidence still required",
+      "buildPeExamSourceStatus",
+      "Completion note",
+    ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "ops:objective:check",
+      "Objective readiness evidence report",
+      "production evidence",
+    ]),
+);
+addCheck(
+  "traffic",
+  "Release state check requires clean synchronized main",
+  Boolean(scripts["ops:release:check"])
+    && includesAll("scripts/check-rp-release-state.mjs", [
+      "expectedBranch",
+      "working tree has no uncommitted changes",
+      "upstream branch is configured",
+      "local HEAD is not ahead of upstream",
+      "local HEAD is not behind upstream",
+      "--allow-dirty",
+    ])
+    && includesAll("docs/RP_CAMPAIGN_READINESS_RUNBOOK.md", [
+      "ops:release:check",
+      "clean local `main` branch",
+      "origin/main",
     ]),
 );
 addCheck(
@@ -568,6 +647,7 @@ addCheck(
   "pe-data",
   "PE exam data freshness gate is wired into snapshot verification",
   Boolean(scripts["pe-exam:data:freshness"])
+    && Boolean(scripts["pe-exam:data:readiness"])
     && Boolean(scripts["pe-exam:data:status"])
     && includesAll("scripts/check-pe-exam-data-freshness.mjs", [
       "schoolYear",
@@ -589,7 +669,21 @@ addCheck(
       "write-pe-exam-source-status.mjs",
       "status-only",
     ])
-    && includesAll("scripts/check-rp-campaign-readiness.mjs", ["pe-exam:data:verify", "PE exam source snapshot gates"]),
+    && includesAll("scripts/report-pe-exam-data-readiness.mjs", [
+      "buildPeExamSourceStatus",
+      "sourceStatusSynced",
+      "sourceSnapshotsMaxGeneratedAt",
+      "statusSummaryMaxGeneratedAt",
+      "Next commands",
+      "pe-exam:data:refresh",
+      "pe-exam:data:verify",
+    ])
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", [
+      "pe-exam:data:readiness",
+      "PE exam data readiness report",
+      "pe-exam:data:verify",
+      "PE exam source snapshot gates",
+    ]),
 );
 addCheck(
   "data",
@@ -780,6 +874,13 @@ addCheck(
     && includesAll("scripts/check-rp-public-production.mjs", [
       "DEFAULT_BASE_URLS",
       "requiredPageHeaders",
+      "expectedTexts",
+      "requiredHrefs",
+      "/services",
+      "홈페이지 둘러보기",
+      "지금 필요한 목적을 먼저 선택하세요",
+      "실기 기록 추적",
+      "합격 예측이 아니라 상담 준비",
       "protectedApiChecks",
       "foreignOriginApiChecks",
       "checkForeignOriginApi",
@@ -798,6 +899,12 @@ addCheck(
   "traffic",
   "Staff system-status production check command exists",
   Boolean(scripts["ops:status:check"])
+    && includesAll("app/api/rp/system-status/route.js", [
+      "SESSION_TTL_RECOMMENDED_MAX_SECONDS",
+      "SESSION_TTL_BLOCKING_MAX_SECONDS",
+      "session_ttl_exceeds_blocking_max",
+      "auth.session.withinBlockingMax",
+    ])
     && includesAll("scripts/check-rp-system-status.mjs", [
       "RP_SYSTEM_STATUS_COOKIE",
       "RP_ADMIN_SESSION_COOKIE",
@@ -812,6 +919,8 @@ addCheck(
       "storage.postgres.schema.securityEventsReady",
       "auth login lockout policy is reported",
       "auth?.loginLockout",
+      "auth session TTL policy is reported",
+      "auth.session.withinBlockingMax",
       "storage.postgres.pool.max",
       "storage.postgres.pool.validMax",
       "postgres pool max is reported",
@@ -837,6 +946,7 @@ addCheck(
       "storage.postgres.schema.allRequiredTablesPresent",
       "storage.postgres.schema.rateLimitBucketsReady",
       "RP_RATE_LIMIT_FAIL_CLOSED",
+      "auth.session.withinBlockingMax",
       "objectiveReadiness.*.ready",
     ])
     && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
@@ -923,6 +1033,43 @@ addCheck(
     && includesAll("docs/RP_PRIVACY_SECURITY_REVIEW.md", [
       "RP_GOOGLE_DRIVE_BACKUP_ENABLED=true",
       "fail closed",
+    ]),
+);
+addCheck(
+  "data",
+  "Customer list API is paginated for large datasets",
+  includesAll("app/api/rp/clients/route.js", [
+    "DEFAULT_CLIENT_LIST_LIMIT",
+    "MAX_CLIENT_LIST_LIMIT",
+    "getClientListWindow",
+    "applyClientListWindow",
+    "pagination",
+    "nextOffset",
+    "url.searchParams.set('limit'",
+    "url.searchParams.set('offset'",
+    "limit: listWindow.fetchLimit",
+    "offset: listWindow.offset",
+  ])
+    && includesAll("lib/rpDatabase.js", [
+      "listDatabaseClients({ limit = 200, offset = 0 } = {})",
+      "LIMIT $1 OFFSET $2",
+      "[safeLimit, safeOffset]",
+    ])
+    && includesAll("components/rp-consultation/rpSheetsClient.js", [
+      "fetchRpClients(options = {})",
+      "URLSearchParams",
+      "payload.pagination",
+      "Object.defineProperty(clients, 'pagination'",
+    ])
+    && includesAll("components/rp-consultation/RPClientManager.jsx", [
+      "CLIENT_PAGE_SIZE",
+      "handleLoadMoreClients",
+      "mergeClientPages",
+      "isLoadingMoreClients",
+      "clientPagination",
+      "paginationNote",
+      "clientPagination?.hasMore",
+      "loadMoreButton",
     ]),
 );
 

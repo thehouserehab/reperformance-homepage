@@ -1,5 +1,13 @@
-export async function fetchRpClients() {
-  const response = await fetch('/api/rp/clients', {
+export async function fetchRpClients(options = {}) {
+  const params = new URLSearchParams();
+  const limit = Number(options.limit);
+  const offset = Number(options.offset);
+
+  if (Number.isFinite(limit) && limit > 0) params.set('limit', String(Math.floor(limit)));
+  if (Number.isFinite(offset) && offset > 0) params.set('offset', String(Math.floor(offset)));
+
+  const url = params.size ? `/api/rp/clients?${params.toString()}` : '/api/rp/clients';
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       Accept: 'application/json',
@@ -16,7 +24,13 @@ export async function fetchRpClients() {
     throw new Error(message);
   }
 
-  return Array.isArray(payload.clients) ? payload.clients : [];
+  const clients = Array.isArray(payload.clients) ? payload.clients : [];
+  Object.defineProperty(clients, 'pagination', {
+    value: payload.pagination || null,
+    enumerable: false,
+  });
+
+  return clients;
 }
 
 export async function addRpClient(client) {

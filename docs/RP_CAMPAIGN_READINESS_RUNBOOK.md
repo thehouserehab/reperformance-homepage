@@ -14,15 +14,24 @@ npm.cmd run ops:campaign:check
 
 This runs:
 
+- `npm.cmd run ops:objective:check`
 - `npm.cmd run ops:audit`
+- `npm.cmd run ops:sensitive:check`
 - `npm.cmd run data:retention:audit`
+- `npm.cmd run pe-exam:data:readiness`
 - `npm.cmd run pe-exam:data:verify`
+
+The Objective readiness evidence report maps the active readiness work to five goal areas: customer data security, signup/login security, PE exam data maintenance, traffic surge readiness, and data scale management. It fails when local implementation evidence is missing, and it also lists the production evidence that must still be verified before the goal can be treated as complete.
+
+The sensitive-data gate checks that public API errors use safe messages, account-recovery logs do not print raw error objects, security-event metadata drops password/secret/token/code/session fields, and retention still covers broad payloads and legacy plaintext password cleanup.
 
 For final pre-deploy verification, run:
 
 ```powershell
-npm.cmd run ops:campaign:check -- --build --typecheck
+npm.cmd run ops:campaign:check -- --build --typecheck --release
 ```
+
+The `--release` gate runs `npm.cmd run ops:release:check`. It requires a clean local `main` branch synchronized with `origin/main`, so a campaign cannot be treated as release-ready while important homepage, security, or data-check changes are still uncommitted or unpushed.
 
 If a production database URL is available locally, include the schema and migration gate:
 
@@ -60,7 +69,7 @@ To include it in the campaign command:
 npm.cmd run ops:campaign:check -- --public
 ```
 
-The public check verifies both production URLs by default. It confirms public pages return `200`, security headers are present, public SSG pages are not marked `no-store`, hashed `/_next/static` assets are served with immutable public cache headers, protected APIs reject unauthenticated requests, state-changing APIs reject foreign `Origin` requests, API responses are not cached, response times stay below the configured public-check thresholds, and the external management service remains separated from the homepage.
+The public check verifies both production URLs by default. It confirms public pages return `200`, the first landing page exposes `상담 신청하기` and `홈페이지 둘러보기`, `/services` exposes the purpose-based service choices, `/pe-exam` exposes university search and training-management entry points, security headers are present, public SSG pages are not marked `no-store`, hashed `/_next/static` assets are served with immutable public cache headers, protected APIs reject unauthenticated requests, state-changing APIs reject foreign `Origin` requests, API responses are not cached, response times stay below the configured public-check thresholds, and the external management service remains separated from the homepage.
 
 To automate the staff-only `/api/rp/system-status` gate, provide a current staff session cookie through an environment variable. The script sends the cookie in the request header and never prints the value:
 
@@ -85,7 +94,7 @@ npm.cmd run ops:campaign:check -- --security-strict
 
 `--security-strict` includes the staff-only system-status gate and fails unless `securityMonitoring.available=true`, `securityMonitoring.status=normal`, and no security-monitoring warnings are reported.
 
-The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.pool.max`, `storage.postgres.pool.explicitMax`, `storage.postgres.pool.validMax`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `trafficControls.sharedRateLimit`, `securityMonitoring.available`, security-event counters, abuse thresholds, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs. In strict mode, it also requires `securityMonitoring.status=normal`.
+The status check verifies `storage.postgres.configured`, `storage.postgres.runtimeSchemaSyncDisabled`, `storage.postgres.pool.max`, `storage.postgres.pool.explicitMax`, `storage.postgres.pool.validMax`, `storage.postgres.schema.allRequiredTablesPresent`, `storage.postgres.schema.allRequiredIndexesPresent`, `storage.postgres.schema.verifiedContactUniquenessReady`, `storage.postgres.schema.rateLimitBucketsReady`, `storage.postgres.schema.aiUsageBucketsReady`, `storage.postgres.schema.retentionIndexesReady`, `storage.postgres.schema.securityEventsReady`, `auth.session.ttlSeconds`, `auth.session.withinBlockingMax`, `trafficControls.sharedRateLimit`, `securityMonitoring.available`, security-event counters, abuse thresholds, `peExamData.ok`, `highTrafficReadiness.ready`, and every `objectiveReadiness.*.ready` section across the configured production URLs. In strict mode, it also requires `securityMonitoring.status=normal`.
 
 ## 2. Production gates
 
@@ -98,16 +107,20 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `npm.cmd run db:migration:check` passes against the production PostgreSQL database.
 - After `db:migration:check` passes, set `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` for high-traffic production so request handlers do not run schema DDL during user traffic.
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
+- Local release state is clean before deployment: `npm.cmd run ops:release:check` passes from `main`, with no uncommitted paths and no ahead/behind drift against `origin/main`.
+- Sensitive data exposure gate is clean before deployment: `npm.cmd run ops:sensitive:check` passes with no raw public-route error logging or missing public error sanitization.
 - Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/system-status` reports all required PostgreSQL tables and indexes as ready, including rate-limit, AI usage, retention, and security-event indexes.
 - `/api/rp/system-status` reports the PostgreSQL login lockout policy and no `auth_lockout_store_not_ready` blocker; apply `database/migrations/20260710_auth_account_lockout.sql` before campaign traffic.
+- `/api/rp/system-status` reports `auth.session.withinBlockingMax=true`; keep the login session TTL at the default 14 days when possible, 30 days or less as the production recommendation, and never above the 90-day blocking maximum.
 - `/api/rp/system-status` reports `securityMonitoring.available=true`; before paid or admission-season traffic, `npm.cmd run ops:campaign:check -- --security-strict` passes with a staff session cookie and `securityMonitoring.status=normal`.
 - `/api/rp/system-status` reports `highTrafficReadiness.ready=true`. If false, resolve every item in `highTrafficReadiness.blockers` before increasing traffic.
 - `/api/rp/system-status` reports `objectiveReadiness` for `customerDataSecurity`, `signupLoginSecurity`, `peExamDataMaintenance`, `trafficSurgeReadiness`, and `dataScaleManagement`; treat any blocker in these sections as unresolved campaign work.
 - If a staff session cookie is available, `npm.cmd run ops:campaign:check -- --status` passes against the production URLs. For paid or admission-season campaigns, use `npm.cmd run ops:campaign:check -- --security-strict` instead.
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
+- `/api/rp/clients` returns a bounded customer list with pagination metadata; the default page should stay at 200 rows and the request maximum at 500 rows unless a load test proves a larger value is safe. The staff customer manager should use the 더 불러오기 flow instead of one-shot full-table downloads.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
 - `/api/rp/security-events` rejects unauthenticated requests before returning audit-event summaries.
 - `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.
@@ -199,10 +212,11 @@ After the campaign:
 Before admission-season traffic:
 
 ```powershell
+npm.cmd run pe-exam:data:readiness
 npm.cmd run pe-exam:data:refresh
 ```
 
-`pe-exam:data:refresh` fetches all KUSF/ADIGA source snapshots and then runs freshness/source-year and university coverage gates. Use `npm.cmd run pe-exam:data:verify` when the source snapshots have already been refreshed and only the gates need to be rerun.
+`pe-exam:data:readiness` is the read-only first check. It summarizes source years, generated dates, row counts, system-status summary sync, and the next commands to run. `pe-exam:data:refresh` fetches all KUSF/ADIGA source snapshots and then runs freshness/source-year and university coverage gates. Use `npm.cmd run pe-exam:data:verify` when the source snapshots have already been refreshed and only the gates need to be rerun.
 
 After source snapshots change, run:
 
@@ -215,6 +229,7 @@ This updates the small `peExamSourceStatus` summary used by `/api/rp/system-stat
 Publish only when:
 
 - the freshness gate confirms generated dates, source years, and minimum row counts
+- `npm.cmd run pe-exam:data:readiness` reports `ready=true`
 - the coverage audit has no unresolved missing universities
 - manual supplemental schools are still intentional
 - source year and official source limitations are understood

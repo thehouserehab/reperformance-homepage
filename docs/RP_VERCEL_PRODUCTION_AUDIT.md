@@ -1,6 +1,6 @@
 # RePERFORMANCE Vercel production audit
 
-Last checked: 2026-07-09
+Last checked: 2026-07-10
 
 This records point-in-time Vercel state that was verifiable through the connected Vercel app. It is evidence for deployment/runtime status at the check time, not a substitute for the manual firewall and environment-variable checks in the campaign runbook.
 
@@ -14,13 +14,13 @@ This records point-in-time Vercel state that was verifiable through the connecte
 - Project: `reperformance-homepage`
 - Project ID: `prj_W2sXR8dobiMSH9QGksPYnwbhX03Z`
 - Framework: `nextjs`
-- Verified deployment ID: `dpl_7xbioT6i3ejm4JRW96TsQ7ax6xeM`
+- Verified deployment ID: `dpl_7ZfcyVaVv1NJ2hQ4Lj8LT5JWkFAK`
 - State: `READY`
 - Target: `production`
 - Source: GitHub `thehouserehab/reperformance-homepage`
 - Branch: `main`
-- Commit: `b02295a9c284b7f745b82e740dfcb501052d3c93`
-- Commit message: `Report database pool readiness`
+- Commit: `e98f953e5395adf70e99ca8c41252e2eb644b4ab`
+- Commit message: `Add auth account lockout controls`
 - `reperformance-homepage.vercel.app`
 - `reperformance-homepage-thehouserehab-9727s-projects.vercel.app`
 - `reperformance-homepage-git-main-thehouserehab-9727s-projects.vercel.app`
@@ -30,24 +30,23 @@ This records point-in-time Vercel state that was verifiable through the connecte
 - Project: `project-7r7l8`
 - Project ID: `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`
 - Framework: `nextjs`
-- Verified deployment ID: `dpl_BeUkknoMbNJ4Ssr4aBAi5hZ5VKQ6`
+- Verified deployment ID: `dpl_2gZgraxVKcRJE4tEJXy26HJJof1S`
 - State: `READY`
 - Target: `production`
 - Source: GitHub `thehouserehab/reperformance-homepage`
 - Branch: `main`
-- Commit: `b02295a9c284b7f745b82e740dfcb501052d3c93`
-- Commit message: `Report database pool readiness`
+- Commit: `e98f953e5395adf70e99ca8c41252e2eb644b4ab`
+- Commit message: `Add auth account lockout controls`
 - `reperformance.the-house-exercise.com`
 - `project-7r7l8-thehouserehab-9727s-projects.vercel.app`
 - `project-7r7l8-git-main-thehouserehab-9727s-projects.vercel.app`
 
 ## Runtime health
 
-- Vercel runtime error clusters: none found for the queried range.
-- Runtime logs, recent 1-hour 5xx filter: no matching logs found.
-- Runtime logs, recent 1-hour 429 filter: no matching logs found.
-- `/pe-exam` returned `200 OK` on both production domains after the `b02295a` deployment.
-- `npm.cmd run ops:public:check` passed `386/386` public production checks after the `b02295a` deployment.
+- Vercel runtime error clusters: none found for the queried 24-hour range on both production projects.
+- Runtime logs, recent 1-hour `error`/`fatal` filter: no matching logs found for deployment IDs `dpl_7ZfcyVaVv1NJ2hQ4Lj8LT5JWkFAK` and `dpl_2gZgraxVKcRJE4tEJXy26HJJof1S`.
+- `/pe-exam` returned `200 OK` on both production domains after the `e98f953` deployment.
+- `npm.cmd run ops:public:check` passed `396/396` public production checks after the `e98f953` deployment.
 - `/api/rp/maintenance/retention` is deployed on both projects. Unauthenticated requests should return `401`, and authenticated cron execution still requires `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` plus a production database URL before relying on the monthly result.
 
 ## Known gaps
@@ -55,8 +54,9 @@ This records point-in-time Vercel state that was verifiable through the connecte
 - Vercel CLI is installed, but local CLI login is not currently usable in this shell session.
 - Production env key presence is covered by `npm.cmd run ops:vercel:check` when `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available. Effective env values still require `/api/rp/system-status` with a staff session.
 - Production migration state still requires `npm.cmd run db:migration:check` with production database access.
+- The local working tree currently contains uncommitted homepage design-direction and public smoke-check updates. These are not included in the verified production deployment until committed, pushed, and redeployed.
 - Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and deletion approval are complete.
-- `npm.cmd run ops:public:check` is the no-secret public production smoke check for page status, page/cache headers, hashed static asset immutable caching, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation after each deploy.
+- `npm.cmd run ops:public:check` is the no-secret public production smoke check for page status, first-landing CTA visibility, service-choice links, PE exam search/training-management entry points, page/cache headers, hashed static asset immutable caching, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation after each deploy.
 
 ## Required follow-up
 

@@ -36,6 +36,9 @@ export const dynamic = 'force-dynamic';
 
 const STATUS_LIMIT = 120;
 const STATUS_WINDOW_MS = 15 * 60 * 1000;
+const DAY_SECONDS = 24 * 60 * 60;
+const SESSION_TTL_RECOMMENDED_MAX_SECONDS = 30 * DAY_SECONDS;
+const SESSION_TTL_BLOCKING_MAX_SECONDS = 90 * DAY_SECONDS;
 
 function getKstYear(date = new Date()) {
   return new Date(date.getTime() + (9 * 60 * 60 * 1000)).getUTCFullYear();
@@ -197,6 +200,44 @@ function addDatabasePoolReadinessWarnings(list, databaseConfigured, databasePool
       list,
       'database_pool_max_high',
       'RP_DATABASE_POOL_MAX is above the conservative recommendation; confirm the managed PostgreSQL plan supports this many connections.',
+      detail,
+    );
+  }
+}
+
+function addSessionTtlReadinessIssues(blockers, warnings, auth) {
+  const ttlSeconds = Number(auth?.session?.ttlSeconds);
+  const detail = {
+    ttlSeconds: Number.isFinite(ttlSeconds) ? ttlSeconds : null,
+    recommendedMaxSeconds: SESSION_TTL_RECOMMENDED_MAX_SECONDS,
+    blockingMaxSeconds: SESSION_TTL_BLOCKING_MAX_SECONDS,
+  };
+
+  if (!Number.isFinite(ttlSeconds)) {
+    addReadinessIssue(
+      blockers,
+      'session_ttl_not_reported',
+      'Auth session TTL must be reported before production login readiness can be verified.',
+      detail,
+    );
+    return;
+  }
+
+  if (ttlSeconds > SESSION_TTL_BLOCKING_MAX_SECONDS) {
+    addReadinessIssue(
+      blockers,
+      'session_ttl_exceeds_blocking_max',
+      'Reduce RP_SESSION_TTL_* to 90 days or less before production traffic.',
+      detail,
+    );
+    return;
+  }
+
+  if (ttlSeconds > SESSION_TTL_RECOMMENDED_MAX_SECONDS) {
+    addReadinessIssue(
+      warnings,
+      'session_ttl_above_recommended_max',
+      'Consider reducing RP_SESSION_TTL_* to 30 days or less for production auth safety.',
       detail,
     );
   }
@@ -376,6 +417,7 @@ function buildHighTrafficReadiness({
   if (!trafficControls?.sharedRateLimit?.failClosed) {
     addReadinessIssue(warnings, 'rate_limit_fail_closed_not_enabled', 'Consider RP_RATE_LIMIT_FAIL_CLOSED=true during paid campaigns so DB limiter failures do not silently degrade to instance-local limits.');
   }
+  addSessionTtlReadinessIssues(blockers, warnings, auth);
   addDatabasePoolReadinessWarnings(warnings, databaseConfigured, databasePool);
   if (googleDriveBackup.enabled) {
     addReadinessIssue(warnings, 'google_backup_enabled', 'Google Drive/Sheets backup is enabled; confirm restore readiness, access controls, and retention before campaign traffic.');
@@ -454,6 +496,7 @@ function buildObjectiveReadiness({
   for (const issue of getProductionSecretReadinessIssues(auth)) {
     addReadinessIssue(authBlockers, issue.code, issue.message);
   }
+  addSessionTtlReadinessIssues(authBlockers, authWarnings, auth);
   if (!databaseConfigured) {
     addReadinessIssue(authBlockers, 'postgres_not_configured', 'Signup, account recovery, AI approval, and duplicate-contact protection require PostgreSQL.');
   }
@@ -545,6 +588,7 @@ function buildObjectiveReadiness({
       warnings: authWarnings,
       evidence: [
         'auth.session.signingSecret',
+        'auth.session.withinBlockingMax',
         'auth.signup.identitySigningSecret',
         'auth.accountRecovery.signingSecret',
         'auth.passwordHash.secret',
@@ -622,7 +666,11 @@ async function buildStatus() {
     session: {
       cookieName: ADMIN_COOKIE_NAME,
       ttlSeconds: sessionTtlSeconds,
-      minimumOneDay: sessionTtlSeconds >= 60 * 60 * 24,
+      minimumOneDay: sessionTtlSeconds >= DAY_SECONDS,
+      recommendedMaxSeconds: SESSION_TTL_RECOMMENDED_MAX_SECONDS,
+      blockingMaxSeconds: SESSION_TTL_BLOCKING_MAX_SECONDS,
+      withinRecommendedMax: sessionTtlSeconds <= SESSION_TTL_RECOMMENDED_MAX_SECONDS,
+      withinBlockingMax: sessionTtlSeconds <= SESSION_TTL_BLOCKING_MAX_SECONDS,
       signingSecretConfigured: hasEnv('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
       signingSecret: buildSecretStatus('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
     },

@@ -214,6 +214,26 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
         && Number(aiUsage?.defaultMemberDailyLimit) > 0,
       `max=${aiUsage?.dailyLimitMax ?? "missing"} member=${aiUsage?.defaultMemberDailyLimit ?? "missing"} staff=${aiUsage?.defaultStaffDailyLimit ?? "missing"}`,
     );
+    const authSession = status.auth?.session;
+    const authSessionTtlSeconds = Number(authSession?.ttlSeconds);
+    const authSessionWithinBlockingMaxPath = "auth.session.withinBlockingMax";
+    addResult(
+      "auth",
+      `${label} auth session TTL policy is reported`,
+      Number.isFinite(authSessionTtlSeconds)
+        && authSessionTtlSeconds >= 24 * 60 * 60
+        && Number.isFinite(Number(authSession?.recommendedMaxSeconds))
+        && Number.isFinite(Number(authSession?.blockingMaxSeconds))
+        && typeof authSession?.withinRecommendedMax === "boolean"
+        && typeof authSession?.withinBlockingMax === "boolean",
+      `ttlSeconds=${authSession?.ttlSeconds ?? "missing"} recommendedMax=${authSession?.recommendedMaxSeconds ?? "missing"} blockingMax=${authSession?.blockingMaxSeconds ?? "missing"}`,
+    );
+    addResult(
+      "auth",
+      `${label} ${authSessionWithinBlockingMaxPath} is true`,
+      authSession?.withinBlockingMax === true,
+      `ttlSeconds=${authSession?.ttlSeconds ?? "missing"} blockingMax=${authSession?.blockingMaxSeconds ?? "missing"} withinRecommended=${authSession?.withinRecommendedMax ?? "missing"}`,
+    );
     const loginLockout = status.auth?.loginLockout;
     addResult(
       "auth",

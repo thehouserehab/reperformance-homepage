@@ -493,6 +493,13 @@
   color: #17191d;
 }
 
+.paginationNote {
+  margin: -4px 0 12px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .clientList {
   display: grid;
   gap: 10px;
@@ -543,6 +550,24 @@
   color: #963724;
   background: #fff0eb;
   border-color: rgba(150, 55, 36, .18);
+}
+
+.loadMoreButton {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #d5d9d2;
+  border-radius: 8px;
+  background: #fff;
+  color: #17191d;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.loadMoreButton:disabled {
+  cursor: wait;
+  opacity: .62;
 }
 
 .detailPanel {

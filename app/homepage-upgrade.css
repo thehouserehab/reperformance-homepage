@@ -12,3 +12,311 @@
 .system-step-card {
   min-height: 230px;
 }
+
+.home-entrance-hero {
+  min-height: calc(100vh - 82px);
+  padding: clamp(86px, 10vw, 132px) 0;
+  background: #080b0f;
+}
+
+.home-entrance-portrait {
+  right: clamp(0px, 5vw, 72px);
+  width: min(40vw, 520px);
+  opacity: 0.7;
+}
+
+.hero-scrim.home-entrance-scrim {
+  background:
+    linear-gradient(90deg, rgba(5, 7, 10, 0.96) 0%, rgba(7, 10, 14, 0.88) 44%, rgba(7, 10, 14, 0.3) 100%),
+    linear-gradient(180deg, rgba(5, 7, 10, 0.28) 0%, rgba(5, 7, 10, 0.82) 100%);
+}
+
+.home-entrance-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  max-width: 850px;
+  gap: 0;
+}
+
+.home-entrance-content h1 {
+  max-width: 780px;
+  margin-bottom: 20px;
+  color: #fff;
+  font-size: clamp(44px, 6.3vw, 82px);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.home-entrance-content .lead {
+  max-width: 640px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 650;
+}
+
+.home-primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.home-main-cta {
+  min-height: 58px;
+  padding-inline: 28px;
+  font-size: 17px;
+}
+
+.home-signal-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: clamp(36px, 7vw, 86px);
+}
+
+.home-signal-strip span {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 0 16px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.home-direction-section {
+  padding: clamp(54px, 7vw, 86px) 0;
+  background: #fff;
+}
+
+.home-direction-inner {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(24px, 5vw, 62px);
+  align-items: start;
+}
+
+.home-direction-inner h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(32px, 4.3vw, 56px);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.home-direction-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.home-direction-grid article {
+  min-width: 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.home-direction-grid article:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.home-direction-grid strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--ink);
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.25;
+}
+
+.home-direction-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.72;
+}
+
+.service-choice-hero {
+  padding: clamp(62px, 9vw, 112px) 0 clamp(34px, 5vw, 64px);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.service-choice-hero-inner {
+  max-width: 880px;
+}
+
+.service-choice-hero h1 {
+  max-width: 760px;
+  margin-bottom: 18px;
+  color: var(--ink);
+  font-size: clamp(42px, 6vw, 76px);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.service-choice-hero p:not(.eyebrow) {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(17px, 1.8vw, 21px);
+  line-height: 1.72;
+}
+
+.service-choice-section {
+  padding: clamp(34px, 5vw, 62px) 0 clamp(72px, 8vw, 104px);
+  background: #f4f5f2;
+}
+
+.service-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.service-choice-card {
+  position: relative;
+  display: grid;
+  min-height: 310px;
+  align-content: space-between;
+  gap: 28px;
+  overflow: hidden;
+  padding: clamp(26px, 4vw, 42px);
+  border: 1px solid rgba(23, 25, 29, 0.08);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.service-choice-card-featured {
+  background: #10141d;
+  color: #fff;
+}
+
+.service-choice-card-featured p,
+.service-choice-card-featured .card-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.service-choice-card-featured .service-choice-kicker,
+.service-choice-card-featured .service-choice-link {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.service-choice-kicker {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 36px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 14px;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.service-choice-card h2 {
+  margin: 0 0 12px;
+  color: inherit;
+  font-size: clamp(31px, 4vw, 52px);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.service-choice-card p:not(.card-label) {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 650;
+  line-height: 1.65;
+}
+
+.service-choice-link {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 46px;
+  align-items: center;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  padding: 0 18px;
+  color: var(--ink);
+  font-weight: 950;
+}
+
+.service-choice-apply {
+  padding: clamp(44px, 6vw, 74px) 0;
+  background: #fff;
+}
+
+.service-choice-apply-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  padding: clamp(26px, 4vw, 42px);
+  border-radius: 8px;
+  background: #10141d;
+  color: #fff;
+}
+
+.service-choice-apply h2 {
+  max-width: 760px;
+  margin: 0;
+  color: #fff;
+  font-size: clamp(27px, 3.8vw, 46px);
+  line-height: 1.16;
+}
+
+.service-choice-apply .eyebrow {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 900px) {
+  .home-entrance-hero {
+    min-height: calc(100vh - 76px);
+  }
+
+  .home-entrance-portrait {
+    right: -80px;
+    width: 72vw;
+    opacity: 0.18;
+  }
+
+  .home-primary-actions .button {
+    width: 100%;
+  }
+
+  .home-direction-inner,
+  .service-choice-grid,
+  .service-choice-apply-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .service-choice-card {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-entrance-content h1,
+  .service-choice-hero h1 {
+    font-size: clamp(38px, 12vw, 50px);
+  }
+
+  .home-main-cta {
+    min-height: 54px;
+    font-size: 16px;
+  }
+
+  .home-signal-strip span {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .service-choice-card h2 {
+    font-size: clamp(30px, 9vw, 42px);
+  }
+}

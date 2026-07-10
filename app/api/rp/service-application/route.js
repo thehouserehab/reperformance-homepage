@@ -18,6 +18,7 @@ import {
   checkRequestBodySize,
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
+import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
 
 export const dynamic = 'force-dynamic';
 
@@ -476,9 +477,11 @@ function buildPublicApplicationResult(result) {
 }
 
 function getPublicApplicationError(error) {
-  if (error?.status === 400) return error?.message || '필수 항목을 확인해주세요.';
   if (error?.status === 503) return '현재 신청 저장소 설정이 완료되지 않았습니다.';
-  return '서비스 신청 저장 중 오류가 발생했습니다.';
+  return getSafePublicErrorMessage(
+    error,
+    error?.status === 400 ? '필수 항목을 확인해주세요.' : '서비스 신청 저장 중 오류가 발생했습니다.',
+  );
 }
 
 export async function POST(request) {
@@ -525,7 +528,7 @@ export async function POST(request) {
     if (jsonMode) {
       return NextResponse.json(
         { ok: false, error: getPublicApplicationError(error) },
-        { status: error?.status || 500 },
+        { status: getPublicErrorStatus(error) },
       );
     }
 

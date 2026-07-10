@@ -3,64 +3,92 @@ import PeExamWindowLink from "../_components/PeExamWindowLink";
 import { ConsultationCTA, PageShell } from "../_components/SiteChrome";
 import { serviceItems } from "../_components/siteData";
 
+const serviceTone = {
+  "senior-rehab": "회복",
+  "athlete-reconditioning": "복귀",
+  "pe-exam": "입시",
+  "pain-care": "관리",
+} as const;
+
+const serviceDisplayTitles = {
+  "senior-rehab": "시니어 재활",
+  "athlete-reconditioning": "선수 케어·퍼포먼스",
+  "pe-exam": "체대입시",
+  "pain-care": "일반 재활",
+} as const;
+
+const serviceSummaries = {
+  "senior-rehab": "보행, 균형, 하체 근력, 일상 동작 회복이 필요할 때",
+  "athlete-reconditioning": "부상 이후 복귀와 경기력 회복을 단계적으로 준비할 때",
+  "pe-exam": "대학 정보 확인과 실기 기록 향상을 함께 관리해야 할 때",
+  "pain-care": "어깨, 허리, 무릎 불편감과 기초 체력 저하를 관리할 때",
+} as const;
+
 export default function ServicesPage() {
   return (
     <PageShell>
-      <section className="page-hero">
-        <div className="container page-title">
-          <p className="eyebrow">SERVICES</p>
-          <h1>재활 입구에서 움직임 복귀까지 이어갑니다.</h1>
+      <section className="service-choice-hero">
+        <div className="container service-choice-hero-inner">
+          <p className="eyebrow">BROWSE SERVICES</p>
+          <h1>지금 필요한 목적을 먼저 선택하세요.</h1>
           <p>
-            통증을 줄이는 데서 멈추지 않습니다. 다시 움직이고, 다시 운동하고, 더 오래 건강하게 유지할 수 있도록
-            단계적으로 설계합니다.
+            긴 설명보다 선택이 먼저입니다. 목적을 고르면 해당 서비스의 상담 흐름과 준비 방향으로 이동합니다.
           </p>
         </div>
       </section>
 
-      <section className="section">
-        <div className="container service-stack">
+      <section className="service-choice-section" aria-label="서비스 선택">
+        <div className="container service-choice-grid">
           {serviceItems.map((item) => {
-            const isPeExam = item.applicationValue === "pe-exam";
-            const cardContent = (
+            const tone = serviceTone[item.applicationValue as keyof typeof serviceTone] || "상담";
+            const displayTitle = serviceDisplayTitles[item.applicationValue as keyof typeof serviceDisplayTitles] || item.title;
+            const summary = serviceSummaries[item.applicationValue as keyof typeof serviceSummaries] || item.target;
+            const card = (
               <>
+                <span className="service-choice-kicker">{tone}</span>
                 <div>
-                  <span className="card-number">{item.number}</span>
                   <p className="card-label">{item.label}</p>
-                  <h2>{item.title}</h2>
-                  <p>{item.description}</p>
+                  <h2>{displayTitle}</h2>
+                  <p>{summary}</p>
                 </div>
-                <div className="mini-list">
-                  <strong>대상</strong>
-                  <span>{item.target}</span>
-                  <strong>핵심</strong>
-                  <span>{item.message}</span>
-                  <span className="more-link">{isPeExam ? "체대입시 페이지 보기" : "이 서비스 신청하기"}</span>
-                </div>
+                <span className="service-choice-link">선택하기</span>
               </>
             );
 
-            if (isPeExam) {
+            if (item.applicationValue === "pe-exam") {
               return (
-                <PeExamWindowLink href={item.href} className="wide-card interactive-card feature-service-card" key={item.href}>
-                  {cardContent}
+                <PeExamWindowLink
+                  href={item.href}
+                  className="service-choice-card interactive-card service-choice-card-featured"
+                  key={item.href}
+                >
+                  {card}
                 </PeExamWindowLink>
               );
             }
 
             return (
-              <Link
-                href={item.applyHref}
-                className="wide-card interactive-card"
-                key={item.href}
-              >
-                {cardContent}
+              <Link href={item.href} className="service-choice-card interactive-card" key={item.href}>
+                {card}
               </Link>
             );
           })}
         </div>
       </section>
 
-      <ConsultationCTA />
+      <section className="service-choice-apply">
+        <div className="container service-choice-apply-inner">
+          <div>
+            <p className="eyebrow">NOT SURE YET</p>
+            <h2>어떤 서비스를 골라야 할지 모르겠다면 상담에서 먼저 정리합니다.</h2>
+          </div>
+          <Link href="/apply" className="button primary">
+            상담 신청하기
+          </Link>
+        </div>
+      </section>
+
+      <ConsultationCTA compact />
     </PageShell>
   );
 }
