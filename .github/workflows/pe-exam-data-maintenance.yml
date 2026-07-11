@@ -1,0 +1,131 @@
+name: PE exam data maintenance
+
+on:
+  schedule:
+    # 05:17 KST on the second day of each month.
+    - cron: "17 20 1 * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run a read-only verification or fetch fresh source snapshots"
+        required: true
+        default: refresh
+        type: choice
+        options:
+          - verify
+          - refresh
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pe-exam-data-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    name: Verify and propose PE exam data updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CI: true
+      TZ: Asia/Seoul
+    steps:
+      - name: Check out main
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify checked-in snapshots
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'verify'
+        run: |
+          npm run pe-exam:data:readiness
+          npm run pe-exam:data:verify
+
+      - name: Refresh and verify source snapshots
+        if: github.event_name == 'schedule' || inputs.mode == 'refresh'
+        run: npm run pe-exam:data:refresh
+
+      - name: Validate refreshed application
+        if: github.event_name == 'schedule' || inputs.mode == 'refresh'
+        run: |
+          npm run typecheck
+          npm run build
+          git diff --check
+
+      - name: Stage generated data only
+        if: github.event_name == 'schedule' || inputs.mode == 'refresh'
+        id: changes
+        shell: bash
+        run: |
+          data_files=(
+            "app/pe-exam/kusfAdmissionData.ts"
+            "app/pe-exam/kusfAdmissionDetailData.ts"
+            "app/pe-exam/adigaRegularAdmissionData.ts"
+            "app/pe-exam/adigaRegularSelectionData.ts"
+            "app/pe-exam/peExamSourceStatus.js"
+          )
+          git add -- "${data_files[@]}"
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No source snapshot changes were detected." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Validated source snapshot changes are ready for review." >> "$GITHUB_STEP_SUMMARY"
+            git diff --cached --stat >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Publish or update review pull request
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          branch="automation/pe-exam-data-refresh"
+          title="Refresh PE exam source snapshots"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -m "$title"
+
+          if git fetch origin "refs/heads/$branch:refs/remotes/origin/$branch"; then
+            lease="$(git rev-parse "refs/remotes/origin/$branch")"
+            git push --force-with-lease="refs/heads/$branch:$lease" origin "HEAD:refs/heads/$branch"
+          else
+            git push origin "HEAD:refs/heads/$branch"
+          fi
+
+          body=$(cat <<'EOF'
+          ## Automated PE exam data refresh
+
+          This pull request contains only generated KUSF/ADIGA source snapshots and the synchronized system-status summary.
+
+          Before merging, review:
+          - source year and generated date
+          - university and admission row counts
+          - unexpected university additions or removals
+          - official source availability and parser warnings
+
+          The workflow already ran freshness, university coverage, type checking, and a production build. No deployment is performed automatically.
+          EOF
+          )
+
+          number="$(gh pr list --head "$branch" --base main --state open --json number --jq '.[0].number')"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$title" --body "$body"
+            echo "Updated pull request #$number." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh pr create --base main --head "$branch" --title "$title" --body "$body"
+            echo "Created a pull request for review." >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -1256,6 +1256,26 @@ addCheck(
       "--verify-only",
     ]),
 );
+addCheck(
+  "pe-data",
+  "PE exam data maintenance is scheduled and review-gated",
+  Boolean(scripts["pe-exam:data:automation-policy"])
+    && fileExists(".github/workflows/pe-exam-data-maintenance.yml")
+    && includesAll(".github/workflows/pe-exam-data-maintenance.yml", [
+      "schedule:",
+      "workflow_dispatch:",
+      "npm run pe-exam:data:refresh",
+      "npm run pe-exam:data:verify",
+      "git add -- \"${data_files[@]}\"",
+      "automation/pe-exam-data-refresh",
+      "gh pr create",
+    ])
+    && includesAll("docs/RP_PE_EXAM_DATA_AUTOMATION.md", [
+      "never deploys or merges automatically",
+      "source years",
+      "university additions or removals",
+    ]),
+);
 addCheck("pe-data", "PE exam data coverage audit command exists", Boolean(scripts["pe-exam:data:audit"]));
 addCheck("pe-data", "KUSF summary fetch script exists", fileExists("scripts/fetch-kusf-pe-exam-data.mjs"));
 addCheck("pe-data", "KUSF detail fetch script exists", fileExists("scripts/fetch-kusf-pe-exam-detail-data.mjs"));

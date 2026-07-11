@@ -28,6 +28,10 @@ const steps = [
     command: [npmCommand, "run", "ops:audit"],
   },
   {
+    name: "PE exam data automation policy",
+    command: [npmCommand, "run", "pe-exam:data:automation-policy"],
+  },
+  {
     name: "Vercel Firewall policy fixtures",
     command: [npmCommand, "run", "ops:firewall:policy"],
   },

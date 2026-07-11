@@ -216,6 +216,19 @@ const objectives = [
           && includesAll("scripts/refresh-pe-exam-data.mjs", ["check-pe-exam-data-freshness.mjs", "audit-pe-exam-university-coverage.mjs"]),
       ),
       buildCheck(
+        "Scheduled maintenance proposes reviewed snapshot updates without automatic deployment",
+        Boolean(scripts["pe-exam:data:automation-policy"])
+          && includesAll(".github/workflows/pe-exam-data-maintenance.yml", [
+            "schedule:",
+            "workflow_dispatch:",
+            "npm run pe-exam:data:refresh",
+            "npm run build",
+            "automation/pe-exam-data-refresh",
+            "gh pr create",
+          ])
+          && includesAll("docs/RP_PE_EXAM_DATA_AUTOMATION.md", ["never deploys or merges automatically", "Before merging"]),
+      ),
+      buildCheck(
         "System status exposes PE data readiness",
         includesAll("app/api/rp/system-status/route.js", ["buildPeExamDataStatus", "peExamData", "pe_exam_data_not_fresh"]),
       ),
@@ -223,7 +236,7 @@ const objectives = [
     productionEvidence: [
       "npm.cmd run pe-exam:data:readiness reports ready=true immediately before admission-season publishing.",
       "After deployment, staff-only /api/rp/system-status reports peExamData.ok=true.",
-      "Manual source refresh is performed when KUSF/ADIGA annual data changes.",
+      "The scheduled or manually dispatched refresh pull request is reviewed and merged when KUSF/ADIGA annual data changes.",
     ],
   },
   {

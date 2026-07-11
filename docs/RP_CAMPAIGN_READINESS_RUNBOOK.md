@@ -232,6 +232,8 @@ npm.cmd run pe-exam:data:refresh
 
 `pe-exam:data:readiness` is the read-only first check. It summarizes source years, generated dates, row counts, system-status summary sync, and the next commands to run. `pe-exam:data:refresh` fetches all KUSF/ADIGA source snapshots and then runs freshness/source-year and university coverage gates. Use `npm.cmd run pe-exam:data:verify` when the source snapshots have already been refreshed and only the gates need to be rerun.
 
+The `PE exam data maintenance` GitHub Actions workflow runs monthly and can also be started manually in `verify` or `refresh` mode. A refresh that changes source snapshots creates or updates a review pull request and never deploys automatically. See `docs/RP_PE_EXAM_DATA_AUTOMATION.md` for the review boundary and repository permission requirement.
+
 After source snapshots change, run:
 
 ```powershell

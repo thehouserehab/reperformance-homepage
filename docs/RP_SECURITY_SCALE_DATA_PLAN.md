@@ -61,7 +61,8 @@ npm run pe-exam:data:refresh
 - `npm run pe-exam:data:refresh` 결과에서 생성일, 원천 학년도, 최소 데이터량, 신규 누락 대학 여부를 한 번에 확인합니다.
 - 배포 직전 snapshot 검증만 필요하면 `npm run pe-exam:data:verify`로 freshness와 coverage를 재확인합니다.
 - source snapshot이 바뀐 뒤에는 `npm run pe-exam:data:status`로 `/api/rp/system-status`의 `peExamData` 요약을 갱신하고, 배포 후 staff session으로 `peExamData.ok=true`를 확인합니다.
-- `npm run build`로 486개 이상의 정적 체대입시 상세 페이지가 생성되는지 확인합니다.
+- `.github/workflows/pe-exam-data-maintenance.yml`은 매월 원천 갱신과 검증을 실행하고, 변경된 생성 데이터만 검토용 PR로 올립니다. 자동 병합·자동 배포는 하지 않으며 운영자가 원천 연도, 행 수 변화, 대학 추가·삭제를 확인한 뒤 병합합니다.
+- `npm run build`로 현재 데이터에 대응하는 모든 정적 체대입시 상세 페이지가 오류 없이 생성되는지 확인합니다.
 - 공식 원천에 없는 등급컷/기록 기준은 임의 작성하지 않고 “공식 모집요강 확인”으로 표시합니다.
 - 수동 보강 대학은 `peExamData.ts`에 검색어, 코드, 학과, 공식 확인 문구를 함께 남깁니다.
 - 연 1회 정기 갱신, 대입 모집요강 변경 시 수시 갱신을 운영 루틴으로 둡니다.
