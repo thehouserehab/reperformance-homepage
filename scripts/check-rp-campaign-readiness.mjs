@@ -32,6 +32,10 @@ const steps = [
     command: [npmCommand, "run", "pe-exam:data:automation-policy"],
   },
   {
+    name: "Public load-test safety policy",
+    command: [npmCommand, "run", "ops:load:policy"],
+  },
+  {
     name: "Vercel Firewall policy fixtures",
     command: [npmCommand, "run", "ops:firewall:policy"],
   },
@@ -181,5 +185,6 @@ Manual gates before a high-traffic campaign:
 - Confirm outbound timeout env vars remain conservative: RP_OUTBOUND_FETCH_TIMEOUT_MS, RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS, RP_AUTH_SCRIPT_FETCH_TIMEOUT_MS, RP_WEBHOOK_FETCH_TIMEOUT_MS, and RP_OPENAI_FETCH_TIMEOUT_MS.
 - Confirm npm.cmd run pe-exam:data:readiness reports ready=true before publishing admission campaigns.
 - Run npm.cmd run ops:public:check after deploy to verify public pages, security headers, unauthenticated API rejection, foreign-origin write rejection, and external management separation.
+- Run npm.cmd run ops:load:test against the release build locally; use the confirmed, capped production probe only during an approved window.
 - Monitor Vercel logs, 429 rate, 5xx rate, database connection timeouts, and backup failures during the campaign.
 `);

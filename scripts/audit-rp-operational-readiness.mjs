@@ -1240,6 +1240,28 @@ addCheck(
 );
 
 addCheck(
+  "traffic",
+  "Public load testing is bounded, read-only, and production-gated",
+  Boolean(scripts["ops:load:test"])
+    && Boolean(scripts["ops:load:policy"])
+    && includesAll("scripts/load-test-rp-public.mjs", [
+      "RUN_RP_PUBLIC_LOAD_TEST",
+      "isLocal ? 2000 : 300",
+      "isLocal ? 100 : 20",
+      "API paths are not allowed",
+      "Cross-origin redirect blocked",
+      "AbortController",
+      "maxP95Ms",
+      "maxErrorRate",
+    ])
+    && includesAll("docs/RP_TRAFFIC_LOAD_TEST.md", [
+      "Local baseline",
+      "Controlled production probe",
+      "never generate load using real customer records",
+    ]),
+);
+
+addCheck(
   "pe-data",
   "PE exam data refresh command runs source fetches and verification gates",
   Boolean(scripts["pe-exam:data:refresh"])

@@ -4,6 +4,8 @@ Last updated: 2026-07-11
 
 Use this before paid ads, offline events, admission season traffic, or any expected traffic spike.
 
+For repeatable concurrent public-page validation, follow `docs/RP_TRAFFIC_LOAD_TEST.md`. The load-test command is read-only, defaults to localhost, and requires an explicit confirmation string for any remote target.
+
 ## 1. Fast local check
 
 Run:

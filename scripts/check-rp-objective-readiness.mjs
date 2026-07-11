@@ -274,6 +274,20 @@ const objectives = [
           && Boolean(scripts["ops:vercel:check"]),
       ),
       buildCheck(
+        "Bounded read-only concurrency testing is available with production safeguards",
+        Boolean(scripts["ops:load:test"])
+          && Boolean(scripts["ops:load:policy"])
+          && includesAll("scripts/load-test-rp-public.mjs", [
+            "RUN_RP_PUBLIC_LOAD_TEST",
+            "isLocal ? 2000 : 300",
+            "isLocal ? 100 : 20",
+            "API paths are not allowed",
+            "maxP95Ms",
+            "maxErrorRate",
+          ])
+          && includesAll("docs/RP_TRAFFIC_LOAD_TEST.md", ["Local baseline", "Controlled production probe", "synthetic data"]),
+      ),
+      buildCheck(
         "Edge/firewall and outbound-timeout readiness are documented and audited",
         includesAll("docs/RP_VERCEL_FIREWALL_RULES.md", ["/api/auth/login", "/api/auth/identity-verification", "/api/rp/service-application", "/api/rp/pe-exam-ai-consult"])
           && includesAll("scripts/lib/rpVercelFirewallPolicy.mjs", [
@@ -302,6 +316,7 @@ const objectives = [
     productionEvidence: [
       "Production Vercel env, latest deployment, and deployed HEAD are verified with npm.cmd run ops:campaign:check -- --vercel.",
       "Public production smoke/security checks pass after deployment with npm.cmd run ops:public:check.",
+      "A release-build local load test passes, and any production probe is explicitly approved, bounded, and monitored.",
       "Staff status strict check passes with npm.cmd run ops:campaign:check -- --security-strict.",
       "Vercel Firewall or equivalent edge controls are enabled before paid/admission traffic.",
     ],

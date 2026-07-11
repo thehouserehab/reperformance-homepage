@@ -15,6 +15,8 @@
     "ops:campaign:check": "node scripts/check-rp-campaign-readiness.mjs",
     "ops:firewall:policy": "node scripts/check-rp-firewall-policy.mjs",
     "ops:firewall:sync": "node scripts/sync-rp-vercel-firewall.mjs",
+    "ops:load:policy": "node scripts/check-rp-load-test-policy.mjs",
+    "ops:load:test": "node scripts/load-test-rp-public.mjs",
     "ops:objective:check": "node scripts/check-rp-objective-readiness.mjs",
     "ops:public:check": "node scripts/check-rp-public-production.mjs",
     "ops:release:check": "node scripts/check-rp-release-state.mjs",
