@@ -52,6 +52,7 @@ database/migrations/20260701_security_event_log.sql
 database/migrations/20260702_retention_scale_indexes.sql
 database/migrations/20260703_auth_contact_uniqueness.sql
 database/migrations/20260710_auth_account_lockout.sql
+database/migrations/20260711_client_cursor_pagination.sql
 database/migrations/20260711_auth_session_revocation.sql
 ```
 
@@ -72,6 +73,8 @@ Treat any failed table, column, or index check as a no-go for campaign traffic.
 If `db:migration:check` reports duplicate auth verified-contact groups, resolve those rows before applying `20260703_auth_contact_uniqueness.sql`. The unique index is intentionally strict so the same verified phone, email, or Kakao contact cannot create multiple login accounts.
 
 Apply `20260711_auth_session_revocation.sql` before deploying code that uses active session revalidation. It adds `rp_auth_accounts.session_version` and `password_changed_at`. Password resets and the administrator all-session termination control increment `session_version`, so every older cookie for that account fails the next server-side authorization check. Do not enable `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` until this migration and the full migration check pass.
+
+Apply `20260711_client_cursor_pagination.sql` before relying on cursor-first customer browsing at large scale. Its `(updated_at DESC, created_at DESC, id DESC)` index matches the stable keyset query and prevents late customer-list pages from repeatedly scanning all earlier rows through `OFFSET`.
 
 After deploy, verify `/api/rp/system-status` with a staff session. `storage.postgres.schema.allRequiredTablesPresent`, `allRequiredIndexesPresent`, `verifiedContactUniquenessReady`, `authSessionRevocationReady`, `rateLimitBucketsReady`, `aiUsageBucketsReady`, `retentionIndexesReady`, and `securityEventsReady` should all be `true`. `verifiedContactUniqueIndexPresent` should be `true`, `verifiedContactDuplicateGroups` should be `0`, and `missingAuthSessionColumns` should be empty. Also confirm `storage.postgres.pool.explicitMax=true`, `storage.postgres.pool.validMax=true`, and review `storage.postgres.pool.max` against the managed PostgreSQL plan before campaign traffic.
 

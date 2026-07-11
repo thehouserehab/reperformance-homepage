@@ -48,6 +48,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - `/api/rp/system-status` now reports `securityMonitoring` with `authFailureCount`, `rateLimitedCount`, masked `topIpPrefixes`, and configurable thresholds so staff can see recent auth-abuse signals without exposing raw PII.
 - Public and expensive POST routes reject oversized request bodies before parsing.
 - Customer client writes reject oversized request bodies before parsing.
+- Customer list reads now use stable `(updated_at, created_at, id)` cursor pagination on PostgreSQL with a matching composite index. The bounded offset path remains only for Google Drive/Sheets fallback compatibility.
 - Login, logout, signup, identity verification, account recovery, service application, customer write, consultation summary, PE exam question, and PE exam AI consult POST routes now reject foreign `Origin`/`Referer` values before parsing or rate-limit work. Staff-only protected write APIs also perform this origin check in middleware before staff-session auth.
 - `/api/*` responses are marked `private, no-store` with noindex headers so customer/auth data is not cached by browsers or intermediaries.
 - Consultation summary generation now requires a valid staff session before any OpenAI call.

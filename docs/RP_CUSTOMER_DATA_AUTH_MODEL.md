@@ -22,6 +22,10 @@
 - `rp_pe_exam_questions`: 체대입시 질문 기록
 - `rp_pe_exam_ai_consults`: 체대입시 AI 상담 기록
 
+### 대량 고객 목록 조회
+
+`/api/rp/clients`는 기본 200명, 최대 500명만 반환합니다. PostgreSQL에서는 `(updated_at, created_at, id)` 복합 cursor를 사용해 다음 페이지를 조회하므로 데이터가 커져도 후반 페이지를 위해 앞선 행을 반복 스캔하지 않습니다. 응답의 `pagination.nextCursor`를 우선 사용하고, `nextOffset`은 Google Drive/Sheets fallback과 구형 호출 호환용으로만 유지합니다. 운영 전에 `20260711_client_cursor_pagination.sql`을 적용해 같은 순서의 복합 인덱스를 준비합니다.
+
 ### 상담 화면에서 보는 데이터
 
 DB와 백업 저장소에는 원본 데이터가 쌓이고, 실제 상담자가 보는 화면에서는 `회원 요약`으로 다시 정리합니다.

@@ -392,12 +392,18 @@ export default function RPClientManager() {
 
   async function handleLoadMoreClients() {
     const nextOffset = Number(clientPagination?.nextOffset);
-    if (!Number.isFinite(nextOffset) || nextOffset < 0 || isLoadingMoreClients) return;
+    const nextCursor = String(clientPagination?.nextCursor || '').trim();
+    const hasOffset = Number.isFinite(nextOffset) && nextOffset >= 0;
+    if ((!nextCursor && !hasOffset) || isLoadingMoreClients) return;
 
     try {
       setIsLoadingMoreClients(true);
       setConnectionError('');
-      const loadedClients = await fetchRpClients({ limit: CLIENT_PAGE_SIZE, offset: nextOffset });
+      const loadedClients = await fetchRpClients({
+        limit: CLIENT_PAGE_SIZE,
+        offset: hasOffset ? nextOffset : 0,
+        cursor: nextCursor,
+      });
       const pagination = loadedClients.pagination || null;
 
       setClients((current) => mergeClientPages(current, loadedClients));

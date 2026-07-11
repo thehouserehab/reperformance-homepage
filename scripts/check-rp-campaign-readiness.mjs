@@ -40,6 +40,10 @@ const steps = [
     command: [npmCommand, "run", "ops:auth:session-policy"],
   },
   {
+    name: "Customer cursor pagination policy",
+    command: [npmCommand, "run", "ops:data:pagination-policy"],
+  },
+  {
     name: "Vercel Firewall policy fixtures",
     command: [npmCommand, "run", "ops:firewall:policy"],
   },

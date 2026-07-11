@@ -374,9 +374,11 @@ const objectives = [
       ),
       buildCheck(
         "Customer list access is paginated end to end",
-        includesAll("app/api/rp/clients/route.js", ["DEFAULT_CLIENT_LIST_LIMIT", "MAX_CLIENT_LIST_LIMIT", "pagination", "nextOffset"])
-          && includesAll("components/rp-consultation/RPClientManager.jsx", ["CLIENT_PAGE_SIZE", "handleLoadMoreClients", "clientPagination?.hasMore"])
-          && includesAll("lib/rpDatabase.js", ["listDatabaseClients({ limit = 200, offset = 0 } = {})", "LIMIT $1 OFFSET $2"]),
+        Boolean(scripts["ops:data:pagination-policy"])
+          && includesAll("app/api/rp/clients/route.js", ["DEFAULT_CLIENT_LIST_LIMIT", "MAX_CLIENT_LIST_LIMIT", "pagination", "nextOffset", "nextCursor", "paginationStrategy: 'cursor'"])
+          && includesAll("components/rp-consultation/RPClientManager.jsx", ["CLIENT_PAGE_SIZE", "handleLoadMoreClients", "clientPagination?.hasMore", "clientPagination?.nextCursor"])
+          && includesAll("lib/rpDatabase.js", ["listDatabaseClients({ limit = 200, offset = 0, cursor = null } = {})", "WHERE (updated_at, created_at, id) <", "LIMIT $1 OFFSET $2", "rp_clients_page_cursor_idx"])
+          && includesAll("database/migrations/20260711_client_cursor_pagination.sql", ["rp_clients_page_cursor_idx"]),
       ),
       buildCheck(
         "System status reports pool, retention, and objective-level scale readiness",

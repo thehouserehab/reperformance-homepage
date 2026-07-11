@@ -194,6 +194,7 @@ const requiredIndexes = [
   "rp_auth_accounts_locked_until_idx",
   "rp_clients_name_idx",
   "rp_clients_phone_idx",
+  "rp_clients_page_cursor_idx",
   "rp_consultations_client_id_idx",
   "rp_service_applications_client_id_idx",
   "rp_service_applications_phone_idx",

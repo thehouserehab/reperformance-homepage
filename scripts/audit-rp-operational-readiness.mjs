@@ -1197,26 +1197,38 @@ addCheck(
 addCheck(
   "data",
   "Customer list API is paginated for large datasets",
-  includesAll("app/api/rp/clients/route.js", [
+  Boolean(scripts["ops:data:pagination-policy"])
+    && includesAll("app/api/rp/clients/route.js", [
     "DEFAULT_CLIENT_LIST_LIMIT",
     "MAX_CLIENT_LIST_LIMIT",
     "getClientListWindow",
     "applyClientListWindow",
     "pagination",
     "nextOffset",
+    "nextCursor",
+    "decodeClientListCursor",
+    "encodeClientListCursor",
+    "paginationStrategy: 'cursor'",
     "url.searchParams.set('limit'",
     "url.searchParams.set('offset'",
     "limit: listWindow.fetchLimit",
     "offset: listWindow.offset",
   ])
     && includesAll("lib/rpDatabase.js", [
-      "listDatabaseClients({ limit = 200, offset = 0 } = {})",
+      "listDatabaseClients({ limit = 200, offset = 0, cursor = null } = {})",
+      "WHERE (updated_at, created_at, id) <",
+      "ORDER BY updated_at DESC, created_at DESC, id DESC",
       "LIMIT $1 OFFSET $2",
-      "[safeLimit, safeOffset]",
+      "rp_clients_page_cursor_idx",
+    ])
+    && includesAll("database/migrations/20260711_client_cursor_pagination.sql", [
+      "rp_clients_page_cursor_idx",
+      "updated_at DESC, created_at DESC, id DESC",
     ])
     && includesAll("components/rp-consultation/rpSheetsClient.js", [
       "fetchRpClients(options = {})",
       "URLSearchParams",
+      "params.set('cursor', cursor)",
       "payload.pagination",
       "Object.defineProperty(clients, 'pagination'",
     ])
@@ -1226,6 +1238,7 @@ addCheck(
       "mergeClientPages",
       "isLoadingMoreClients",
       "clientPagination",
+      "clientPagination?.nextCursor",
       "paginationNote",
       "clientPagination?.hasMore",
       "loadMoreButton",

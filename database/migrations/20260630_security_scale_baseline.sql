@@ -178,6 +178,7 @@ CREATE TABLE IF NOT EXISTS rp_ai_usage_buckets (
 CREATE INDEX IF NOT EXISTS rp_clients_name_idx ON rp_clients (name);
 CREATE INDEX IF NOT EXISTS rp_auth_accounts_locked_until_idx ON rp_auth_accounts (locked_until) WHERE locked_until IS NOT NULL;
 CREATE INDEX IF NOT EXISTS rp_clients_phone_idx ON rp_clients (phone);
+CREATE INDEX IF NOT EXISTS rp_clients_page_cursor_idx ON rp_clients (updated_at DESC, created_at DESC, id DESC);
 CREATE INDEX IF NOT EXISTS rp_consultations_client_id_idx ON rp_consultations (client_id);
 CREATE INDEX IF NOT EXISTS rp_service_applications_client_id_idx ON rp_service_applications (client_id);
 CREATE INDEX IF NOT EXISTS rp_service_applications_phone_idx ON rp_service_applications (phone);

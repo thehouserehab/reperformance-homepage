@@ -2,9 +2,11 @@ export async function fetchRpClients(options = {}) {
   const params = new URLSearchParams();
   const limit = Number(options.limit);
   const offset = Number(options.offset);
+  const cursor = String(options.cursor || '').trim();
 
   if (Number.isFinite(limit) && limit > 0) params.set('limit', String(Math.floor(limit)));
   if (Number.isFinite(offset) && offset > 0) params.set('offset', String(Math.floor(offset)));
+  if (cursor) params.set('cursor', cursor);
 
   const url = params.size ? `/api/rp/clients?${params.toString()}` : '/api/rp/clients';
   const response = await fetch(url, {

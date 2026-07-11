@@ -1,6 +1,6 @@
 # RePERFORMANCE 보안, 데이터, 확장 운영 대책
 
-Last updated: 2026-07-10
+Last updated: 2026-07-11
 
 이 문서는 홈페이지 고객 데이터, 회원가입/로그인, 체대입시 데이터 최신화, 트래픽 급증, 데이터 관리 급증에 대한 운영 대책을 정리합니다.
 
@@ -13,7 +13,7 @@ Last updated: 2026-07-10
 - 신규 `rp_service_applications.payload`는 저장 시점부터 필수 메타데이터 중심으로 최소화하고, 기존 넓은 payload는 retention 감사/정리 대상으로 둡니다.
 - 신규 `rp_pe_exam_ai_consults.payload`와 `conversation_record`는 저장 시점부터 최소 메타데이터 중심으로 저장하고, 기존 넓은 AI 상담 JSON 기록은 retention 감사/정리 대상으로 둡니다.
 - 신규 `rp_pe_exam_questions.payload`는 저장 시점부터 최소 메타데이터 중심으로 저장하고, 기존 넓은 질문 JSON 기록은 retention 감사/정리 대상으로 둡니다.
-- 관리자 고객 목록 조회는 기본 200명, 요청 최대 500명으로 제한하고 `limit`/`offset` 기반 페이지네이션 메타데이터를 반환합니다. 관리자 화면은 추가 페이지가 있을 때 더 불러오기 흐름을 사용하며, 대량 고객 데이터 운영 시 전체 테이블을 한 번에 내려받는 화면을 만들지 않습니다.
+- 관리자 고객 목록 조회는 기본 200명, 요청 최대 500명으로 제한합니다. PostgreSQL은 `nextCursor` 기반 keyset 페이지네이션을 우선 사용하고, `nextOffset`은 Google Drive/Sheets fallback 호환용으로만 유지합니다. 관리자 화면은 추가 페이지가 있을 때 더 불러오기 흐름을 사용하며, 대량 고객 데이터 운영 시 전체 테이블을 한 번에 내려받는 화면을 만들지 않습니다.
 - 운영 계정은 `owner`, `admin`, `trainer`, `member` 역할을 분리하고, 고객관리/상담 API는 staff 권한에서만 접근합니다.
 - 신규 고객 신청, 체대입시 AI 상담 준비, 계정 찾기 기록은 모두 길이 제한과 공개 응답 축소를 유지합니다.
 - 정기 운영 작업: 월 1회 백업 접근자 점검, 분기 1회 오래된 상담 원본 payload 삭제 또는 익명화 정책 확정.
@@ -85,7 +85,7 @@ npm run pe-exam:data:refresh
 
 - `rp_clients`, `rp_service_applications`, `rp_pe_exam_ai_consults`는 생성일/사용자/고객 ID 인덱스를 유지합니다.
 - `rp_service_applications`, `rp_pe_exam_ai_consults`, `rp_pe_exam_questions`의 broad payload retention 정리는 partial index로 미정리 대상만 빠르게 찾도록 유지합니다.
-- `rp_clients` 목록 API는 `LIMIT/OFFSET`을 사용해 조회하고, 필요 시 다음 페이지를 요청하는 방식으로 확장합니다.
+- `rp_clients` 목록 API는 `(updated_at DESC, created_at DESC, id DESC)` 복합 cursor와 같은 순서의 `rp_clients_page_cursor_idx`를 사용합니다. 이 방식은 후반 페이지에서도 앞 행을 버리는 `OFFSET` 비용이 증가하지 않습니다.
 - 고객 중복은 이름+전화번호 기준으로 상담 화면에서 병합 후보를 확인하는 운영 흐름을 둡니다.
 - Google Drive/Sheets 백업은 운영자가 직접 다루기 쉬운 장점이 있지만, 장기 보관 원본 저장소로 쓰지 않습니다.
 - 상담 원본 payload, PAR-Q 메모, 체대입시 상담 준비 기록은 보존 기간을 정하고 만료 후 삭제/익명화합니다.

@@ -19,6 +19,10 @@ import {
   shouldSendGoogleDriveSecretInQuery,
 } from '../../../../lib/rpGoogleDriveBackup';
 import { fetchWithTimeout } from '../../../../lib/rpOutboundFetch';
+import {
+  decodeClientListCursor,
+  encodeClientListCursor,
+} from '../../../../lib/rpClientPagination';
 import { buildRateLimitResponse, checkSharedRequestRateLimit } from '../../../../lib/rpRateLimit';
 import {
   buildForbiddenOriginResponse,
@@ -85,19 +89,25 @@ function getClientListWindow(request) {
     MAX_CLIENT_LIST_LIMIT,
   );
   const offset = clampIntegerParam(url.searchParams.get('offset'), 0, 0, 1000000);
+  const cursor = decodeClientListCursor(url.searchParams.get('cursor'));
 
   return {
     limit,
     offset,
+    cursor,
     fetchLimit: Math.min(MAX_CLIENT_LIST_LIMIT + 1, limit + 1),
     maxLimit: MAX_CLIENT_LIST_LIMIT,
   };
 }
 
-function applyClientListWindow(clients, listWindow) {
-  const rows = Array.isArray(clients) ? clients : [];
+function applyClientListWindow(data, listWindow) {
+  const rows = Array.isArray(data?.clients) ? data.clients : [];
   const hasMore = rows.length > listWindow.limit;
   const visibleRows = hasMore ? rows.slice(0, listWindow.limit) : rows;
+  const cursorRow = hasMore && Array.isArray(data?.cursorRows)
+    ? data.cursorRows[visibleRows.length - 1]
+    : null;
+  const nextCursor = cursorRow ? encodeClientListCursor(cursorRow) : null;
 
   return {
     clients: visibleRows,
@@ -107,6 +117,8 @@ function applyClientListWindow(clients, listWindow) {
       returned: visibleRows.length,
       hasMore,
       nextOffset: hasMore ? listWindow.offset + visibleRows.length : null,
+      nextCursor,
+      strategy: data?.paginationStrategy || 'offset',
       maxLimit: listWindow.maxLimit,
     },
   };
@@ -529,8 +541,21 @@ async function listClientsWithFallbacks(listWindow = { fetchLimit: DEFAULT_CLIEN
 async function listClientsFromPreferredStore(listWindow = { fetchLimit: DEFAULT_CLIENT_LIST_LIMIT, offset: 0 }) {
   if (isDatabaseConfigured()) {
     try {
-      const clients = await listDatabaseClients({ limit: listWindow.fetchLimit, offset: listWindow.offset });
-      return { ok: true, source: 'database', backupSource: 'google-drive', action: 'listDatabaseClients', method: 'SQL', clients };
+      const page = await listDatabaseClients({
+        limit: listWindow.fetchLimit,
+        offset: listWindow.offset,
+        cursor: listWindow.cursor,
+      });
+      return {
+        ok: true,
+        source: 'database',
+        backupSource: 'google-drive',
+        action: 'listDatabaseClients',
+        method: 'SQL',
+        clients: page.clients,
+        cursorRows: page.cursorRows,
+        paginationStrategy: 'cursor',
+      };
     } catch (error) {
       if (isDatabaseOnlyMode()) throw error;
 
@@ -622,7 +647,7 @@ export async function GET(request) {
   try {
     const listWindow = getClientListWindow(request);
     const data = await listClientsFromPreferredStore(listWindow);
-    const list = applyClientListWindow(data.clients, listWindow);
+    const list = applyClientListWindow(data, listWindow);
     return NextResponse.json({
       ok: true,
       source: data.source,
@@ -634,6 +659,9 @@ export async function GET(request) {
     });
   } catch (error) {
     const message = error?.message || '고객 목록 조회 중 오류가 발생했습니다.';
+    if (error?.status === 400) {
+      return NextResponse.json({ ok: false, error: message, clients: [] }, { status: 400 });
+    }
     const setupRequired = !isDatabaseConfigured() && (
       message.includes('RP_SHEETS_WEBAPP_URL') ||
       message.includes('회원 데이터를 찾지 못했습니다')
