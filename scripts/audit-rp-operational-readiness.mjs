@@ -167,6 +167,46 @@ addCheck(
 );
 addCheck(
   "security",
+  "Sensitive server routes revalidate active versioned sessions",
+  Boolean(scripts["ops:auth:session-policy"])
+    && includesAll("lib/rpAdminAuth.js", ["authSource", "sessionVersion", "normalizeSessionVersion"])
+    && includesAll("lib/rpSessionAuth.js", [
+      "verifyActiveSessionCookie",
+      "findDatabaseAuthAccountAccess",
+      "isDatabaseAuthAccountAccessActive",
+      "sessionVersion(session.sessionVersion) !== sessionVersion(account.sessionVersion)",
+    ])
+    && includesAll("lib/rpDatabase.js", [
+      "session_version",
+      "password_changed_at",
+      "revokeDatabaseAuthAccountSessions",
+      "authSessionRevocationReady",
+    ])
+    && includesAll("database/migrations/20260711_auth_session_revocation.sql", [
+      "session_version",
+      "password_changed_at",
+    ])
+    && includesAll("scripts/check-rp-auth-session-policy.mjs", [
+      "Database-backed sessions must fail closed",
+      "Tampered session payloads must be rejected",
+      "Database-only mode must reject sessions",
+    ])
+    && [
+      "app/account/page.jsx",
+      "app/api/rp/auth-accounts/route.js",
+      "app/api/rp/clients/route.js",
+      "app/api/rp/consultation-summary/route.js",
+      "app/api/rp/pe-exam-ai-consult/route.js",
+      "app/api/rp/pe-exam-question/route.js",
+      "app/api/rp/security-events/route.js",
+      "app/api/rp/system-status/route.js",
+      "app/pe-exam/ai-consult/page.tsx",
+      "app/pe-exam/faq/page.tsx",
+    ].every((file) => includesAll(file, ["verifyActiveSessionCookie"]))
+    && includesAll("app/admin/_lib/requireStaffPageSession.js", ["verifyActiveSessionCookie"]),
+);
+addCheck(
+  "security",
   "Production signing and password secrets are strength-gated",
   includesAll("lib/rpSecurity.js", [
     "MIN_PRODUCTION_SECRET_LENGTH",
@@ -268,6 +308,37 @@ addCheck(
 );
 addCheck(
   "security",
+  "Versioned sessions can be actively revoked by authorized account managers",
+  includesAll("lib/rpSessionAuth.js", [
+    "legacySessionRequiresValidation",
+    "sessionVersion(session.sessionVersion) !== sessionVersion(account.sessionVersion)",
+  ])
+    && includesAll("lib/rpAccountManagementPolicy.js", ["canRevokeAccountSessions", "canRevokeTargetAccount", "account?.role === 'owner'"])
+    && includesAll("app/api/rp/auth-accounts/route.js", [
+      "revokeDatabaseAuthAccountSessions",
+      "revokeSessions",
+      "admin.session_revoke",
+      "Session revocation must be requested separately.",
+    ])
+    && includesAll("components/rp-consultation/RPClientManager.jsx", [
+      "모든 로그인 세션 종료",
+      "canRevokeSessions",
+      "revokedCurrentSession",
+    ]),
+);
+addCheck(
+  "security",
+  "Admin and login pages revalidate active sessions on the server",
+  includesAll("app/admin/_lib/requireStaffPageSession.js", ["verifyActiveSessionCookie", "hasStaffAccess", "redirect"])
+    && includesAll("app/admin/page.tsx", ["requireStaffPageSession", "force-dynamic"])
+    && includesAll("app/admin/clients/page.jsx", ["requireStaffPageSession", "force-dynamic"])
+    && includesAll("app/admin/consultation/page.jsx", ["requireStaffPageSession", "force-dynamic"])
+    && includesAll("app/admin/security/page.jsx", ["requireStaffPageSession", "force-dynamic"])
+    && includesAll("app/admin/login/page.jsx", ["verifyActiveSessionCookie", "force-dynamic"])
+    && includesAll("app/login/page.jsx", ["verifyActiveSessionCookie", "force-dynamic"]),
+);
+addCheck(
+  "security",
   "AI approval and daily usage buckets are available",
   includesAll("lib/rpDatabase.js", ["ai_approved", "ai_daily_limit", "rp_ai_usage_buckets", "AI_USAGE_DAILY_ROUTE_KEY", "daily_usage", "route_usage", "consumeDatabaseAiUsage"])
     && includesAll("lib/rpAiAccess.js", ["checkAiServiceAccess", "RP_AI_MEMBER_DAILY_LIMIT", "RP_AI_DAILY_LIMIT_MAX", "AI_APPROVAL_REQUIRED"]),
@@ -282,13 +353,13 @@ addCheck(
     && includesAll("app/api/admin/login/route.js", ["auth.admin_login", "recordSecurityEvent"])
     && includesAll("app/api/rp/signup/route.js", ["auth.signup", "recordSecurityEvent"])
     && includesAll("app/api/auth/account-recovery/route.js", ["auth.account_recovery", "recordSecurityEvent"])
-    && includesAll("app/api/rp/auth-accounts/route.js", ["admin.ai_access_update", "recordSecurityEvent"]),
+    && includesAll("app/api/rp/auth-accounts/route.js", ["admin.ai_access_update", "admin.session_revoke", "recordSecurityEvent"]),
 );
 addCheck(
   "security",
   "Staff security event monitor exists without raw PII exposure",
-  includesAll("app/api/rp/security-events/route.js", ["listDatabaseSecurityEvents", "verifyAdminSessionCookie", "hasStaffAccess", "checkSharedRequestRateLimit"])
-    && includesAll("app/admin/security/page.jsx", ["보안 이벤트 점검", "actorHashPrefix", "ipPrefix", "원본 전화번호·이메일·IP는 표시하지 않습니다", "verifyAdminSessionCookie", "hasStaffAccess", "redirect"])
+  includesAll("app/api/rp/security-events/route.js", ["listDatabaseSecurityEvents", "verifyActiveSessionCookie", "hasStaffAccess", "checkSharedRequestRateLimit"])
+    && includesAll("app/admin/security/page.jsx", ["보안 이벤트 점검", "actorHashPrefix", "ipPrefix", "원본 전화번호·이메일·IP는 표시하지 않습니다", "requireStaffPageSession"])
     && includesAll("app/admin/page.tsx", ["/admin/security", "보안 이벤트"]),
 );
 addCheck(
@@ -391,7 +462,7 @@ addCheck(
 addCheck(
   "security",
   "Admin client manager exposes AI approval and daily limit controls",
-  includesAll("components/rp-consultation/RPClientManager.jsx", ["/api/rp/auth-accounts", "AI ACCESS CONTROL", "AI 사용 승인", "회원별 일일 한도", "한도 저장"]),
+  includesAll("components/rp-consultation/RPClientManager.jsx", ["/api/rp/auth-accounts", "ACCOUNT ACCESS CONTROL", "AI 사용 승인", "회원별 일일 한도", "한도 저장"]),
 );
 addCheck(
   "security",
@@ -421,6 +492,17 @@ addCheck(
 );
 addCheck(
   "security",
+  "Customer Google Sheet fallback is explicit opt-in with no bundled sheet identifiers",
+  includesAll("app/api/rp/clients/route.js", [
+    "assertGoogleDriveFallbackEnabled",
+    "isGoogleDriveBackupEnabled",
+    "getGoogleDriveBackupSkipReason",
+    "RP_SHEET_ID and RP_MEMBERS_GID are required",
+  ])
+    && !/DEFAULT_SHEET_ID|DEFAULT_MEMBERS_GID|spreadsheets\/d\/[A-Za-z0-9_-]{20,}/.test(readFile("app/api/rp/clients/route.js")),
+);
+addCheck(
+  "security",
   "Baseline SQL migration exists",
   includesAll("database/migrations/20260630_security_scale_baseline.sql", ["rp_auth_accounts", "rp_service_applications", "rp_rate_limit_buckets", "rp_ai_usage_buckets", "failed_login_count", "rp_auth_accounts_locked_until_idx"]),
 );
@@ -433,6 +515,23 @@ addCheck(
     "locked_until",
     "rp_auth_accounts_locked_until_idx",
   ]),
+);
+addCheck(
+  "security",
+  "Auth session revocation SQL migration exists",
+  includesAll("database/migrations/20260711_auth_session_revocation.sql", [
+    "session_version BIGINT NOT NULL DEFAULT 1",
+    "password_changed_at TIMESTAMPTZ",
+  ])
+    && includesAll("scripts/check-rp-database-migration.mjs", [
+      "session_version",
+      "password_changed_at",
+      "Auth session versions are initialized",
+    ])
+    && includesAll("scripts/apply-rp-database-migration.mjs", [
+      "ADD COLUMN IF NOT EXISTS session_version",
+      "ADD COLUMN IF NOT EXISTS password_changed_at",
+    ]),
 );
 addCheck(
   "security",
@@ -1225,31 +1324,31 @@ addCheck(
 addCheck(
   "traffic",
   "Consultation summary requires staff session",
-  includesAll("app/api/rp/consultation-summary/route.js", ["verifyAdminSessionCookie", "hasStaffRole", "OPENAI_API_KEY"]),
+  includesAll("app/api/rp/consultation-summary/route.js", ["verifyActiveSessionCookie", "hasStaffRole", "OPENAI_API_KEY"]),
 );
 
 addCheck(
   "traffic",
   "Customer clients API requires staff session",
-  includesAll("app/api/rp/clients/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+  includesAll("app/api/rp/clients/route.js", ["verifyActiveSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(
   "traffic",
   "Auth account API requires staff session",
-  includesAll("app/api/rp/auth-accounts/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+  includesAll("app/api/rp/auth-accounts/route.js", ["verifyActiveSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(
   "traffic",
   "Security event API requires staff session",
-  includesAll("app/api/rp/security-events/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+  includesAll("app/api/rp/security-events/route.js", ["verifyActiveSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(
   "traffic",
   "System status API requires staff session",
-  includesAll("app/api/rp/system-status/route.js", ["verifyAdminSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
+  includesAll("app/api/rp/system-status/route.js", ["verifyActiveSessionCookie", "hasStaffAccess", "ADMIN_COOKIE_NAME"]),
 );
 
 addCheck(

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { ADMIN_COOKIE_NAME, verifyAdminSessionCookie } from "../../../lib/rpAdminAuth";
+import { ADMIN_COOKIE_NAME } from "../../../lib/rpAdminAuth";
+import { verifyActiveSessionCookie } from "../../../lib/rpSessionAuth";
 import { PageShell } from "../../_components/SiteChrome";
 import { faqItems } from "../peExamData";
 import styles from "./PeExamFaq.module.css";
@@ -46,7 +47,7 @@ export default async function PeExamFaqPage({
   searchParams?: Promise<FaqSearchParams>;
 }) {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
   const resolvedSearchParams = await searchParams;
   const status = resolvedSearchParams?.question || "";
   const statusMessage = statusMessages[status];

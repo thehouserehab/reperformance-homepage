@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   hasStaffRole,
-  verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../../../lib/rpSessionAuth';
 import { checkAiServiceAccess } from '../../../../lib/rpAiAccess';
 import { fetchWithTimeout } from '../../../../lib/rpOutboundFetch';
 import { getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
@@ -232,7 +232,7 @@ export async function POST(request) {
   if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
 
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) return NextResponse.json({ ok: false, error: '로그인이 필요합니다.' }, { status: 401 });
   if (!hasStaffRole(session.role)) return NextResponse.json({ ok: false, error: '상담 요약 권한이 없습니다.' }, { status: 403 });

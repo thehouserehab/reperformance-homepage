@@ -36,6 +36,10 @@ const steps = [
     command: [npmCommand, "run", "ops:load:policy"],
   },
   {
+    name: "Auth session revocation policy",
+    command: [npmCommand, "run", "ops:auth:session-policy"],
+  },
+  {
     name: "Vercel Firewall policy fixtures",
     command: [npmCommand, "run", "ops:firewall:policy"],
   },

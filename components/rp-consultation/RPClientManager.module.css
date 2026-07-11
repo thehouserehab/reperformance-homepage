@@ -45,7 +45,8 @@
 
 .primaryButton,
 .ghostButton,
-.dangerButton {
+.dangerButton,
+.sessionButton {
   min-height: 42px;
   display: inline-flex;
   align-items: center;
@@ -77,9 +78,20 @@
   border-color: #17191d;
 }
 
+.sessionButton {
+  background: #fff;
+  color: #8f2020;
+  border-color: #c77575;
+}
+
+.sessionButton:hover {
+  background: #fff4f4;
+}
+
 .primaryButton:disabled,
 .ghostButton:disabled,
-.dangerButton:disabled {
+.dangerButton:disabled,
+.sessionButton:disabled {
   opacity: .48;
   cursor: not-allowed;
 }
@@ -880,7 +892,8 @@
 
   .primaryButton,
   .ghostButton,
-  .dangerButton {
+  .dangerButton,
+  .sessionButton {
     width: 100%;
   }
 }

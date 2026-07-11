@@ -1,16 +1,10 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { PageShell } from '../../_components/SiteChrome';
-import {
-  ADMIN_COOKIE_NAME,
-  hasStaffAccess,
-  verifyAdminSessionCookie,
-} from '../../../lib/rpAdminAuth';
 import {
   isDatabaseConfigured,
   listDatabaseSecurityEvents,
 } from '../../../lib/rpDatabase';
+import { requireStaffPageSession } from '../_lib/requireStaffPageSession';
 import styles from './SecurityEvents.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -44,19 +38,8 @@ function formatMetadata(metadata) {
     .join(' · ');
 }
 
-async function requireStaffSession() {
-  const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
-
-  if (!hasStaffAccess(session)) {
-    redirect('/admin/login?next=%2Fadmin%2Fsecurity');
-  }
-
-  return session;
-}
-
 export default async function SecurityEventsPage({ searchParams }) {
-  await requireStaffSession();
+  await requireStaffPageSession('/admin/security');
 
   const requestedWindow = Number((await searchParams)?.windowHours || 24);
   const windowHours = WINDOW_OPTIONS.some((item) => item.value === requestedWindow) ? requestedWindow : 24;

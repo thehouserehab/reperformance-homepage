@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ADMIN_COOKIE_NAME, verifyAdminSessionCookie } from '../../../../lib/rpAdminAuth';
+import { ADMIN_COOKIE_NAME } from '../../../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../../../lib/rpSessionAuth';
 import { checkAiServiceAccess } from '../../../../lib/rpAiAccess';
 import {
   isDatabaseConfigured,
@@ -781,7 +782,7 @@ export async function POST(request) {
   if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
 
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) {
     if (jsonMode) return NextResponse.json({ ok: false, error: '로그인이 필요합니다.' }, { status: 401 });
@@ -875,7 +876,7 @@ export async function POST(request) {
 
 export async function GET(request) {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) return NextResponse.json({ ok: false, error: '로그인이 필요합니다.' }, { status: 401 });
 

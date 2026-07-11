@@ -156,6 +156,7 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
     checkBooleanPath(label, status, "storage.postgres.schema.allRequiredTablesPresent", true);
     checkBooleanPath(label, status, "storage.postgres.schema.allRequiredIndexesPresent", true);
     checkBooleanPath(label, status, "storage.postgres.schema.verifiedContactUniquenessReady", true);
+    checkBooleanPath(label, status, "storage.postgres.schema.authSessionRevocationReady", true);
     checkBooleanPath(label, status, "storage.postgres.schema.rateLimitBucketsReady", true);
     checkBooleanPath(label, status, "storage.postgres.schema.aiUsageBucketsReady", true);
     checkBooleanPath(label, status, "storage.postgres.schema.retentionIndexesReady", true);
@@ -233,6 +234,14 @@ async function checkBaseUrl(baseUrl, cookieHeader) {
       `${label} ${authSessionWithinBlockingMaxPath} is true`,
       authSession?.withinBlockingMax === true,
       `ttlSeconds=${authSession?.ttlSeconds ?? "missing"} blockingMax=${authSession?.blockingMaxSeconds ?? "missing"} withinRecommended=${authSession?.withinRecommendedMax ?? "missing"}`,
+    );
+    addResult(
+      "auth",
+      `${label} auth sessions are database-revalidated and versioned`,
+      authSession?.databaseRevalidation === true
+        && authSession?.versionColumn === "rp_auth_accounts.session_version"
+        && authSession?.passwordChangedAtColumn === "rp_auth_accounts.password_changed_at",
+      `databaseRevalidation=${authSession?.databaseRevalidation ?? "missing"} versionColumn=${authSession?.versionColumn ?? "missing"}`,
     );
     const loginLockout = status.auth?.loginLockout;
     addResult(

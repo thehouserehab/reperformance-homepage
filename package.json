@@ -12,6 +12,7 @@
     "db:migration:check": "node scripts/check-rp-database-migration.mjs",
     "data:retention:audit": "node scripts/audit-rp-data-retention.mjs",
     "ops:audit": "node scripts/audit-rp-operational-readiness.mjs",
+    "ops:auth:session-policy": "node scripts/check-rp-auth-session-policy.mjs",
     "ops:campaign:check": "node scripts/check-rp-campaign-readiness.mjs",
     "ops:conversion:check": "node scripts/check-rp-conversion-foundation.mjs",
     "ops:booking:check": "node scripts/check-rp-consultation-booking.mjs",

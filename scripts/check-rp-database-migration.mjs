@@ -53,6 +53,8 @@ const requiredColumns = {
     "failed_login_count",
     "failed_login_window_started_at",
     "locked_until",
+    "session_version",
+    "password_changed_at",
     "created_at",
     "updated_at",
   ],
@@ -342,6 +344,21 @@ async function checkDatabase(client) {
       "Auth verified contact duplicates are resolved",
       duplicateVerifiedContactGroups === 0,
       duplicateVerifiedContactGroups === null ? "count unavailable" : `duplicateGroups=${duplicateVerifiedContactGroups}`,
+    );
+
+    const invalidSessionVersionCount = await countIfPossible(
+      client,
+      `
+        SELECT COUNT(*)::int AS count
+        FROM rp_auth_accounts
+        WHERE session_version IS NULL OR session_version < 1
+      `,
+    );
+    addResult(
+      "data",
+      "Auth session versions are initialized",
+      invalidSessionVersionCount === 0,
+      invalidSessionVersionCount === null ? "count unavailable" : `invalidSessionVersions=${invalidSessionVersionCount}`,
     );
   }
 

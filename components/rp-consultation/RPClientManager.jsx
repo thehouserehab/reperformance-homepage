@@ -209,6 +209,8 @@ export default function RPClientManager() {
   const [isSavingWorkflow, setIsSavingWorkflow] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState('');
   const [workflowError, setWorkflowError] = useState('');
+  const [canRevokeSessions, setCanRevokeSessions] = useState(false);
+  const [revokingSessionUsername, setRevokingSessionUsername] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -277,11 +279,13 @@ export default function RPClientManager() {
         const accounts = Array.isArray(payload.accounts) ? payload.accounts : [];
         setAuthAccounts(accounts);
         setAiLimitDrafts(buildAiLimitDrafts(accounts));
+        setCanRevokeSessions(Boolean(payload?.permissions?.canRevokeSessions));
         setAuthStatus(accounts.length ? `계정 ${accounts.length}개 확인` : '승인 관리할 계정이 아직 없습니다.');
       } catch (error) {
         if (cancelled) return;
         setAuthAccounts([]);
         setAiLimitDrafts({});
+        setCanRevokeSessions(false);
         setAuthStatus('AI 승인 계정 확인 실패');
         setAuthError(error?.message || 'AI 승인 계정을 불러오지 못했습니다.');
       }
@@ -542,6 +546,57 @@ export default function RPClientManager() {
     }
   }
 
+  async function handleRevokeSessions(account) {
+    if (!account?.username || !canRevokeSessions) return;
+
+    const accountName = account.name || account.username;
+    const confirmed = window.confirm(
+      `${accountName} 계정으로 로그인된 모든 기기의 세션을 종료합니다. 계속하시겠습니까?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setRevokingSessionUsername(account.username);
+      setAuthError('');
+
+      const response = await fetch('/api/rp/auth-accounts', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          username: account.username,
+          revokeSessions: true,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || payload?.ok === false) {
+        throw new Error(payload?.error || `로그인 세션을 종료하지 못했습니다. (${response.status})`);
+      }
+
+      const revocation = payload.sessionRevocation || {};
+      setAuthAccounts((current) => current.map((item) => (
+        item.username === account.username
+          ? { ...item, sessionVersion: revocation.sessionVersion || item.sessionVersion }
+          : item
+      )));
+
+      if (revocation.revokedCurrentSession) {
+        await fetch('/api/admin/logout', { method: 'POST' }).catch(() => null);
+        window.location.assign('/admin/login');
+        return;
+      }
+
+      setAuthStatus(`${accountName} 계정의 기존 로그인 세션을 모두 종료했습니다.`);
+    } catch (error) {
+      setAuthError(error?.message || '로그인 세션을 종료하지 못했습니다.');
+    } finally {
+      setRevokingSessionUsername('');
+    }
+  }
+
   return (
     <main className={styles.wrap}>
       <header className={styles.topbar}>
@@ -581,12 +636,12 @@ export default function RPClientManager() {
         </div>
       </section>
 
-      <section className={styles.aiAccessPanel} aria-label="AI 사용 승인 관리">
+      <section className={styles.aiAccessPanel} aria-label="AI 사용 및 로그인 세션 관리">
         <div className={styles.aiAccessHeader}>
           <div>
-            <p className={styles.eyebrow}>AI ACCESS CONTROL</p>
-            <h2>AI 사용은 승인된 회원만 허용합니다.</h2>
-            <p>홈페이지 이용과 회원 로그인은 유지하고, 토큰을 사용하는 AI 기능만 별도로 승인 및 일일 사용량 기준을 적용합니다.</p>
+            <p className={styles.eyebrow}>ACCOUNT ACCESS CONTROL</p>
+            <h2>AI 승인과 로그인 세션을 계정별로 관리합니다.</h2>
+            <p>홈페이지 로그인은 유지하면서 AI 기능만 별도 승인하고, 계정 이상이나 분실 신고가 있으면 모든 기기의 기존 세션을 즉시 종료합니다.</p>
           </div>
           <div className={authError ? styles.errorStatus : styles.connectionStatus}>
             {authError || authStatus}
@@ -616,6 +671,10 @@ export default function RPClientManager() {
                   <dt>승인일</dt>
                   <dd>{formatDateTime(account.aiApprovedAt)}</dd>
                 </div>
+                <div>
+                  <dt>세션 버전</dt>
+                  <dd>v{Number(account.sessionVersion) || 1}</dd>
+                </div>
               </dl>
               <form className={styles.aiLimitForm} onSubmit={(event) => handleSaveAiDailyLimit(event, account)}>
                 <label htmlFor={getAiLimitInputId(account)}>
@@ -628,13 +687,13 @@ export default function RPClientManager() {
                     value={aiLimitDrafts[account.username] ?? ''}
                     onChange={(event) => updateAiLimitDraft(account.username, event.target.value)}
                     placeholder="역할 기본값"
-                    disabled={updatingAiUsername === account.username}
+                    disabled={updatingAiUsername === account.username || revokingSessionUsername === account.username}
                   />
                 </label>
                 <button
                   className={styles.ghostButton}
                   type="submit"
-                  disabled={updatingAiUsername === account.username}
+                  disabled={updatingAiUsername === account.username || revokingSessionUsername === account.username}
                 >
                   한도 저장
                 </button>
@@ -643,12 +702,22 @@ export default function RPClientManager() {
                 className={account.aiApproved ? styles.dangerButton : styles.primaryButton}
                 type="button"
                 onClick={() => handleToggleAiApproval(account)}
-                disabled={updatingAiUsername === account.username}
+                disabled={updatingAiUsername === account.username || revokingSessionUsername === account.username}
               >
                 {updatingAiUsername === account.username
                   ? '저장 중...'
                   : account.aiApproved ? 'AI 승인 해제' : 'AI 사용 승인'}
               </button>
+              {canRevokeSessions ? (
+                <button
+                  className={styles.sessionButton}
+                  type="button"
+                  onClick={() => handleRevokeSessions(account)}
+                  disabled={updatingAiUsername === account.username || revokingSessionUsername === account.username}
+                >
+                  {revokingSessionUsername === account.username ? '세션 종료 중...' : '모든 로그인 세션 종료'}
+                </button>
+              ) : null}
             </article>
           )) : (
             <div className={styles.emptyState}>회원가입 계정이 확인되면 이곳에서 AI 사용을 승인할 수 있습니다.</div>

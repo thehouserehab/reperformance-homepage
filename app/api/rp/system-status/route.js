@@ -5,8 +5,8 @@ import {
   areEnvironmentAuthAccountsAllowed,
   getAdminSessionTtlSeconds,
   hasStaffAccess,
-  verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../../../lib/rpSessionAuth';
 import {
   checkDatabaseSchemaReadiness,
   getDatabaseAuthLockoutPolicy,
@@ -408,6 +408,9 @@ function buildHighTrafficReadiness({
   if (!databaseSchema?.verifiedContactUniquenessReady) {
     addReadinessIssue(blockers, 'auth_verified_contact_uniqueness_not_ready', 'Apply auth contact uniqueness migration and resolve duplicate verified contacts.');
   }
+  if (!databaseSchema?.authSessionRevocationReady) {
+    addReadinessIssue(blockers, 'auth_session_revocation_not_ready', 'Apply the auth session revocation migration before high-traffic login or staff access.');
+  }
   if (!databaseSchema?.rateLimitBucketsReady) {
     addReadinessIssue(blockers, 'shared_rate_limit_store_not_ready', 'PostgreSQL shared rate-limit buckets and expiry index must be ready before traffic spikes.');
   }
@@ -509,6 +512,9 @@ function buildObjectiveReadiness({
   if (!databaseSchema?.authLockoutReady) {
     addReadinessIssue(authBlockers, 'auth_lockout_store_not_ready', 'Auth account lockout columns and indexes must be ready before signup/login traffic increases.');
   }
+  if (!databaseSchema?.authSessionRevocationReady) {
+    addReadinessIssue(authBlockers, 'auth_session_revocation_not_ready', 'Auth session version and password-change columns must be ready so password resets and account changes can revoke existing sessions.');
+  }
   if (process.env.NODE_ENV === 'production' && auth.seedAccounts.allowed) {
     addReadinessIssue(authBlockers, 'production_env_auth_accounts_enabled', 'Disable production environment-variable auth accounts after bootstrap.');
   }
@@ -593,6 +599,7 @@ function buildObjectiveReadiness({
         'auth.accountRecovery.signingSecret',
         'auth.passwordHash.secret',
         'storage.postgres.schema.verifiedContactUniquenessReady',
+        'storage.postgres.schema.authSessionRevocationReady',
         'securityMonitoring',
       ],
     },
@@ -673,6 +680,9 @@ async function buildStatus() {
       withinBlockingMax: sessionTtlSeconds <= SESSION_TTL_BLOCKING_MAX_SECONDS,
       signingSecretConfigured: hasEnv('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
       signingSecret: buildSecretStatus('RP_ADMIN_SESSION_SECRET', 'RP_API_SECRET'),
+      databaseRevalidation: true,
+      versionColumn: 'rp_auth_accounts.session_version',
+      passwordChangedAtColumn: 'rp_auth_accounts.password_changed_at',
     },
     signup: {
       defaultRole: 'member',
@@ -772,7 +782,7 @@ async function buildStatus() {
 
 export async function GET(request) {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) {
     return Response.json({ ok: false, error: '관리자 로그인이 필요합니다.' }, { status: 401 });

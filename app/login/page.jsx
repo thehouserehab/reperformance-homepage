@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { BrandLogo } from '../_components/SiteChrome';
+import { ADMIN_COOKIE_NAME, hasStaffAccess } from '../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../lib/rpSessionAuth';
 import styles from './Login.module.css';
+
+export const dynamic = 'force-dynamic';
 
 const errorMessages = {
   invalid: '아이디 또는 비밀번호가 올바르지 않습니다.',
@@ -12,6 +18,12 @@ export default async function LoginPage({ searchParams }) {
   const params = await searchParams;
   const error = params?.error;
   const nextPath = typeof params?.next === 'string' ? params.next : '';
+  const cookieStore = await cookies();
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+
+  if (session) {
+    redirect(hasStaffAccess(session) ? '/admin' : '/account');
+  }
 
   return (
     <main className={styles.page}>

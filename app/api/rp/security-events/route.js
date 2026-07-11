@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   hasStaffAccess,
-  verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../../../lib/rpSessionAuth';
 import {
   isDatabaseConfigured,
   listDatabaseSecurityEvents,
@@ -25,7 +25,7 @@ function numberParam(url, key, fallback) {
 
 async function requireStaffSession() {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) {
     return {

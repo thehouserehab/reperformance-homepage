@@ -3,11 +3,17 @@ import { NextResponse } from 'next/server';
 import {
   ADMIN_COOKIE_NAME,
   hasStaffAccess,
-  verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
 import {
+  canRevokeAccountSessions,
+  canRevokeTargetAccount,
+} from '../../../../lib/rpAccountManagementPolicy';
+import { verifyActiveSessionCookie } from '../../../../lib/rpSessionAuth';
+import {
+  findDatabaseAuthAccountAccess,
   isDatabaseConfigured,
   listDatabaseAuthAccounts,
+  revokeDatabaseAuthAccountSessions,
   updateDatabaseAuthAccountAiAccess,
 } from '../../../../lib/rpDatabase';
 import { getAiDailyLimitMax } from '../../../../lib/rpAiAccess';
@@ -54,7 +60,7 @@ function parseAiDailyLimit(value) {
 
 async function requireStaffSession() {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) {
     return {
@@ -103,7 +109,14 @@ export async function GET(request) {
   }
 
   const accounts = await listDatabaseAuthAccounts();
-  return NextResponse.json({ ok: true, accounts, count: accounts.length });
+  return NextResponse.json({
+    ok: true,
+    accounts,
+    count: accounts.length,
+    permissions: {
+      canRevokeSessions: canRevokeAccountSessions(session),
+    },
+  });
 }
 
 export async function PATCH(request) {
@@ -131,13 +144,82 @@ export async function PATCH(request) {
   const username = String(payload.username || '').trim();
   const hasAiApprovedUpdate = hasOwnValue(payload, 'aiApproved');
   const hasAiDailyLimitUpdate = hasOwnValue(payload, 'aiDailyLimit');
+  const hasSessionRevocation = payload.revokeSessions === true;
 
   if (!username) {
     return NextResponse.json({ ok: false, error: 'username is required.' }, { status: 400 });
   }
 
-  if (!hasAiApprovedUpdate && !hasAiDailyLimitUpdate) {
-    return NextResponse.json({ ok: false, error: 'AI approval or daily limit update is required.' }, { status: 400 });
+  if (!hasAiApprovedUpdate && !hasAiDailyLimitUpdate && !hasSessionRevocation) {
+    return NextResponse.json({ ok: false, error: 'AI access update or session revocation is required.' }, { status: 400 });
+  }
+
+  if (hasSessionRevocation && (hasAiApprovedUpdate || hasAiDailyLimitUpdate)) {
+    return NextResponse.json({ ok: false, error: 'Session revocation must be requested separately.' }, { status: 400 });
+  }
+
+  if (hasSessionRevocation) {
+    const targetAccount = await findDatabaseAuthAccountAccess(username);
+
+    if (!targetAccount) {
+      await recordSecurityEvent({
+        request,
+        eventType: 'admin.session_revoke',
+        outcome: 'failure',
+        actor: session.sub,
+        target: username,
+        metadata: { reason: 'account_not_found' },
+      });
+      return NextResponse.json({ ok: false, error: 'Account not found.' }, { status: 404 });
+    }
+
+    if (!canRevokeTargetAccount(session, targetAccount)) {
+      await recordSecurityEvent({
+        request,
+        eventType: 'admin.session_revoke',
+        outcome: 'forbidden',
+        actor: session.sub,
+        target: username,
+        metadata: {
+          reason: 'insufficient_role',
+          actorRole: session.role,
+          accountRole: targetAccount.role,
+        },
+      });
+      return NextResponse.json({ ok: false, error: 'Session revocation permission required.' }, { status: 403 });
+    }
+
+    const account = await revokeDatabaseAuthAccountSessions(username);
+    if (!account) {
+      return NextResponse.json({ ok: false, error: 'Account not found.' }, { status: 404 });
+    }
+
+    const revokedCurrentSession = account.usernameKey === String(session.sub || '').trim().toLowerCase();
+    await recordSecurityEvent({
+      request,
+      eventType: 'admin.session_revoke',
+      outcome: 'success',
+      actor: session.sub,
+      target: username,
+      metadata: {
+        accountRole: account.role,
+        revokedCurrentSession,
+        sessionVersion: account.sessionVersion,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      sessionsRevoked: true,
+      sessionRevocation: {
+        username: account.username,
+        name: account.name,
+        role: account.role,
+        roleLabel: account.roleLabel,
+        sessionVersion: account.sessionVersion,
+        revokedCurrentSession,
+      },
+    });
   }
 
   let updates;

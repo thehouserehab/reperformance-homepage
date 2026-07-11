@@ -1,5 +1,8 @@
 import { PageShell } from "../_components/SiteChrome";
 import { site } from "../_components/siteData";
+import { requireStaffPageSession } from "./_lib/requireStaffPageSession";
+
+export const dynamic = "force-dynamic";
 
 const dashboardCards = [
   {
@@ -95,7 +98,9 @@ const flows = [
   "Postgres 저장 및 Google Drive 백업 상태 확인",
 ];
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  await requireStaffPageSession("/admin");
+
   return (
     <PageShell>
       <section className="page-hero admin-hero">

@@ -52,12 +52,10 @@ export async function middleware(request) {
   const canUseStaffArea = hasStaffAccess(session);
 
   if (pathname.startsWith('/admin/login')) {
-    if (canUseStaffArea) return NextResponse.redirect(new URL('/admin', request.url));
     return NextResponse.next();
   }
 
   if (pathname === '/login') {
-    if (session) return NextResponse.redirect(new URL(canUseStaffArea ? '/admin' : '/account', request.url));
     return NextResponse.next();
   }
 

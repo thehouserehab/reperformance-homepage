@@ -1,7 +1,8 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ADMIN_COOKIE_NAME, hasStaffAccess, verifyAdminSessionCookie } from '../../lib/rpAdminAuth';
+import { ADMIN_COOKIE_NAME, hasStaffAccess } from '../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../lib/rpSessionAuth';
 import { PageShell } from '../_components/SiteChrome';
 import styles from './Account.module.css';
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AccountPage() {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) redirect('/login?next=/account');
 

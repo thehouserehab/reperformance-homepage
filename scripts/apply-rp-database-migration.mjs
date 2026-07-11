@@ -61,6 +61,8 @@ function validateMigrations(migrations) {
     "CREATE TABLE IF NOT EXISTS rp_conversion_events",
     "CREATE TABLE IF NOT EXISTS rp_consultation_slots",
     "CREATE UNIQUE INDEX IF NOT EXISTS rp_auth_accounts_verified_contact_unique_idx",
+    "ADD COLUMN IF NOT EXISTS session_version BIGINT NOT NULL DEFAULT 1",
+    "ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ",
     "CREATE INDEX IF NOT EXISTS rp_rate_limit_buckets_expires_at_idx",
     "CREATE INDEX IF NOT EXISTS rp_ai_usage_buckets_usage_date_idx",
     "CREATE INDEX IF NOT EXISTS rp_security_events_created_at_idx",

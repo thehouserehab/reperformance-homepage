@@ -3,8 +3,8 @@ import { cookies } from 'next/headers';
 import {
   ADMIN_COOKIE_NAME,
   hasStaffAccess,
-  verifyAdminSessionCookie,
 } from '../../../../lib/rpAdminAuth';
+import { verifyActiveSessionCookie } from '../../../../lib/rpSessionAuth';
 import {
   isDatabaseConfigured,
   isDatabaseOnlyMode,
@@ -35,12 +35,10 @@ const CLIENTS_WRITE_LIMIT = 60;
 const CLIENTS_WINDOW_MS = 15 * 60 * 1000;
 const DEFAULT_CLIENT_LIST_LIMIT = 200;
 const MAX_CLIENT_LIST_LIMIT = 500;
-const DEFAULT_SHEET_ID = '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E';
-const DEFAULT_MEMBERS_GID = '122819871';
 
 async function requireStaffSession() {
   const cookieStore = await cookies();
-  const session = await verifyAdminSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  const session = await verifyActiveSessionCookie(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
 
   if (!session) {
     return {
@@ -135,9 +133,15 @@ function getConfig() {
   return {
     webAppUrl: extractUrl(process.env.RP_SHEETS_WEBAPP_URL),
     apiSecret: cleanEnvValue(process.env.RP_API_SECRET),
-    sheetId: cleanEnvValue(process.env.RP_SHEET_ID) || DEFAULT_SHEET_ID,
-    membersGid: cleanEnvValue(process.env.RP_MEMBERS_GID) || DEFAULT_MEMBERS_GID,
+    sheetId: cleanEnvValue(process.env.RP_SHEET_ID),
+    membersGid: cleanEnvValue(process.env.RP_MEMBERS_GID),
   };
+}
+
+function assertGoogleDriveFallbackEnabled() {
+  if (!isGoogleDriveBackupEnabled()) {
+    throw new Error(getGoogleDriveBackupSkipReason() || 'Google Drive backup is disabled.');
+  }
 }
 
 function buildScriptUrl(webAppUrl, body, apiSecret) {
@@ -390,6 +394,7 @@ async function parseScriptResponse(response) {
 }
 
 async function callSheetsApi(body, options = {}) {
+  assertGoogleDriveFallbackEnabled();
   const { webAppUrl, apiSecret } = getConfig();
 
   if (!webAppUrl) throw new Error('Vercel 환경변수 RP_SHEETS_WEBAPP_URL이 설정되지 않았습니다.');
@@ -461,7 +466,11 @@ async function addClientWithAttempts(record) {
 }
 
 async function fetchMembersCsvClients(listWindow = { fetchLimit: DEFAULT_CLIENT_LIST_LIMIT, offset: 0 }) {
+  assertGoogleDriveFallbackEnabled();
   const { sheetId, membersGid } = getConfig();
+  if (!sheetId || !membersGid) {
+    throw new Error('RP_SHEET_ID and RP_MEMBERS_GID are required for Google Sheets CSV fallback.');
+  }
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${membersGid}`;
   const response = await fetchWithTimeout(url, { cache: 'no-store', redirect: 'follow' }, {
     envKey: 'RP_GOOGLE_BACKUP_FETCH_TIMEOUT_MS',

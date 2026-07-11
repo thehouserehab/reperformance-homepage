@@ -95,7 +95,7 @@ const objectives = [
       buildCheck(
         "Staff customer APIs require staff sessions and rate limiting",
         includesAll("app/api/rp/clients/route.js", [
-          "verifyAdminSessionCookie",
+          "verifyActiveSessionCookie",
           "hasStaffAccess",
           "checkSharedRequestRateLimit",
           "DEFAULT_CLIENT_LIST_LIMIT",
@@ -120,6 +120,11 @@ const objectives = [
           "isGoogleDriveBackupEnabled",
           "Google Drive backup requires RP_GOOGLE_DRIVE_BACKUP_ENABLED=true.",
         ])
+          && includesAll("app/api/rp/clients/route.js", [
+            "assertGoogleDriveFallbackEnabled",
+            "RP_SHEET_ID and RP_MEMBERS_GID are required",
+          ])
+          && !readFile("app/api/rp/clients/route.js").includes("DEFAULT_SHEET_ID")
           && includesAll("app/api/rp/system-status/route.js", ["explicitOptInRequired", "google_backup_enabled"]),
       ),
       buildCheck(
@@ -153,7 +158,24 @@ const objectives = [
         "Session, password, recovery, and identity secrets are strength-gated",
         includesAll("lib/rpSecurity.js", ["assertStrongProductionSecret", "MIN_PRODUCTION_SECRET_LENGTH", "PLACEHOLDER_SECRET_PATTERN"])
           && includesAll("lib/rpAdminAuth.js", ["getAdminSessionTtlSeconds", "assertStrongProductionSecret"])
-          && includesAll("app/api/rp/system-status/route.js", ["auth.session.withinBlockingMax", "SESSION_TTL_BLOCKING_MAX_SECONDS"]),
+          && includesAll("lib/rpSessionAuth.js", [
+            "verifyActiveSessionCookie",
+            "findDatabaseAuthAccountAccess",
+            "sessionVersion(session.sessionVersion) !== sessionVersion(account.sessionVersion)",
+          ])
+           && includesAll("database/migrations/20260711_auth_session_revocation.sql", ["session_version", "password_changed_at"])
+           && Boolean(scripts["ops:auth:session-policy"])
+           && includesAll("lib/rpAccountManagementPolicy.js", ["canRevokeAccountSessions", "canRevokeTargetAccount"])
+           && includesAll("app/api/rp/auth-accounts/route.js", ["revokeDatabaseAuthAccountSessions", "admin.session_revoke"])
+           && includesAll("components/rp-consultation/RPClientManager.jsx", ["모든 로그인 세션 종료", "canRevokeSessions"])
+           && includesAll("app/admin/_lib/requireStaffPageSession.js", ["verifyActiveSessionCookie", "hasStaffAccess"])
+           && includesAll("app/login/page.jsx", ["verifyActiveSessionCookie", "force-dynamic"])
+           && includesAll("app/admin/login/page.jsx", ["verifyActiveSessionCookie", "force-dynamic"])
+           && includesAll("app/api/rp/system-status/route.js", [
+            "auth.session.withinBlockingMax",
+            "SESSION_TTL_BLOCKING_MAX_SECONDS",
+            "authSessionRevocationReady",
+          ]),
       ),
       buildCheck(
         "Signup verified contacts are unique and account lockout is available",
@@ -191,7 +213,7 @@ const objectives = [
       "Production auth/recovery/password secrets are unique, strong, and non-placeholder.",
       "With a staff session, /api/rp/system-status reports objectiveReadiness.signupLoginSecurity.ready=true.",
       "Phone or email delivery webhooks for identity verification/account recovery are configured and tested.",
-      "AI approval and daily limit controls are verified from /admin/clients with a staff account.",
+      "AI approval, daily limit, and authorized all-session revocation controls are verified from /admin/clients with a staff account.",
     ],
   },
   {

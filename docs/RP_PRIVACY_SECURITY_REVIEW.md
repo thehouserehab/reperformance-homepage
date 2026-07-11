@@ -1,6 +1,6 @@
 # RePERFORMANCE privacy and security review
 
-Last updated: 2026-07-10
+Last updated: 2026-07-11
 
 ## Scope
 
@@ -32,6 +32,9 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - PE exam AI consult Google Drive/Sheets backup requests now send minimized metadata instead of duplicating raw student input or conversation records.
 - New `rp_pe_exam_questions.payload` writes are minimized on insert; the submitted question remains in the structured `question_text` column without being duplicated into broad JSON payloads.
 - Default login session lifetime is reduced from 90 days to 14 days, still configurable with `RP_SESSION_TTL_DAYS` or `RP_SESSION_TTL_SECONDS`. `/api/rp/system-status` reports the TTL policy, warns above 30 days, and blocks campaign readiness above 90 days.
+- PostgreSQL sessions now include an account `session_version` and are revalidated against the current account status and role on protected server pages and sensitive APIs. Password reset or an authorized all-session termination increments the version and invalidates older cookies.
+- `/admin/clients` lets `owner` and `admin` roles terminate all existing sessions for an allowed account. An `admin` cannot terminate an `owner` account, trainers cannot use the control, and every attempt is recorded as a hashed `admin.session_revoke` security event.
+- Public and admin login pages now perform active server-side session validation instead of trusting middleware-only signature checks, preventing redirect loops after a DB-backed session is revoked.
 - Session cookie creation and clearing use centralized options with `httpOnly`, production-only `secure`, `sameSite=lax`, and root path settings.
 - Production session, identity verification, account recovery, and password-hash secrets now reject weak placeholder values and require at least 32 characters before signing or hashing.
 - Production environment-variable auth accounts now require explicit `RP_ALLOW_ENV_AUTH_ACCOUNTS=true` opt-in; otherwise `RP_AUTH_USERS`, `RP_ADMIN_USERS`, `RP_ADMIN_USERNAME`, and trainer env accounts are ignored so PostgreSQL accounts remain the default production login store.
@@ -59,6 +62,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Monthly customer data retention maintenance is available through the bearer-secret protected `/api/rp/maintenance/retention` cron route. Unauthenticated requests are rejected before setup checks, the route runs dry-run by default, and it applies pruning only when `RP_RETENTION_CRON_APPLY=true`.
 - Runtime database schema sync can be disabled with `RP_DISABLE_RUNTIME_SCHEMA_SYNC=true` after checked-in migrations pass, preventing request handlers from running schema DDL during high-traffic production.
 - Google Drive/Sheets backup copies now fail closed unless `RP_GOOGLE_DRIVE_BACKUP_ENABLED=true` and `RP_API_SECRET` are both configured, preventing accidental customer-data replication just because an Apps Script URL exists.
+- Customer Sheet IDs are no longer bundled in source. CSV fallback additionally requires `RP_SHEET_ID` and `RP_MEMBERS_GID`, and every Apps Script/CSV fallback read or write now fails closed unless Google Drive backup is explicitly enabled.
 - Server-side outbound calls now use `fetchWithTimeout` so Apps Script, webhook, Google Sheets CSV, and OpenAI requests cannot hold serverless functions open indefinitely during traffic spikes.
 - `npm run ops:audit` now fails if source code reintroduces external management service identifiers, domains, invite codes, or paths into the homepage codebase.
 - `/apply` consent language now states the exercise-safety check is not a medical diagnosis and that configured operational backup may store submitted data.
@@ -74,6 +78,7 @@ It does not replace a legal privacy policy, medical disclaimer review, or databa
 - Existing older `rp_pe_exam_questions.payload` rows may still contain duplicated question data until retention pruning is reviewed and applied.
 - `rp_auth_accounts` still supports legacy `password_plain` fallback for migration. Successful DB fallback logins now clear it automatically, but remaining rows should still be audited and cleaned.
 - Existing duplicate `verification_method` + `verified_contact` groups must be resolved before applying `20260703_auth_contact_uniqueness.sql`; otherwise PostgreSQL will correctly reject the unique index.
+- Apply `20260711_auth_session_revocation.sql` before deploying or enabling strict runtime-schema disablement. Until the production schema reports `authSessionRevocationReady=true`, password reset and explicit session termination cannot be treated as production-ready.
 - App-level rate limits now share `rp_rate_limit_buckets` through PostgreSQL when configured. Add Vercel Firewall or Redis/edge rate limiting before major campaigns so abusive traffic is blocked before it reaches the app and DB.
 - If explicitly enabled, Google Drive/Sheets backup can still contain contact and structured consultation routing fields. Use it only as a transition/backup path, restrict sheet access, and mirror the retention process in `docs/RP_DATA_RETENTION.md`.
 - The Apps Script side must be updated to prefer headers/body secrets. Query secrets should remain disabled except during temporary legacy migration.

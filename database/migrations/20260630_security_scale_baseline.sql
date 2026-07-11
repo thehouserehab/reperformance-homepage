@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS rp_auth_accounts (
   failed_login_count INTEGER NOT NULL DEFAULT 0,
   failed_login_window_started_at TIMESTAMPTZ,
   locked_until TIMESTAMPTZ,
+  session_version BIGINT NOT NULL DEFAULT 1,
+  password_changed_at TIMESTAMPTZ,
   requested_at TIMESTAMPTZ DEFAULT NOW(),
   approved_at TIMESTAMPTZ,
   message TEXT,
@@ -43,6 +45,8 @@ ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS ai_daily_limit INTEGER;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS failed_login_count INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS failed_login_window_started_at TIMESTAMPTZ;
 ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS session_version BIGINT NOT NULL DEFAULT 1;
+ALTER TABLE rp_auth_accounts ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS rp_clients (
   id TEXT PRIMARY KEY,

@@ -14,13 +14,13 @@ This records point-in-time Vercel state that was verifiable through the connecte
 - Project: `reperformance-homepage`
 - Project ID: `prj_W2sXR8dobiMSH9QGksPYnwbhX03Z`
 - Framework: `nextjs`
-- Verified deployment ID: `dpl_5dFchdbwuHHdmnMk1u6TqmFwZAUS`
+- Verified deployment ID: `dpl_HTjFQf7eVCNH9KzrD6Jmqpirwtg4`
 - State: `READY`
 - Target: `production`
 - Source: GitHub `thehouserehab/reperformance-homepage`
 - Branch: `main`
-- Commit: `97ee9552a4e5d07b1428d51d698ba55b0f8bc6f3`
-- Commit message: `Harden production firewall readiness`
+- Commit: `024e2f5379094a847c72348122a736bc19841b7b`
+- Commit message: `Refine service-led homepage experience`
 - `reperformance-homepage.vercel.app`
 - `reperformance-homepage-thehouserehab-9727s-projects.vercel.app`
 - `reperformance-homepage-git-main-thehouserehab-9727s-projects.vercel.app`
@@ -30,24 +30,24 @@ This records point-in-time Vercel state that was verifiable through the connecte
 - Project: `project-7r7l8`
 - Project ID: `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`
 - Framework: `nextjs`
-- Verified deployment ID: `dpl_38M9gJsARVxrUt1UD7p1QZ7ZVsUn`
+- Verified deployment ID: `dpl_9x9qrpkpKFvR4xmXkvjMcDGngoau`
 - State: `READY`
 - Target: `production`
 - Source: GitHub `thehouserehab/reperformance-homepage`
 - Branch: `main`
-- Commit: `97ee9552a4e5d07b1428d51d698ba55b0f8bc6f3`
-- Commit message: `Harden production firewall readiness`
+- Commit: `024e2f5379094a847c72348122a736bc19841b7b`
+- Commit message: `Refine service-led homepage experience`
 - `reperformance.the-house-exercise.com`
 - `project-7r7l8-thehouserehab-9727s-projects.vercel.app`
 - `project-7r7l8-git-main-thehouserehab-9727s-projects.vercel.app`
 
 ## Runtime health
 
-- Vercel runtime error clusters: none found for the queried 1-hour range on both production projects after the `97ee955` deployment.
+- Vercel runtime error clusters: none found for the queried 1-hour range on both production projects after the `024e2f5` deployment.
 - Runtime logs, recent 1-hour production `5xx` status-code grouping: no matching rows returned for project IDs `prj_W2sXR8dobiMSH9QGksPYnwbhX03Z` and `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`.
-- `/`, `/services`, `/services/pe-exam`, and `/pe-exam` returned `200 OK` on both production domains after the `97ee955` deployment.
-- `npm.cmd run ops:public:check` passed `456/456` public production checks after the `97ee955` deployment.
-- Local `npm.cmd run ops:campaign:check`, `npm.cmd run build`, `npm.cmd run typecheck`, and `npm.cmd run ops:release:check` passed for `97ee955` before and after push as applicable.
+- `/`, `/services`, `/services/pe-exam`, and `/pe-exam` returned `200 OK` on both production domains after the `024e2f5` deployment.
+- `npm.cmd run ops:public:check` passed `456/456` public production checks after the `024e2f5` deployment.
+- Local `npm.cmd run ops:campaign:check`, `npm.cmd run build`, and `npm.cmd run typecheck` passed before the design-only push. The later session-revocation commit remains local until the production database migration is applied and verified.
 - `/api/rp/maintenance/retention` is deployed on both projects. Unauthenticated requests should return `401`, and authenticated cron execution still requires `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` plus a production database URL before relying on the monthly result.
 
 ## Known gaps

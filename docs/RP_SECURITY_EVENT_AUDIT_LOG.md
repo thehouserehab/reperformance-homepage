@@ -1,6 +1,6 @@
 # RePERFORMANCE Security Event Audit Log
 
-Last updated: 2026-07-10
+Last updated: 2026-07-11
 
 ## Purpose
 
@@ -18,6 +18,7 @@ Staff can review recent event patterns at `/admin/security` or through the staff
 - Account recovery code verification and ID lookup: `auth.account_recovery.verify_code`, `auth.account_recovery.find_id`
 - Password reset: `auth.account_recovery.reset_password`
 - Admin AI access approval changes: `admin.ai_access_update`
+- Admin all-session termination attempts and results: `admin.session_revoke`
 
 ## Stored Fields
 

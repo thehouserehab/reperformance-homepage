@@ -115,7 +115,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
-- `/api/rp/system-status` reports all required PostgreSQL tables and indexes as ready, including rate-limit, AI usage, retention, and security-event indexes.
+- `/api/rp/system-status` reports all required PostgreSQL tables and indexes as ready, including `authSessionRevocationReady=true`, rate-limit, AI usage, retention, and security-event indexes. Apply `database/migrations/20260711_auth_session_revocation.sql` before deploying the versioned-session code.
 - `/api/rp/system-status` reports the PostgreSQL login lockout policy and no `auth_lockout_store_not_ready` blocker; apply `database/migrations/20260710_auth_account_lockout.sql` before campaign traffic.
 - `/api/rp/system-status` reports `auth.session.withinBlockingMax=true`; keep the login session TTL at the default 14 days when possible, 30 days or less as the production recommendation, and never above the 90-day blocking maximum.
 - `/api/rp/system-status` reports `securityMonitoring.available=true`; before paid or admission-season traffic, `npm.cmd run ops:campaign:check -- --security-strict` passes with a staff session cookie and `securityMonitoring.status=normal`.
@@ -125,6 +125,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - `/api/rp/clients` rejects unauthenticated requests before returning customer data.
 - `/api/rp/clients` returns a bounded customer list with pagination metadata; the default page should stay at 200 rows and the request maximum at 500 rows unless a load test proves a larger value is safe. The staff customer manager should use the 더 불러오기 flow instead of one-shot full-table downloads.
 - `/api/rp/auth-accounts` rejects unauthenticated requests before returning account or AI approval data.
+- With an `owner` or `admin` session, `/admin/clients` can terminate all existing sessions for an allowed target account; a trainer cannot, and an admin cannot terminate an owner account. Confirm the action writes `admin.session_revoke` without raw account identifiers.
 - `/api/rp/security-events` rejects unauthenticated requests before returning audit-event summaries.
 - `RP_ALLOW_ENV_AUTH_ACCOUNTS` remains unset or false unless a short emergency bootstrap window is intentionally open.
 - State-changing POST APIs reject foreign `Origin`/`Referer` values; configure `NEXT_PUBLIC_SITE_URL`, `RP_SITE_URL`, or `RP_ALLOWED_ORIGINS` if trusted alternate domains are used.
