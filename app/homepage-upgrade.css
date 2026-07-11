@@ -13,9 +13,44 @@
   min-height: 230px;
 }
 
+.landing-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 60;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.landing-header-inner {
+  min-height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.landing-header .brand-performance,
+.landing-header .brand-sub {
+  color: #fff;
+}
+
+.landing-header .brand-re {
+  color: #65c7bb;
+}
+
+.landing-header-note {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.landing-main {
+  background: #080b0f;
+}
+
 .home-entrance-hero {
-  min-height: calc(100vh - 82px);
-  padding: clamp(86px, 10vw, 132px) 0;
+  min-height: 92svh;
+  padding: clamp(132px, 15vw, 184px) 0 clamp(66px, 8vw, 96px);
   background: #080b0f;
 }
 
@@ -55,6 +90,13 @@
   font-weight: 650;
 }
 
+.home-choice-prompt {
+  margin: 26px 0 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
 .home-primary-actions {
   display: flex;
   flex-wrap: wrap;
@@ -72,7 +114,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: clamp(36px, 7vw, 86px);
+  margin-top: clamp(34px, 5vw, 62px);
 }
 
 .home-signal-strip span {
@@ -88,49 +130,27 @@
 }
 
 .home-direction-section {
-  padding: clamp(54px, 7vw, 86px) 0;
+  padding: clamp(38px, 5vw, 58px) 0;
   background: #fff;
 }
 
 .home-direction-inner {
   display: grid;
-  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
-  gap: clamp(24px, 5vw, 62px);
-  align-items: start;
+  grid-template-columns: minmax(180px, 0.42fr) minmax(0, 1.58fr);
+  gap: clamp(22px, 5vw, 64px);
+  align-items: center;
 }
 
 .home-direction-inner h2 {
-  margin: 0;
+  max-width: 780px;
+  margin: 0 0 10px;
   color: var(--ink);
-  font-size: clamp(32px, 4.3vw, 56px);
-  line-height: 1.12;
+  font-size: clamp(26px, 3.3vw, 42px);
+  line-height: 1.16;
   text-wrap: balance;
 }
 
-.home-direction-grid {
-  display: grid;
-  gap: 10px;
-}
-
-.home-direction-grid article {
-  min-width: 0;
-  padding: 20px 0;
-  border-top: 1px solid var(--line);
-}
-
-.home-direction-grid article:last-child {
-  border-bottom: 1px solid var(--line);
-}
-
-.home-direction-grid strong {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--ink);
-  font-size: clamp(20px, 2.2vw, 28px);
-  line-height: 1.25;
-}
-
-.home-direction-grid p {
+.home-direction-inner p:not(.eyebrow) {
   margin: 0;
   color: var(--muted);
   font-size: 16px;
@@ -188,6 +208,31 @@
   background: #fff;
 }
 
+.service-choice-card-senior-rehab {
+  background: #eef6f3;
+}
+
+.service-choice-card-athlete-reconditioning {
+  background: #e9edf0;
+}
+
+.service-choice-card-pain-care {
+  background: #fff;
+}
+
+.service-choice-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.service-choice-index {
+  color: rgba(23, 25, 29, 0.28);
+  font-size: 16px;
+  font-weight: 950;
+}
+
 .service-choice-card-featured {
   background: #10141d;
   color: #fff;
@@ -202,6 +247,10 @@
 .service-choice-card-featured .service-choice-link {
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
+}
+
+.service-choice-card-featured .service-choice-index {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .service-choice-kicker {
@@ -275,8 +324,17 @@
 }
 
 @media (max-width: 900px) {
+  .landing-header-inner {
+    min-height: 76px;
+  }
+
+  .landing-header-note {
+    display: none;
+  }
+
   .home-entrance-hero {
-    min-height: calc(100vh - 76px);
+    min-height: 90svh;
+    padding-top: 118px;
   }
 
   .home-entrance-portrait {
@@ -293,6 +351,10 @@
   .service-choice-grid,
   .service-choice-apply-inner {
     grid-template-columns: 1fr;
+  }
+
+  .home-direction-inner {
+    gap: 8px;
   }
 
   .service-choice-card {

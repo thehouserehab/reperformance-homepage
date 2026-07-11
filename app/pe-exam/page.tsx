@@ -23,11 +23,10 @@ export const metadata: Metadata = {
 };
 
 const hubLinks = [
-  { href: "#start-guide", label: "처음 시작" },
-  { href: "#university-search", label: "대학검색" },
+  { href: "#university-search", label: "대학 찾기" },
   { href: "#universities", label: "지역별 대학" },
-  { href: "#timeline", label: "2026 흐름" },
   { href: "#training-management", label: "실기관리" },
+  { href: "#timeline", label: "2026 흐름" },
   { href: "#ai-consult", label: "상담준비" },
   { href: "/pe-exam/faq", label: "FAQ" },
 ] as const;
@@ -87,10 +86,30 @@ const roadmapSteps = [
 ] as const;
 
 const startFlowItems = [
-  ["01", "대학정보 확인", "지역, 전형, 실기 종목, 공식 확인 링크를 먼저 봅니다."],
-  ["02", "현재 상태 정리", "성적, 실기 기록, 남은 기간, 운동 가능 시간을 정리합니다."],
-  ["03", "실기 능력 향상", "종목별 기록 변화와 약점 종목을 훈련 계획에 반영합니다."],
-  ["04", "상담·관리 연결", "공개자료에서 끝내지 않고 상담 후 필요한 관리 흐름으로 이어갑니다."],
+  {
+    number: "01",
+    title: "대학정보 확인",
+    text: "지역, 전형, 실기 종목, 공식 확인 링크를 먼저 봅니다.",
+    href: "#university-search",
+  },
+  {
+    number: "02",
+    title: "현재 상태 정리",
+    text: "성적, 실기 기록, 남은 기간, 운동 가능 시간을 정리합니다.",
+    href: "#start-guide",
+  },
+  {
+    number: "03",
+    title: "실기 능력 향상",
+    text: "종목별 기록 변화와 약점 종목을 훈련 계획에 반영합니다.",
+    href: "#training-management",
+  },
+  {
+    number: "04",
+    title: "상담·관리 연결",
+    text: "공개자료에서 끝내지 않고 상담 후 필요한 관리 흐름으로 이어갑니다.",
+    href: "/apply?service=pe-exam",
+  },
 ] as const;
 
 const trainingPreviewCards = [
@@ -352,11 +371,16 @@ export default function PeExamPage() {
           </div>
 
           <aside className={styles.heroPanel} aria-label="체대입시 준비 흐름">
-            {startFlowItems.map(([number, title, text]) => (
-              <article key={number}>
-                <strong>{number}</strong>
-                <h2>{title}</h2>
-                <p>{text}</p>
+            {startFlowItems.map((item) => (
+              <article key={item.number}>
+                <Link href={item.href}>
+                  <strong>{item.number}</strong>
+                  <div>
+                    <h2>{item.title}</h2>
+                    <p>{item.text}</p>
+                  </div>
+                  <span aria-hidden="true">→</span>
+                </Link>
               </article>
             ))}
           </aside>
@@ -405,26 +429,75 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={`section ${styles.resourcesSection}`} id="resources">
-        <div className="container">
-          <div className={styles.sectionHead}>
-            <p className="eyebrow">PUBLIC RESOURCES</p>
-            <h2>공개자료는 네 가지 흐름으로 구성했습니다.</h2>
+      <section className={`section ${styles.trainingManagementSection}`} id="training-management">
+        <div className={`container ${styles.trainingManagementLayout}`}>
+          <div className={styles.trainingManagementLead}>
+            <p className="eyebrow">TRAINING MANAGEMENT</p>
+            <h2>대학을 찾았다면, 이제 실기 기록을 올릴 차례입니다.</h2>
             <p>
-              홈페이지는 학생 개인 기록을 받는 관리 시스템이 아니라, 입시 자료를 먼저 확인하고
-              상담으로 넘어가기 위한 허브입니다.
+              대학정보는 출발점입니다. 현재 기록을 정확히 보고 종목별 약점을 훈련으로 바꾸며,
+              코치 피드백과 기록 변화를 쌓는 과정이 RePERFORMANCE의 핵심입니다.
             </p>
+            <Link className="button dark" href="/apply?service=pe-exam">
+              기록 상담 신청하기
+            </Link>
           </div>
 
-          <div className={styles.resourceGrid}>
-            {resourceCards.map((card) => (
-              <article className={styles.resourceCard} key={card.title}>
-                <span>{card.label}</span>
-                <h3>{card.title}</h3>
-                <p>{card.text}</p>
-              </article>
-            ))}
+          <div className={styles.trainingPreviewPanel} aria-label="실기 관리 프리뷰">
+            <div className={styles.trainingPreviewHeader}>
+              <span>관리 개념 미리보기</span>
+              <strong>현재 기록에서 다음 목표까지.</strong>
+            </div>
+            <div className={styles.trainingPreviewRows}>
+              {trainingPreviewRows.map(([event, current, goal, feedback]) => (
+                <div key={event}>
+                  <strong>{event}</strong>
+                  <span>{current}</span>
+                  <span>{goal}</span>
+                  <span>{feedback}</span>
+                </div>
+              ))}
+            </div>
+            <p>
+              학생별 실제 기록, 수업 피드백, 세부 훈련 메모는 공개하지 않으며 상담 이후 필요한 경우에만 별도 관리합니다.
+            </p>
           </div>
+        </div>
+
+        <div className={`container ${styles.trainingCardGrid}`}>
+          {trainingPreviewCards.map((card) => (
+            <article key={card.title}>
+              <strong>{card.title}</strong>
+              <p>{card.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={`section ${styles.resourcesSection}`} id="resources">
+        <div className="container">
+          <details className={styles.resourceDisclosure}>
+            <summary>
+              <span>
+                <small>PUBLIC RESOURCES</small>
+                <strong>입시 정보 허브에서 제공하는 자료 범위</strong>
+              </span>
+              <em>펼쳐보기</em>
+            </summary>
+            <p className={styles.resourceDisclosureIntro}>
+              홈페이지는 학생 개인 기록을 받는 관리 시스템이 아니라, 입시 자료를 먼저 확인하고
+              상담으로 넘어가기 위한 공개 허브입니다.
+            </p>
+            <div className={styles.resourceGrid}>
+              {resourceCards.map((card) => (
+                <article className={styles.resourceCard} key={card.title}>
+                  <span>{card.label}</span>
+                  <h3>{card.title}</h3>
+                  <p>{card.text}</p>
+                </article>
+              ))}
+            </div>
+          </details>
         </div>
       </section>
 
@@ -643,51 +716,6 @@ export default function PeExamPage() {
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      <section className={`section ${styles.trainingManagementSection}`} id="training-management">
-        <div className={`container ${styles.trainingManagementLayout}`}>
-          <div className={styles.trainingManagementLead}>
-            <p className="eyebrow">TRAINING MANAGEMENT</p>
-            <h2>RePERFORMANCE의 차이는 자료 확인 이후의 실기 관리입니다.</h2>
-            <p>
-              대학정보는 출발점입니다. 실제 합격 가능성을 높이는 과정은 현재 기록을 정확히 보고,
-              종목별 약점을 훈련으로 바꾸며, 코치 피드백을 계속 누적하는 데 있습니다.
-            </p>
-            <Link className="button dark" href="/apply?service=pe-exam">
-              기록 상담 신청하기
-            </Link>
-          </div>
-
-          <div className={styles.trainingPreviewPanel} aria-label="실기 관리 프리뷰">
-            <div className={styles.trainingPreviewHeader}>
-              <span>관리 개념 미리보기</span>
-              <strong>공개 페이지에서는 예시만 보여줍니다.</strong>
-            </div>
-            <div className={styles.trainingPreviewRows}>
-              {trainingPreviewRows.map(([event, current, goal, feedback]) => (
-                <div key={event}>
-                  <strong>{event}</strong>
-                  <span>{current}</span>
-                  <span>{goal}</span>
-                  <span>{feedback}</span>
-                </div>
-              ))}
-            </div>
-            <p>
-              학생별 실제 기록, 수업 피드백, 세부 훈련 메모는 상담 이후 필요한 경우에만 별도 관리 흐름으로 안내합니다.
-            </p>
-          </div>
-        </div>
-
-        <div className={`container ${styles.trainingCardGrid}`}>
-          {trainingPreviewCards.map((card) => (
-            <article key={card.title}>
-              <strong>{card.title}</strong>
-              <p>{card.text}</p>
-            </article>
-          ))}
         </div>
       </section>
 

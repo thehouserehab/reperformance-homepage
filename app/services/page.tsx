@@ -1,7 +1,14 @@
 import Link from "next/link";
 import PeExamWindowLink from "../_components/PeExamWindowLink";
-import { ConsultationCTA, PageShell } from "../_components/SiteChrome";
+import { PageShell } from "../_components/SiteChrome";
 import { serviceItems } from "../_components/siteData";
+
+const serviceOrder: Record<string, number> = {
+  "senior-rehab": 0,
+  "athlete-reconditioning": 1,
+  "pe-exam": 2,
+  "pain-care": 3,
+};
 
 const serviceTone = {
   "senior-rehab": "회복",
@@ -25,6 +32,10 @@ const serviceSummaries = {
 } as const;
 
 export default function ServicesPage() {
+  const orderedServices = [...serviceItems].sort(
+    (a, b) => (serviceOrder[a.applicationValue] ?? 99) - (serviceOrder[b.applicationValue] ?? 99),
+  );
+
   return (
     <PageShell>
       <section className="service-choice-hero">
@@ -39,13 +50,16 @@ export default function ServicesPage() {
 
       <section className="service-choice-section" aria-label="서비스 선택">
         <div className="container service-choice-grid">
-          {serviceItems.map((item) => {
+          {orderedServices.map((item, index) => {
             const tone = serviceTone[item.applicationValue as keyof typeof serviceTone] || "상담";
             const displayTitle = serviceDisplayTitles[item.applicationValue as keyof typeof serviceDisplayTitles] || item.title;
             const summary = serviceSummaries[item.applicationValue as keyof typeof serviceSummaries] || item.target;
             const card = (
               <>
-                <span className="service-choice-kicker">{tone}</span>
+                <div className="service-choice-card-top">
+                  <span className="service-choice-kicker">{tone}</span>
+                  <span className="service-choice-index">{String(index + 1).padStart(2, "0")}</span>
+                </div>
                 <div>
                   <p className="card-label">{item.label}</p>
                   <h2>{displayTitle}</h2>
@@ -59,7 +73,7 @@ export default function ServicesPage() {
               return (
                 <PeExamWindowLink
                   href={item.href}
-                  className="service-choice-card interactive-card service-choice-card-featured"
+                  className={`service-choice-card interactive-card service-choice-card-featured service-choice-card-${item.applicationValue}`}
                   key={item.href}
                 >
                   {card}
@@ -68,7 +82,11 @@ export default function ServicesPage() {
             }
 
             return (
-              <Link href={item.href} className="service-choice-card interactive-card" key={item.href}>
+              <Link
+                href={item.href}
+                className={`service-choice-card interactive-card service-choice-card-${item.applicationValue}`}
+                key={item.href}
+              >
                 {card}
               </Link>
             );
@@ -88,7 +106,6 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <ConsultationCTA compact />
     </PageShell>
   );
 }

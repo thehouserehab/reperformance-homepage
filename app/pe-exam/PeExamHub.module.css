@@ -3899,6 +3899,31 @@
   color: #050505;
 }
 
+.homeSearchMoreActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.homeSearchMoreActions button {
+  min-height: 48px;
+  border: 2px solid #050505;
+  border-radius: 999px;
+  padding: 0 20px;
+  background: #050505;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.homeSearchMoreActions button + button {
+  background: #fff;
+  color: #050505;
+}
+
 .searchSummaryNotice {
   margin: 0;
   padding: 14px 16px;
@@ -4022,8 +4047,13 @@
   }
 
   .conditionSearchRow button,
-  .homeSearchResultBar button {
+  .homeSearchResultBar button,
+  .homeSearchMoreActions button {
     width: 100%;
+  }
+
+  .homeSearchMoreActions {
+    flex-direction: column;
   }
 
   .breadcrumbTrailInner {
@@ -4215,5 +4245,154 @@
   .trainingPreviewRows span {
     justify-content: flex-start;
     border-radius: 14px;
+  }
+}
+
+/* Service-led entrance refinements */
+.heroPanel article {
+  padding: 0;
+  overflow: hidden;
+}
+
+.heroPanel article a {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-height: 100%;
+  padding: 18px;
+}
+
+.heroPanel article a > strong {
+  align-self: start;
+}
+
+.heroPanel article a > span {
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 22px;
+  font-weight: 900;
+  transition: transform 160ms ease, color 160ms ease;
+}
+
+.heroPanel article a:hover > span,
+.heroPanel article a:focus-visible > span {
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.heroPanel article a:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -3px;
+}
+
+.starterGuideLead,
+.starterGuideCards article,
+.trainingPreviewPanel,
+.trainingCardGrid article {
+  border-radius: 8px;
+}
+
+.resourceDisclosure {
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.resourceDisclosure summary {
+  display: flex;
+  min-height: 92px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 26px;
+  color: #050505;
+  cursor: pointer;
+  list-style: none;
+}
+
+.resourceDisclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.resourceDisclosure summary > span {
+  display: grid;
+  gap: 6px;
+}
+
+.resourceDisclosure summary small {
+  color: #777;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.resourceDisclosure summary strong {
+  font-size: clamp(21px, 2.5vw, 30px);
+  line-height: 1.2;
+}
+
+.resourceDisclosure summary em {
+  flex: 0 0 auto;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #050505;
+  border-radius: 999px;
+  padding: 0 15px;
+  color: #050505;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.resourceDisclosure[open] summary {
+  border-bottom: 1px solid #e4e4e4;
+}
+
+.resourceDisclosure[open] summary em::before {
+  content: "접기";
+  font-size: 12px;
+}
+
+.resourceDisclosure[open] summary em {
+  font-size: 0;
+}
+
+.resourceDisclosureIntro {
+  max-width: 760px;
+  margin: 0;
+  padding: 24px 26px 0;
+  color: #666;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.7;
+}
+
+.resourceDisclosure .resourceGrid {
+  padding: 24px 26px 26px;
+}
+
+@media (max-width: 720px) {
+  .heroPanel article a {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    padding: 16px;
+  }
+
+  .resourceDisclosure summary {
+    min-height: 84px;
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .resourceDisclosure summary em {
+    min-height: 36px;
+    padding-inline: 11px;
+  }
+
+  .resourceDisclosureIntro {
+    padding: 20px 20px 0;
+  }
+
+  .resourceDisclosure .resourceGrid {
+    padding: 20px;
   }
 }

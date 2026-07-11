@@ -46,6 +46,9 @@ const gradeOptions = [
   { value: "grade-5-plus", label: "5등급 이하" },
 ];
 
+const INITIAL_RESULT_LIMIT = 4;
+const RESULT_PAGE_SIZE = 4;
+
 function getGradeFilterFromText(text) {
   const match = text.match(/(?:내신|등급|성적)?\s*(\d+(?:\.\d+)?)\s*등급/);
   if (!match?.[1]) return "";
@@ -84,6 +87,7 @@ export default function PeExamHomeSearchClient(props) {
   const [gradeFilter, setGradeFilter] = useState("all");
   const [includePractical, setIncludePractical] = useState("all");
   const [excludePractical, setExcludePractical] = useState("none");
+  const [resultLimit, setResultLimit] = useState(INITIAL_RESULT_LIMIT);
   const normalizedQuery = normalizeSearch(query);
   const includePracticalKey = includePractical === "all" ? "" : normalizePracticalKey(includePractical);
   const excludePracticalKey = excludePractical === "none" ? "" : normalizePracticalKey(excludePractical);
@@ -101,6 +105,7 @@ export default function PeExamHomeSearchClient(props) {
     if (inferredGrade) setGradeFilter(inferredGrade);
     if (inferredPractical) setIncludePractical(inferredPractical);
     setQuery(hasInferredFilter ? "" : text);
+    setResultLimit(INITIAL_RESULT_LIMIT);
   }
 
   function resetFilters() {
@@ -112,6 +117,12 @@ export default function PeExamHomeSearchClient(props) {
     setGradeFilter("all");
     setIncludePractical("all");
     setExcludePractical("none");
+    setResultLimit(INITIAL_RESULT_LIMIT);
+  }
+
+  function updateFilter(setter, value) {
+    setter(value);
+    setResultLimit(INITIAL_RESULT_LIMIT);
   }
 
   const filteredCards = useMemo(() => {
@@ -150,7 +161,7 @@ export default function PeExamHomeSearchClient(props) {
     trackFilter,
   ]);
 
-  const visibleCards = filteredCards.slice(0, 18);
+  const visibleCards = filteredCards.slice(0, resultLimit);
   const hasActiveFilters =
     query ||
     dataFilter !== "all" ||
@@ -167,7 +178,7 @@ export default function PeExamHomeSearchClient(props) {
           <span>대학 정보 검색</span>
           <input
             aria-label="체대입시 대학 정보 검색"
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => updateFilter(setQuery, event.target.value)}
             placeholder="학교명, 지역, 학과, 실기 종목 검색"
             type="search"
             value={query}
@@ -179,7 +190,7 @@ export default function PeExamHomeSearchClient(props) {
             <button
               aria-pressed={dataFilter === item.key}
               key={item.key}
-              onClick={() => setDataFilter(item.key)}
+              onClick={() => updateFilter(setDataFilter, item.key)}
               type="button"
             >
               {item.label}
@@ -193,7 +204,7 @@ export default function PeExamHomeSearchClient(props) {
           <label>
             <span>조건문 빠른 검색</span>
             <input
-              onChange={(event) => setConditionQuery(event.target.value)}
+              onChange={(event) => updateFilter(setConditionQuery, event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.preventDefault();
@@ -213,7 +224,7 @@ export default function PeExamHomeSearchClient(props) {
         <div className={styles.homeSearchSelectGrid}>
           <label className={styles.homeSearchSelectLabel}>
             <span>지역</span>
-            <select value={regionFilter} onChange={(event) => setRegionFilter(event.target.value)}>
+            <select value={regionFilter} onChange={(event) => updateFilter(setRegionFilter, event.target.value)}>
               <option value="all">전체 지역</option>
               {regionOptions.map((region) => (
                 <option key={region.value} value={region.value}>
@@ -225,7 +236,7 @@ export default function PeExamHomeSearchClient(props) {
 
           <label className={styles.homeSearchSelectLabel}>
             <span>전형</span>
-            <select value={trackFilter} onChange={(event) => setTrackFilter(event.target.value)}>
+            <select value={trackFilter} onChange={(event) => updateFilter(setTrackFilter, event.target.value)}>
               {trackOptions.map((track) => (
                 <option key={track.value} value={track.value}>
                   {track.label}
@@ -236,7 +247,7 @@ export default function PeExamHomeSearchClient(props) {
 
           <label className={styles.homeSearchSelectLabel}>
             <span>본인 성적대</span>
-            <select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value)}>
+            <select value={gradeFilter} onChange={(event) => updateFilter(setGradeFilter, event.target.value)}>
               {gradeOptions.map((grade) => (
                 <option key={grade.value} value={grade.value}>
                   {grade.label}
@@ -247,7 +258,7 @@ export default function PeExamHomeSearchClient(props) {
 
           <label className={styles.homeSearchSelectLabel}>
             <span>포함 실기</span>
-            <select value={includePractical} onChange={(event) => setIncludePractical(event.target.value)}>
+            <select value={includePractical} onChange={(event) => updateFilter(setIncludePractical, event.target.value)}>
               <option value="all">전체 종목</option>
               {practicalOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -259,7 +270,7 @@ export default function PeExamHomeSearchClient(props) {
 
           <label className={styles.homeSearchSelectLabel}>
             <span>제외 실기</span>
-            <select value={excludePractical} onChange={(event) => setExcludePractical(event.target.value)}>
+            <select value={excludePractical} onChange={(event) => updateFilter(setExcludePractical, event.target.value)}>
               <option value="none">제외 없음</option>
               {practicalOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -290,37 +301,55 @@ export default function PeExamHomeSearchClient(props) {
       ) : null}
 
       {visibleCards.length ? (
-        <div className={styles.homeSearchGrid}>
-          {visibleCards.map((card) => (
-            <article className={styles.homeSearchCard} key={card.key}>
-              <div className={styles.homeSearchCardHead}>
-                <span>{card.regionLabel}</span>
-                <h3>{card.name}</h3>
-                <p>{card.meta}</p>
-              </div>
+        <>
+          <div className={styles.homeSearchGrid}>
+            {visibleCards.map((card) => (
+              <article className={styles.homeSearchCard} key={card.key}>
+                <div className={styles.homeSearchCardHead}>
+                  <span>{card.regionLabel}</span>
+                  <h3>{card.name}</h3>
+                  <p>{card.meta}</p>
+                </div>
 
-              <dl className={styles.homeSearchStats}>
-                {card.stats.map((stat) => (
-                  <div key={stat.label}>
-                    <dt>{stat.label}</dt>
-                    <dd>{stat.value}</dd>
-                  </div>
-                ))}
-              </dl>
+                <dl className={styles.homeSearchStats}>
+                  {card.stats.map((stat) => (
+                    <div key={stat.label}>
+                      <dt>{stat.label}</dt>
+                      <dd>{stat.value}</dd>
+                    </div>
+                  ))}
+                </dl>
 
-              {card.preview ? <p className={styles.homeSearchPreview}>{card.preview}</p> : null}
+                {card.preview ? <p className={styles.homeSearchPreview}>{card.preview}</p> : null}
 
-              <div className={styles.homeSearchActions}>
-                <Link href={card.earlyHref}>
-                  수시 상세
-                </Link>
-                <Link href={card.regularHref}>
-                  정시 상세
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className={styles.homeSearchActions}>
+                  <Link href={card.earlyHref}>
+                    수시 상세
+                  </Link>
+                  <Link href={card.regularHref}>
+                    정시 상세
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className={styles.homeSearchMoreActions} aria-label="검색 결과 표시 개수">
+            {visibleCards.length < filteredCards.length ? (
+              <button
+                onClick={() => setResultLimit((current) => current + RESULT_PAGE_SIZE)}
+                type="button"
+              >
+                검색 결과 더 보기 ({filteredCards.length - visibleCards.length}개 남음)
+              </button>
+            ) : null}
+            {resultLimit > INITIAL_RESULT_LIMIT ? (
+              <button onClick={() => setResultLimit(INITIAL_RESULT_LIMIT)} type="button">
+                처음 4개만 보기
+              </button>
+            ) : null}
+          </div>
+        </>
       ) : (
         <div className={styles.universityEmptyState}>
           <strong>검색 결과가 없습니다.</strong>
