@@ -1,8 +1,39 @@
 # RePERFORMANCE Vercel Firewall rules
 
-Last updated: 2026-07-10
+Last updated: 2026-07-11
 
-These rules are the recommended campaign and admission-season edge controls. They must be applied in Vercel Firewall, Vercel REST API, or another edge/WAF layer. They are not automatically applied by this repository.
+These rules are the recommended campaign and admission-season edge controls. The repository contains a machine-verifiable policy and an explicit, token-gated sync command so both Vercel projects can be kept consistent.
+
+## Repository policy and safe sync
+
+Validate the checked-in policy without Vercel credentials:
+
+```powershell
+npm.cmd run ops:firewall:policy
+npm.cmd run ops:firewall:sync -- --validate-only
+```
+
+Inspect both production projects and print a dry-run plan:
+
+```powershell
+$env:VERCEL_TOKEN="..."
+npm.cmd run ops:firewall:sync
+```
+
+Apply missing repository-managed rules only after reviewing the plan:
+
+```powershell
+$env:VERCEL_TOKEN="..."
+$env:RP_VERCEL_FIREWALL_ALLOW_APPLY="true"
+npm.cmd run ops:firewall:sync -- --apply --confirm=APPLY_RP_VERCEL_FIREWALL
+npm.cmd run ops:vercel:check
+```
+
+The apply path requires both the environment opt-in and the exact confirmation token. It requests insertion of missing repository-named rules and enables Bot Protection; it does not silently overwrite an existing same-name custom rule. The script then rereads the active configuration and fails unless the protection is live. If Vercel leaves a draft unpublished, review it in the Firewall dashboard or with `vercel firewall diff`, publish it with `vercel firewall publish --yes`, and rerun the strict production check. If an existing rule is incomplete, correct it manually before publishing.
+
+The baseline repository policy uses one IP-based fixed-window rate-limit rule for all `/api/` traffic at 120 requests per minute. This absorbs broad bursts before they reach Next.js or PostgreSQL. Tighter route-specific limits in the application remain the authoritative second line of defense. The policy also denies common irrelevant scanner paths and requires Bot Protection in challenge mode.
+
+Official references: [Vercel Firewall CLI](https://vercel.com/docs/cli/firewall), [Vercel Firewall rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting).
 
 ## Baseline
 
@@ -136,7 +167,10 @@ Run locally:
 
 ```powershell
 npm.cmd run ops:campaign:check -- --build --typecheck
+npm.cmd run ops:vercel:check
 ```
+
+The Vercel check now fails unless every required RePERFORMANCE API path has an active `rate_limit`, `challenge`, or `deny` mitigation, all abuse-sensitive public write routes have edge rate-limit coverage, and Bot Protection is active. An inactive, partial, or log-only rule does not satisfy readiness.
 
 Then verify in production:
 

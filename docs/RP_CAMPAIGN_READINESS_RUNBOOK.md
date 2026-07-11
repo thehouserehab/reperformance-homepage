@@ -1,6 +1,6 @@
 # RePERFORMANCE campaign readiness runbook
 
-Last updated: 2026-07-10
+Last updated: 2026-07-11
 
 Use this before paid ads, offline events, admission season traffic, or any expected traffic spike.
 
@@ -16,6 +16,7 @@ This runs:
 
 - `npm.cmd run ops:objective:check`
 - `npm.cmd run ops:audit`
+- `npm.cmd run ops:firewall:policy`
 - `npm.cmd run ops:sensitive:check`
 - `npm.cmd run data:retention:audit`
 - `npm.cmd run pe-exam:data:readiness`
@@ -55,7 +56,7 @@ If `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, include production Vercel g
 npm.cmd run ops:campaign:check -- --build --typecheck --database --vercel
 ```
 
-This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, readable Firewall configuration, and that each production deployment matches the current local Git `HEAD`. The env-key gate includes database URL, `RP_DATA_SOURCE`, runtime schema-sync disable flag, `RP_DATABASE_POOL_MAX`, auth/recovery/password secrets, SMS verification webhook, canonical site origin, `RP_RATE_LIMIT_FAIL_CLOSED`, and retention cron secret. Secret values are not printed; effective values are verified through `/api/rp/system-status`.
+This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, strict Firewall coverage, Bot Protection, and that each production deployment matches the current local Git `HEAD`. Firewall readiness requires active mitigation for every protected RP route and edge rate-limit coverage for abuse-sensitive public routes; inactive, partial, or log-only rules do not pass. The env-key gate includes database URL, `RP_DATA_SOURCE`, runtime schema-sync disable flag, `RP_DATABASE_POOL_MAX`, auth/recovery/password secrets, SMS verification webhook, canonical site origin, `RP_RATE_LIMIT_FAIL_CLOSED`, and retention cron secret. Secret values are not printed; effective values are verified through `/api/rp/system-status`.
 
 After a deployment, or when no Vercel token is available, run the public production smoke and security check:
 
@@ -143,6 +144,19 @@ $env:VERCEL_TOKEN="..."
 npm.cmd run ops:vercel:check
 ```
 
+To inspect and safely synchronize the repository-managed Firewall baseline:
+
+```powershell
+npm.cmd run ops:firewall:policy
+$env:VERCEL_TOKEN="..."
+npm.cmd run ops:firewall:sync
+$env:RP_VERCEL_FIREWALL_ALLOW_APPLY="true"
+npm.cmd run ops:firewall:sync -- --apply --confirm=APPLY_RP_VERCEL_FIREWALL
+npm.cmd run ops:vercel:check
+```
+
+The sync command is plan-only by default. Applying requires both the opt-in environment variable and exact confirmation token. It rereads the active configuration and fails if Vercel leaves an unpublished draft; in that case review `vercel firewall diff`, run `vercel firewall publish --yes`, and rerun `ops:vercel:check`. Review Firewall events after applying, especially if a legitimate event kiosk or shared school network may send more than 120 API requests per IP per minute.
+
 To check a custom subset, pass `--project-id=...` for one project or set comma-separated `RP_VERCEL_PROJECT_IDS`.
 
 To check a custom public URL subset without Vercel secrets:
@@ -164,7 +178,7 @@ The app-layer PostgreSQL limiter protects correctness across serverless instance
 - `/api/rp/auth-accounts`
 - `/api/rp/security-events`
 
-Use `docs/RP_VERCEL_FIREWALL_RULES.md` as the concrete rule checklist.
+Use `docs/RP_VERCEL_FIREWALL_RULES.md` as the concrete rule checklist and `npm.cmd run ops:firewall:sync` as the reproducible dry-run/apply path.
 
 Recommended policy:
 

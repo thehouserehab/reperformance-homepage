@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { analyzeRpFirewallConfig } from "./lib/rpVercelFirewallPolicy.mjs";
 
 const DEFAULT_TEAM_ID = "team_EfbUpj6INJBMbI08rWAvGdof";
 const DEFAULT_PROJECTS = [
@@ -81,15 +82,6 @@ const requiredEnvGroups = [
     name: "maintenance cron secret",
     anyOf: ["CRON_SECRET", "RP_MAINTENANCE_CRON_SECRET"],
   },
-];
-
-const recommendedFirewallTerms = [
-  "/api/auth",
-  "/api/rp/signup",
-  "/api/rp/service-application",
-  "/api/rp/pe-exam-ai-consult",
-  "/api/rp/clients",
-  "/api/rp/auth-accounts",
 ];
 
 const results = [];
@@ -190,10 +182,6 @@ function envKeys(envResponse) {
   );
 }
 
-function summarizeFirewall(config) {
-  return JSON.stringify(config || {}).toLowerCase();
-}
-
 async function checkProject(projectTarget) {
   const project = await requestJson(`/v9/projects/${projectTarget.id}`);
   const prefix = projectTarget.label;
@@ -241,12 +229,38 @@ async function checkEnvironment(projectTarget) {
 async function checkFirewall(projectTarget) {
   try {
     const config = await requestJson("/v1/security/firewall/config/active", { projectId: projectTarget.id });
-    const text = summarizeFirewall(config);
-    const hasAnyRecommendedPath = recommendedFirewallTerms.some((term) => text.includes(term.toLowerCase()));
+    const analysis = analyzeRpFirewallConfig(config);
     const prefix = projectTarget.label;
 
     addResult("firewall", `${prefix} firewall config is readable`, true, "active config returned");
-    addResult("firewall", `${prefix} firewall references protected RP routes`, hasAnyRecommendedPath, hasAnyRecommendedPath ? "protected route term found" : "no protected route term found");
+    addResult(
+      "firewall",
+      `${prefix} firewall is enabled`,
+      analysis.firewallEnabled,
+      `activeRules=${analysis.activeRuleCount} actions=${analysis.actions.join(",") || "none"}`,
+    );
+    addResult(
+      "firewall",
+      `${prefix} protected RP routes have active mitigation`,
+      analysis.missingProtectedPaths.length === 0,
+      analysis.missingProtectedPaths.length
+        ? `missing=${analysis.missingProtectedPaths.join(",")}`
+        : `covered=${analysis.protectedPaths.length}`,
+    );
+    addResult(
+      "firewall",
+      `${prefix} public abuse-sensitive routes are edge rate limited`,
+      analysis.missingRateLimitedPaths.length === 0,
+      analysis.missingRateLimitedPaths.length
+        ? `missing=${analysis.missingRateLimitedPaths.join(",")}`
+        : `covered=${analysis.rateLimitedPaths.length}`,
+    );
+    addResult(
+      "firewall",
+      `${prefix} Bot Protection is active`,
+      analysis.botProtectionActive,
+      analysis.botProtectionActive ? "challenge or deny" : "missing or inactive",
+    );
   } catch (error) {
     addResult("firewall", `${projectTarget.label} firewall config is readable`, false, `${error.status || "error"} ${error.message}`);
   }

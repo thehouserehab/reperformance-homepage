@@ -122,6 +122,7 @@ const externalManagementPattern = /nore(?!ferrer)|noreapp|trainer\/home|7977D6D6
 const apiRouteFiles = listFiles("app/api", (file) => path.basename(file) === "route.js");
 const bundledSampleClientText = readFile("components/rp-consultation/rpConsultationSchema.js");
 const realisticSamplePhonePattern = /phone:\s*['"]010-\d{4}-\d{4}['"]|phone:\s*['"]010\d{8}['"]/;
+const externalManagementConfigFiles = [".env.example", "package.json", "vercel.json"];
 
 addCheck("runtime", "Next.js is on a patched 15.5.x+ line", versionAtLeast(dependencies.next, "15.5.7"), `next=${dependencies.next}`);
 addCheck("runtime", "React is on a patched 19.2.x+ line", versionAtLeast(dependencies.react, "19.2.4"), `react=${dependencies.react}`);
@@ -402,7 +403,21 @@ addCheck(
 addCheck(
   "security",
   "External management service identifiers are absent from source code",
-  !["app", "components", "lib", "database"].some((dir) => directoryIncludesPattern(dir, externalManagementPattern)),
+  !["app", "components", "lib", "database"].some((dir) => directoryIncludesPattern(dir, externalManagementPattern))
+    && !externalManagementConfigFiles.some((file) => externalManagementPattern.test(readFile(file))),
+);
+addCheck(
+  "security",
+  "Environment template covers production security and scale controls",
+  includesAll(".env.example", [
+    "RP_DISABLE_RUNTIME_SCHEMA_SYNC=false",
+    "RP_RATE_LIMIT_FAIL_CLOSED=false",
+    "RP_AUTH_LOCKOUT_ENABLED=true",
+    "RP_ALLOW_ENV_AUTH_ACCOUNTS=false",
+    "RP_AI_DAILY_LIMIT_MAX=100",
+    "RP_RETENTION_CRON_APPLY=false",
+    "RP_VERCEL_FIREWALL_ALLOW_APPLY=false",
+  ]),
 );
 addCheck(
   "security",
@@ -865,6 +880,36 @@ addCheck(
       "RP_DATABASE_POOL_MAX",
       "RP_RATE_LIMIT_FAIL_CLOSED",
       "SMS verification webhook",
+    ]),
+);
+addCheck(
+  "traffic",
+  "Vercel Firewall policy is strict, reproducible, and apply-gated",
+  Boolean(scripts["ops:firewall:policy"])
+    && Boolean(scripts["ops:firewall:sync"])
+    && includesAll("scripts/lib/rpVercelFirewallPolicy.mjs", [
+      "RP_FIREWALL_REQUIRED_PATHS",
+      "RP_FIREWALL_RATE_LIMIT_REQUIRED_PATHS",
+      "missingProtectedPaths",
+      "missingRateLimitedPaths",
+      "botProtectionActive",
+    ])
+    && includesAll("scripts/check-rp-firewall-policy.mjs", [
+      "Inactive custom rules must never satisfy firewall readiness.",
+      "Log-only API rules must never satisfy protective or rate-limit readiness.",
+      "A single protected route must not satisfy complete RP API coverage.",
+    ])
+    && includesAll("scripts/sync-rp-vercel-firewall.mjs", [
+      "RP_VERCEL_FIREWALL_ALLOW_APPLY",
+      "APPLY_RP_VERCEL_FIREWALL",
+      "rules.insert",
+      "managedRules.update",
+    ])
+    && includesAll("scripts/check-rp-vercel-production.mjs", [
+      "analyzeRpFirewallConfig",
+      "missingProtectedPaths",
+      "missingRateLimitedPaths",
+      "Bot Protection is active",
     ]),
 );
 addCheck(

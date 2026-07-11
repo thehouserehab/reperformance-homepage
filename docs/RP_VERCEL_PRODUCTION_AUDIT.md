@@ -1,6 +1,6 @@
 # RePERFORMANCE Vercel production audit
 
-Last checked: 2026-07-10
+Last checked: 2026-07-11
 
 This records point-in-time Vercel state that was verifiable through the connected Vercel app. It is evidence for deployment/runtime status at the check time, not a substitute for the manual firewall, production database, staff-session system-status, and environment-variable checks in the campaign runbook.
 
@@ -58,6 +58,7 @@ This records point-in-time Vercel state that was verifiable through the connecte
 - Production migration state still requires `npm.cmd run db:migration:check` with production database access.
 - Security-strict staff readiness still requires `npm.cmd run ops:status:check -- --security-strict` with a valid staff session cookie.
 - Active Vercel Firewall configuration still requires the Vercel token-backed production check or manual verification against `docs/RP_VERCEL_FIREWALL_RULES.md`.
+- The repository Firewall checker is now strict: partial, inactive, or log-only rules do not pass. `npm.cmd run ops:firewall:sync` provides a token-backed dry-run and an explicitly gated apply path for both production projects.
 - Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and deletion approval are complete.
 - `npm.cmd run ops:public:check` is the no-secret public production smoke check for page status, first-landing CTA visibility, service-choice links, PE exam search/training-management entry points, page/cache headers, hashed static asset immutable caching, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation after each deploy.
 

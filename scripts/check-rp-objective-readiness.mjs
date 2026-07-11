@@ -263,6 +263,26 @@ const objectives = [
       buildCheck(
         "Edge/firewall and outbound-timeout readiness are documented and audited",
         includesAll("docs/RP_VERCEL_FIREWALL_RULES.md", ["/api/auth/login", "/api/auth/identity-verification", "/api/rp/service-application", "/api/rp/pe-exam-ai-consult"])
+          && includesAll("scripts/lib/rpVercelFirewallPolicy.mjs", [
+            "RP_FIREWALL_REQUIRED_PATHS",
+            "RP_FIREWALL_RATE_LIMIT_REQUIRED_PATHS",
+            "analyzeRpFirewallConfig",
+            "bot_protection",
+          ])
+          && includesAll("scripts/check-rp-vercel-production.mjs", [
+            "analyzeRpFirewallConfig",
+            "missingProtectedPaths",
+            "missingRateLimitedPaths",
+            "botProtectionActive",
+          ])
+          && includesAll("scripts/sync-rp-vercel-firewall.mjs", [
+            "RP_VERCEL_FIREWALL_ALLOW_APPLY",
+            "APPLY_RP_VERCEL_FIREWALL",
+            "rules.insert",
+            "managedRules.update",
+          ])
+          && Boolean(scripts["ops:firewall:policy"])
+          && Boolean(scripts["ops:firewall:sync"])
           && includesAll("lib/rpOutboundFetch.js", ["fetchWithTimeout", "RP_OUTBOUND_FETCH_TIMEOUT_MS"]),
       ),
     ],

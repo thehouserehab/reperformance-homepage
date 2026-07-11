@@ -28,6 +28,10 @@ const steps = [
     command: [npmCommand, "run", "ops:audit"],
   },
   {
+    name: "Vercel Firewall policy fixtures",
+    command: [npmCommand, "run", "ops:firewall:policy"],
+  },
+  {
     name: "Sensitive data exposure static gate",
     command: [npmCommand, "run", "ops:sensitive:check"],
   },
@@ -136,6 +140,7 @@ console.log("RePERFORMANCE campaign readiness check");
 console.log("Use --build --typecheck for final pre-deploy verification.");
 console.log("Use --database with DATABASE_URL, POSTGRES_URL, or RP_DATABASE_URL to verify production migration state.");
 console.log("Use --vercel with VERCEL_TOKEN for production Vercel gates and deployed HEAD matching.");
+console.log("Use npm.cmd run ops:firewall:sync for a token-backed dry-run of missing edge controls.");
 console.log("Use --public to verify public production URLs without Vercel secrets.");
 console.log("Use --status with RP_SYSTEM_STATUS_COOKIE or RP_ADMIN_SESSION_COOKIE to verify staff-only system readiness.");
 console.log("Use --security-strict with a staff cookie before paid/admission traffic to require securityMonitoring.status=normal.");
