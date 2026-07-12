@@ -29,7 +29,7 @@ const pageChecks = [
   {
     path: "/services",
     label: "service choice",
-    expectedTexts: ["지금 필요한 목적을 먼저 선택하세요", "시니어 재활", "체대입시", "선택하기"],
+    expectedTexts: ["지금 필요한 목적을 먼저 선택하세요", "시니어 재활", "체대입시", "자세히 보기"],
     requiredHrefs: ["/services/senior-rehab", "/services/athlete-reconditioning", "/services/pe-exam", "/services/pain-care", "/apply"],
   },
   {
