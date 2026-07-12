@@ -329,9 +329,11 @@ export default function PeExamPage() {
     <PageShell>
       <nav className={styles.hubNav} aria-label="체대입시 정보 메뉴">
         <div className={`container ${styles.hubNavInner}`}>
-          {hubLinks.map((link) => (
+          <span className={styles.hubNavLabel}>QUICK INDEX</span>
+          {hubLinks.map((link, index) => (
             <Link href={link.href} key={link.href}>
-              {link.label}
+              <span className={styles.hubNavIndex}>{String(index + 1).padStart(2, "0")}</span>
+              <span>{link.label}</span>
             </Link>
           ))}
         </div>
@@ -348,10 +350,12 @@ export default function PeExamPage() {
             </p>
             <div className={styles.heroActions}>
               <Link className="button primary" href="#university-search">
-                대학 정보 검색
+                <span>대학 정보 검색</span>
+                <span aria-hidden="true">→</span>
               </Link>
               <Link className="button secondary" href="/apply?service=pe-exam">
-                체대입시 상담 신청
+                <span>체대입시 상담 신청</span>
+                <span aria-hidden="true">→</span>
               </Link>
             </div>
             <dl className={styles.heroStats} aria-label="체대입시 허브 주요 데이터">

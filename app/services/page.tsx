@@ -57,15 +57,18 @@ export default function ServicesPage() {
             const card = (
               <>
                 <div className="service-choice-card-top">
-                  <span className="service-choice-kicker">{tone}</span>
                   <span className="service-choice-index">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="service-choice-kicker">{tone}</span>
                 </div>
-                <div>
+                <div className="service-choice-card-title">
                   <p className="card-label">{item.label}</p>
                   <h2>{displayTitle}</h2>
-                  <p>{summary}</p>
                 </div>
-                <span className="service-choice-link">선택하기</span>
+                <p className="service-choice-summary">{summary}</p>
+                <span className="service-choice-link">
+                  <span>자세히 보기</span>
+                  <span aria-hidden="true">→</span>
+                </span>
               </>
             );
 

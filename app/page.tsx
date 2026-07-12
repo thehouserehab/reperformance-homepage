@@ -44,15 +44,20 @@ export default function Home() {
             <p className="home-choice-prompt">지금 필요한 시작을 선택하세요.</p>
             <div className="home-primary-actions" aria-label="주요 이동">
               <Link href={site.serviceApplyHref} className="button primary home-main-cta">
-                상담 신청하기
+                <span>상담 신청하기</span>
+                <span className="home-main-cta-arrow" aria-hidden="true">→</span>
               </Link>
               <Link href="/services" className="button hero-secondary home-main-cta">
-                홈페이지 둘러보기
+                <span>홈페이지 둘러보기</span>
+                <span className="home-main-cta-arrow" aria-hidden="true">→</span>
               </Link>
             </div>
             <div className="home-signal-strip" aria-label="RePERFORMANCE 핵심 영역">
-              {brandSignals.map((signal) => (
-                <span key={signal}>{signal}</span>
+              {brandSignals.map((signal, index) => (
+                <span key={signal}>
+                  <b>{String(index + 1).padStart(2, "0")}</b>
+                  {signal}
+                </span>
               ))}
             </div>
           </div>
