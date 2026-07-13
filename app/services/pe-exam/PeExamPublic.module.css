@@ -653,3 +653,332 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* 2026 service-led redesign: preserve the content flow and make the page part of the main brand. */
+.publicPage {
+  background: #f2f4f1;
+  color: #111716;
+}
+
+.publicPage :global(.pe-standalone-nav) {
+  border-bottom: 1px solid #d9dedb;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.publicPage :global(.pe-standalone-brand) {
+  color: #111716;
+}
+
+.publicPage :global(.pe-standalone-brand span) {
+  color: #0e9187;
+}
+
+.publicPage :global(.pe-standalone-actions) {
+  gap: 0;
+}
+
+.publicPage :global(.pe-standalone-actions a) {
+  min-height: 44px;
+  border: 0;
+  border-left: 1px solid #d9dedb;
+  border-radius: 0;
+  padding: 0 18px;
+  color: #303936;
+}
+
+.publicPage :global(.pe-standalone-actions a:last-child) {
+  border-left-color: #111716;
+  background: #111716;
+  color: #fff;
+}
+
+.publicHero {
+  position: relative;
+  min-height: 760px;
+  padding: 150px 0 86px;
+  background-color: #080c0b;
+  background-image: url("/images/pe-exam-hero.png");
+  background-position: center;
+  background-size: cover;
+}
+
+.publicHero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 9, 8, 0.78);
+  pointer-events: none;
+}
+
+.publicHeroInner {
+  position: relative;
+  z-index: 1;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  gap: clamp(42px, 6vw, 84px);
+}
+
+.publicHeroText h1 {
+  font-size: 60px;
+  line-height: 1.08;
+}
+
+.publicHeroText p:not(:global(.eyebrow)) {
+  max-width: 690px;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.78;
+}
+
+.heroStats {
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.heroStats article {
+  min-height: 146px;
+  padding: 24px 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.heroStats article:first-child {
+  border-top: 0;
+}
+
+.heroStats strong {
+  color: #6ee4d9;
+}
+
+.hubPillLink {
+  min-height: 50px;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.hubPillPrimary {
+  border-color: #0e9187;
+  background: #0e9187;
+  color: #fff;
+  box-shadow: none;
+}
+
+.publicPage :global(.button.pe-hero-primary) {
+  border-radius: 3px;
+  background: #fff;
+  color: #111716;
+}
+
+.publicInfoSection,
+.finalCtaSection {
+  background: #f2f4f1;
+}
+
+.consultationSection {
+  background: #fff;
+}
+
+.sectionHead h2,
+.infoPanel h3,
+.finalCtaCopy h2 {
+  color: #111716;
+}
+
+.sectionHead h2 {
+  font-size: 52px;
+  line-height: 1.12;
+}
+
+.sectionHead p:not(:global(.eyebrow)),
+.resourceList p,
+.consultStepList p,
+.finalCtaCopy p:not(:global(.eyebrow)) {
+  color: #56605c;
+}
+
+.infoPanel,
+.resourceNote {
+  border-radius: 4px;
+}
+
+.infoPanel {
+  border-color: #d9dedb;
+  box-shadow: none;
+}
+
+.resourceList strong {
+  color: #08766e;
+}
+
+.resourceNote {
+  background: #111716;
+}
+
+.resourceNote p {
+  color: #6ee4d9;
+}
+
+.resourceHubNav .hubPillPrimary {
+  border-color: #0e9187;
+}
+
+.consultStepList {
+  gap: 0;
+  border-top: 1px solid #cfd6d2;
+}
+
+.consultStepList article {
+  grid-template-columns: 72px minmax(0, 1fr);
+  min-height: 154px;
+  gap: 22px;
+  padding: 28px 0;
+  border: 0;
+  border-bottom: 1px solid #cfd6d2;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.consultStepList strong {
+  width: auto;
+  height: auto;
+  justify-content: flex-start;
+  border-radius: 0;
+  background: transparent;
+  color: #0e9187;
+  font-size: 28px;
+}
+
+.consultStepList h3 {
+  color: #111716;
+  font-size: 26px;
+}
+
+.careSystemSection {
+  background: #111716;
+}
+
+.careLead strong {
+  color: #6ee4d9;
+}
+
+.careRecordGrid {
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.22);
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.careRecordCard {
+  min-height: 190px;
+  border: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0;
+  background: transparent;
+}
+
+.finalHubNav .hubPillLink {
+  border-color: #bfc8c4;
+  color: #111716;
+}
+
+.finalHubNav .hubPillPrimary {
+  border-color: #111716;
+  background: #111716;
+  color: #fff;
+}
+
+@media (max-width: 1020px) {
+  .publicHeroInner {
+    grid-template-columns: 1fr;
+  }
+
+  .publicHero {
+    min-height: auto;
+  }
+
+  .heroStats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .heroStats article {
+    min-height: 0;
+    padding: 22px 18px;
+    border-top: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .heroStats article:first-child {
+    border-left: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .publicPage :global(.pe-standalone-nav-inner) {
+    align-items: stretch;
+  }
+
+  .publicPage :global(.pe-standalone-actions) {
+    border-top: 1px solid #d9dedb;
+  }
+
+  .publicPage :global(.pe-standalone-actions a) {
+    border: 0;
+    border-right: 1px solid #d9dedb;
+  }
+
+  .publicPage :global(.pe-standalone-actions a:nth-child(2n)) {
+    border-right: 0;
+  }
+
+  .publicPage :global(.pe-standalone-actions a:last-child) {
+    background: #111716;
+  }
+
+  .publicHero {
+    padding-top: 188px;
+  }
+
+  .publicHeroText h1,
+  .sectionHead h2 {
+    font-size: 40px;
+  }
+
+  .heroStats {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStats article {
+    padding: 22px 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  .heroStats article:first-child {
+    border-top: 0;
+  }
+
+  .consultStepList article {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .publicHero {
+    padding-top: 204px;
+  }
+
+  .publicHeroText h1,
+  .sectionHead h2 {
+    font-size: 36px;
+  }
+
+  .consultStepList article {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .consultStepList strong {
+    font-size: 22px;
+  }
+}

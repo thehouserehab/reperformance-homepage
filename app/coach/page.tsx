@@ -6,7 +6,13 @@ export default function CoachPage() {
     <PageShell>
       <section className="coach-editorial-hero">
         <div className="coach-editorial-image">
-          <Image src="/images/coach-profile.jpg" alt="RePERFORMANCE 정우현 코치" fill priority sizes="100vw" />
+          <Image
+            src="/images/coach-profile.jpg"
+            alt="RePERFORMANCE 정우현 코치"
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 58vw"
+          />
         </div>
         <div className="coach-editorial-scrim" />
         <div className="container coach-editorial-content">

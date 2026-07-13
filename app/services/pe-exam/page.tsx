@@ -95,9 +95,9 @@ export default function PeExamServicePage() {
       <header className="pe-standalone-nav" aria-label="RePERFORMANCE 체대입시">
         <div className="container pe-standalone-nav-inner">
           <Link
-            href="/services/pe-exam"
+            href="/"
             className="pe-standalone-brand"
-            aria-label="RePERFORMANCE 체대입시 안내 페이지"
+            aria-label="RePERFORMANCE 홈페이지"
           >
             <strong>RePERFORMANCE</strong>
             <span>체대입시</span>

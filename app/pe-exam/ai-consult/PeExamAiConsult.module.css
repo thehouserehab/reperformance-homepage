@@ -613,3 +613,148 @@
     width: 100%;
   }
 }
+
+/* 2026 brand alignment: calm, explicit and non-predictive consultation preparation. */
+.hero {
+  padding: clamp(78px, 8vw, 112px) 0;
+  background: #111716;
+}
+
+.heroInner {
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: clamp(40px, 7vw, 90px);
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: 60px;
+  line-height: 1.08;
+}
+
+.statusPanel {
+  padding: 28px 0;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0;
+  background: transparent;
+}
+
+.statusPanel strong,
+.guidePanel :global(.eyebrow) {
+  color: #6ee4d9;
+}
+
+.aiLimitList li::before {
+  border-radius: 0;
+  background: #6ee4d9;
+}
+
+.section {
+  background: #f2f4f1;
+}
+
+.sectionHead h2,
+.guidePanel h2,
+.guidancePreview h3,
+.profileSummaryPanel h4,
+.matchHead h4,
+.guidanceCard strong,
+.matchCard strong {
+  color: #111716;
+}
+
+.sectionHead h2 {
+  font-size: 48px;
+  line-height: 1.14;
+}
+
+.sectionHead p:not(:global(.eyebrow)),
+.guidancePreview p,
+.guidePanel dd {
+  color: #56605c;
+}
+
+.form input,
+.form select,
+.form textarea,
+.form button,
+.universityResults,
+.universityResults button,
+.selectedUniversityPanel,
+.statusBox,
+.loginNotice,
+.prefillNotice,
+.guidancePreview,
+.profileSummaryPanel,
+.profileSummaryGrid div,
+.guidanceCard,
+.matchCard,
+.guidePanel {
+  border-radius: 3px;
+}
+
+.form input,
+.form select,
+.form textarea {
+  border-color: #c7cfcb;
+}
+
+.form button {
+  background: #111716;
+}
+
+.universityResults,
+.selectedUniversityPanel,
+.profileSummaryPanel,
+.matchCard {
+  border-color: #d4dad7;
+  background: #fff;
+}
+
+.universityResults button,
+.profileSummaryGrid div,
+.guidanceCard {
+  border-color: #dce1de;
+}
+
+.universityResults button[aria-pressed="true"],
+.selectedUniversityPanel,
+.success {
+  background: #e5f1ee;
+}
+
+.guidancePreview {
+  border-color: #d4dad7;
+  box-shadow: none;
+}
+
+.guidePanel {
+  border-color: #d4dad7;
+  box-shadow: none;
+}
+
+.consultBand {
+  background: #111716;
+}
+
+@media (max-width: 960px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 64px 0 72px;
+  }
+
+  .hero h1,
+  .sectionHead h2 {
+    font-size: 38px;
+  }
+
+  .statusPanel {
+    padding: 24px 0;
+  }
+}

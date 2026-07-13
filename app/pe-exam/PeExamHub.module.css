@@ -4557,3 +4557,455 @@
     min-width: 0;
   }
 }
+
+/* 2026 brand alignment: keep the data model, simplify the visual hierarchy. */
+.hero {
+  min-height: 760px;
+  padding: 84px 0 72px;
+}
+
+.hero h1 {
+  max-width: 760px;
+  font-size: 60px;
+  line-height: 1.08;
+}
+
+.hero p:not(:global(.eyebrow)) {
+  max-width: 700px;
+  font-size: 17px;
+}
+
+.heroPanel {
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.34);
+}
+
+.heroPanel article {
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+  border-left: 0;
+  border-radius: 0;
+  background: rgba(8, 13, 12, 0.42);
+}
+
+.heroPanel article a {
+  min-height: 132px;
+  padding: 20px 18px;
+}
+
+.heroStats div {
+  border-radius: 3px;
+  background: rgba(8, 13, 12, 0.54);
+}
+
+.starterGuideSection {
+  padding: 96px 0;
+  border-bottom: 1px solid #d5dbd5;
+}
+
+.starterGuideInner {
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 72px;
+}
+
+.starterGuideLead {
+  padding: 0 48px 0 0;
+  border-right: 1px solid #111716;
+  border-radius: 0;
+  background: transparent;
+  color: #111716;
+}
+
+.starterGuideLead :global(.eyebrow) {
+  min-height: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  color: #0a665b;
+  letter-spacing: 0.12em;
+}
+
+.starterGuideLead h2 {
+  margin-top: 22px;
+  color: #111716;
+  font-size: 46px;
+  line-height: 1.14;
+}
+
+.starterGuideLead p:not(:global(.eyebrow)) {
+  color: #59635f;
+}
+
+.starterGuideCards {
+  grid-template-columns: 1fr;
+  gap: 0;
+  border-top: 1px solid #111716;
+}
+
+.starterGuideCards article {
+  display: grid;
+  grid-template-columns: 74px minmax(180px, 0.7fr) minmax(0, 1.3fr);
+  gap: 22px;
+  min-height: 112px;
+  align-items: center;
+  padding: 22px 0;
+  border-bottom: 1px solid #d5dbd5;
+  border-radius: 0;
+  background: transparent;
+}
+
+.starterGuideCards span {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: #0a665b;
+  font-size: 11px;
+}
+
+.starterGuideCards strong {
+  margin: 0;
+  font-size: 21px;
+}
+
+.starterGuideCards p {
+  font-size: 14px;
+}
+
+.searchSection,
+.universitySection,
+.roadmapSection,
+.faqPreviewSection,
+.regionDetailSection {
+  background: #f2f4f1;
+}
+
+.searchSectionHead {
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.75fr);
+  gap: 72px;
+  margin-bottom: 40px;
+}
+
+.searchSectionHead h2,
+.sectionHead h2,
+.timelineIntro h2,
+.aiLayout h2,
+.consultInner h2,
+.faqPreviewLayout h2,
+.regionChoicePreviewHead h2,
+.regionSchoolDirectoryHead h2,
+.officialCheckPanel h2 {
+  font-size: 46px;
+  line-height: 1.16;
+}
+
+.homeSearchAdvanced,
+.homeSearchCard,
+.resourceCard,
+.catalogStats article,
+.coverageGrid article,
+.universityScopeGrid article,
+.regionOverviewCard,
+.roadmapList li,
+.admissionChoiceCard,
+.regionChoicePreviewGrid article,
+.regionDetailGuide article,
+.trackSourceGrid article,
+.trackSummaryStats div,
+.officialCheckLinks a,
+.schoolDataGuide div,
+.kusfAdmissionItem,
+.practicalRecordGrid div,
+.regularResultItem,
+.regionSchoolList article,
+.regionBlock,
+.kusfRegion,
+.kusfSchoolCard,
+.trackBox,
+.featuredCard,
+.catalogNotice,
+.officialCheckPanel,
+.trackSummaryPanel,
+.regionChoicePreview,
+.resourceDisclosure {
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.conditionSearchRow input,
+.homeSearchSelectLabel select,
+.conditionSearchRow button,
+.homeSearchResultBar button,
+.homeSearchMoreActions button,
+.homeSearchLabel input,
+.universitySearchLabel input,
+.homeSearchActions a,
+.regionOverviewLink,
+.kusfDataHead a,
+.dataSourceLinks a,
+.trackSourceGrid a,
+.trackSwitchBar a,
+.regionDetailTools > a,
+.regionDetailTools div a,
+.featuredCard > a,
+.kusfItemLink,
+.kusfInlineLink,
+.resourceDisclosure summary em {
+  border-radius: 3px;
+}
+
+.breadcrumbTrail {
+  background: #f2f4f1;
+}
+
+.breadcrumbTrailInner {
+  gap: 0;
+}
+
+.breadcrumbTrailInner a,
+.breadcrumbTrailInner span {
+  min-height: 42px;
+  border: 0;
+  border-radius: 0;
+  padding: 0 18px;
+  background: transparent;
+  color: #59635f;
+}
+
+.breadcrumbTrailInner a {
+  border-right: 1px solid #cbd1cc;
+}
+
+.breadcrumbTrailInner span[aria-current="page"] {
+  border: 0;
+  background: #111716;
+  color: #fff;
+}
+
+.trainingManagementSection {
+  padding-top: 112px;
+  padding-bottom: 112px;
+}
+
+.trainingManagementLead h2 {
+  font-size: 52px;
+  line-height: 1.12;
+}
+
+.trainingPreviewPanel {
+  border-radius: 4px;
+  background: #111716;
+}
+
+.trainingPreviewRows div {
+  border-radius: 3px;
+}
+
+.trainingPreviewRows span {
+  border-radius: 2px;
+}
+
+.trainingCardGrid {
+  gap: 0;
+  border-top: 1px solid #111716;
+  border-bottom: 1px solid #111716;
+}
+
+.trainingCardGrid article {
+  min-height: 220px;
+  border-right: 1px solid #d5dbd5;
+  border-radius: 0;
+  background: transparent;
+}
+
+.trainingCardGrid article:last-child {
+  border-right: 0;
+}
+
+.timelineCards {
+  gap: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.34);
+}
+
+.timelineCards::before {
+  display: none;
+}
+
+.timelineCards li {
+  min-height: 148px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 0;
+  padding: 24px 0;
+  background: transparent;
+}
+
+.timelineCards strong {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  color: #54d0c2;
+}
+
+.timelineCards span {
+  font-size: 36px;
+  line-height: 1.05;
+}
+
+.timelineCards h3 {
+  color: #fff;
+}
+
+.regionDetailHero {
+  background: #111716;
+}
+
+.regionDetailHero h1 {
+  font-size: 58px;
+}
+
+.regionDetailStats > div {
+  border-radius: 4px;
+}
+
+.detailDesignBand,
+.detailDesignHead,
+.regionDetailSection {
+  background: #f2f4f1;
+}
+
+.detailDesignHead {
+  background: transparent;
+}
+
+.detailDesignHead span {
+  background: #111716;
+  color: #fff;
+}
+
+.detailDesignHead h2,
+.detailConclusion {
+  color: #111716;
+}
+
+.detailDesignHead p {
+  color: #56605c;
+}
+
+.detailPriorityCard {
+  border: 1px solid #d9dedb;
+  background: #fff;
+}
+
+.detailPriorityCard,
+.detailPriorityRing {
+  border-radius: 4px;
+}
+
+.regionOverviewCard,
+.admissionChoiceCard,
+.universityJumpCard,
+.featuredCard {
+  border-top-width: 1px;
+}
+
+.regionOverviewLink,
+.homeSearchActions a,
+.trackSourceGrid a,
+.featuredCard > a,
+.kusfItemLink,
+.kusfInlineLink {
+  min-height: 44px;
+}
+
+.aiGuardrailList li {
+  border-radius: 3px;
+}
+
+@media (max-width: 1040px) {
+  .starterGuideInner {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+
+  .starterGuideLead {
+    padding: 0 0 36px;
+    border-right: 0;
+    border-bottom: 1px solid #111716;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero {
+    min-height: auto;
+    padding: 64px 0 54px;
+  }
+
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .hero p:not(:global(.eyebrow)) {
+    font-size: 16px;
+  }
+
+  .heroPanel article a {
+    min-height: 112px;
+  }
+
+  .starterGuideSection {
+    padding: 64px 0;
+  }
+
+  .starterGuideLead h2,
+  .searchSectionHead h2,
+  .sectionHead h2,
+  .timelineIntro h2,
+  .aiLayout h2,
+  .consultInner h2,
+  .faqPreviewLayout h2,
+  .regionChoicePreviewHead h2,
+  .regionSchoolDirectoryHead h2,
+  .officialCheckPanel h2,
+  .trainingManagementLead h2 {
+    font-size: 36px;
+  }
+
+  .starterGuideCards article {
+    grid-template-columns: 54px 1fr;
+    gap: 10px;
+  }
+
+  .starterGuideCards p {
+    grid-column: 2;
+  }
+
+  .searchSectionHead {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .trainingManagementSection {
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+
+  .trainingCardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .trainingCardGrid article {
+    min-height: 0;
+    border-right: 0;
+    border-bottom: 1px solid #d5dbd5;
+  }
+
+  .timelineCards span {
+    font-size: 32px;
+  }
+
+  .regionDetailHero h1 {
+    font-size: 40px;
+  }
+}
