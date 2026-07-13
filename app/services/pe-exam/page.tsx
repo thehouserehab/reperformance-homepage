@@ -57,8 +57,8 @@ const careRecordItems = [
 ] as const;
 
 const hubPillLinks = [
-  { href: "/pe-exam", label: "입시정보 허브", primary: true },
-  { href: "/pe-exam#university-search", label: "대학검색", primary: false },
+  { href: "/pe-exam", label: "입시 정보 허브", primary: true },
+  { href: "/pe-exam#university-search", label: "대학 검색", primary: false },
   { href: "/pe-exam#universities", label: "지역별 대학", primary: false },
   { href: "/pe-exam/faq", label: "FAQ", primary: false },
 ] as const;
@@ -116,13 +116,13 @@ export default function PeExamServicePage() {
           <div className={publicStyles.publicHeroText}>
             <p className="eyebrow light-text">REPERFORMANCE PE EXAM</p>
             <h1>
-              입시정보는 자유롭게,
-              <br />
+              입시 정보는 자유롭게,
+              <br />{" "}
               개인 관리는 데이터로 깊게.
             </h1>
             <p>
-              RePERFORMANCE에서 훈련하는 학생은 홈페이지 안의 체대입시 자료를 자유롭게
-              활용할 수 있습니다. 상담에서는 목표 대학, 현재 기록, 컨디션을 기준으로 운동과
+              홈페이지의 체대입시 자료는 누구나 자유롭게 활용할 수 있습니다. 상담에서는
+              목표 대학, 현재 기록, 컨디션을 기준으로 운동과
               입시 준비 방향을 함께 정리합니다.
             </p>
             <div className={publicStyles.heroActions}>
@@ -151,8 +151,8 @@ export default function PeExamServicePage() {
             <p className="eyebrow">ADMISSION INFO</p>
             <h2>입시 자료는 홈페이지 안에서 먼저 확인합니다.</h2>
             <p>
-              체대입시는 정보 확인만 잘해도 준비 방향이 훨씬 선명해집니다. RePERFORMANCE
-              학생은 대학별 정보, 전형 일정, 실기 기준 자료를 홈페이지에서 자유롭게 확인하며
+              체대입시는 정보 확인만 잘해도 준비 방향이 훨씬 선명해집니다. 학생과 보호자는
+              대학별 정보, 전형 일정, 실기 기준 자료를 홈페이지에서 자유롭게 확인하며
               상담 전에 기본 흐름을 잡을 수 있습니다.
             </p>
           </div>

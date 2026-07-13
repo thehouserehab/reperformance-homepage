@@ -97,7 +97,7 @@ export function ConsultationCTA({ compact = false }: { compact?: boolean }) {
     <section className={compact ? "consultation compact" : "consultation"}>
       <div className="container consultation-inner">
         <p className="eyebrow light-text">CONSULTATION</p>
-        <h2>지금 가장 불편한 움직임부터 남겨주세요.</h2>
+        <h2>지금 가장 불편한 움직임부터 남겨 주세요.</h2>
         <p>
           원하는 서비스를 선택하고 운동 전 확인 항목을 작성하면 담당 코치가 상담 방향을 안내합니다.
         </p>

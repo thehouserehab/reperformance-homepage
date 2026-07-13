@@ -224,7 +224,7 @@ export async function POST(request) {
 
   if (!identityMatches) {
     await logSignupEvent(request, 'failure', payload, { reason: 'identity_mismatch', verificationMethod });
-    if (wantsJson) return jsonResponse({ ok: false, error: '본인 인증을 먼저 완료해주세요.' }, 400);
+    if (wantsJson) return jsonResponse({ ok: false, error: '본인 인증을 먼저 완료해 주세요.' }, 400);
     return buildRedirect(request, 'invalid', role);
   }
 

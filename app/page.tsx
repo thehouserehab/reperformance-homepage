@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import PeExamWindowLink from "./_components/PeExamWindowLink";
 import { BrandLogo, Footer } from "./_components/SiteChrome";
-import { serviceItems, site, systemItems } from "./_components/siteData";
+import { orderedServiceItems, site, systemItems } from "./_components/siteData";
 
 const brandSignals = [
   "전문 재활",
@@ -55,7 +55,7 @@ export default function Home() {
             <p className="eyebrow light-text">RePERFORMANCE</p>
             <h1>
               재활에서 퍼포먼스까지,
-              <br />
+              <br />{" "}
               몸을 다시 관리하는 곳.
             </h1>
             <p className="lead">
@@ -100,12 +100,12 @@ export default function Home() {
             <div className="home-section-heading">
               <div>
                 <p className="eyebrow">CHOOSE YOUR PURPOSE</p>
-                <h2 id="home-service-title">지금 필요한 목적에서<br />시작하세요.</h2>
+                <h2 id="home-service-title">지금 필요한 목적에서<br />{" "}시작하세요.</h2>
               </div>
               <p>긴 설명을 읽기 전에, 현재 상황에 가까운 서비스를 선택할 수 있습니다.</p>
             </div>
             <div className="home-service-list">
-              {serviceItems.map((item, index) => {
+              {orderedServiceItems.map((item, index) => {
                 const copy = homeServiceCopy[item.applicationValue as keyof typeof homeServiceCopy];
                 const content = (
                   <>
@@ -137,7 +137,7 @@ export default function Home() {
           <div className="container home-method-grid">
             <div className="home-method-heading">
               <p className="eyebrow light-text">MANAGED TRAINING</p>
-              <h2 id="home-method-title">운동만 시키지 않고,<br />변화를 관리합니다.</h2>
+              <h2 id="home-method-title">운동만 시키지 않고,<br />{" "}변화를 관리합니다.</h2>
               <p>상담에서 확인한 목표가 실제 수업의 평가와 프로그램으로 이어집니다.</p>
               <Link href="/system" className="text-link-light">
                 관리 시스템 보기 <span aria-hidden="true">→</span>
@@ -169,7 +169,7 @@ export default function Home() {
             </div>
             <div className="home-coach-copy">
               <p className="eyebrow">HEAD COACH</p>
-              <h2>회복과 훈련 사이를<br />한 사람이 이어서 봅니다.</h2>
+              <h2>회복과 훈련 사이를<br />{" "}한 사람이 이어서 봅니다.</h2>
               <p>
                 현재 몸 상태에 맞는 운동을 찾고, 가능한 범위부터 단계적으로 진행합니다. 시니어의 일상 회복부터
                 선수의 복귀, 학생의 실기 향상까지 같은 기준으로 관리합니다.

@@ -19,15 +19,15 @@ import styles from "./PeExamHub.module.css";
 export const metadata: Metadata = {
   title: "체대입시 정보 허브 | RePERFORMANCE",
   description:
-    "2026년 대입 흐름, 전국 체육관련학과 대학 목록, 수시·정시 준비 기준, FAQ와 로그인 회원용 AI 입시 상담 방향 가이드를 확인하는 RePERFORMANCE 체대입시 정보 허브입니다.",
+    "2026년 대입 흐름, 전국 체육 관련 학과 대학 목록, 수시·정시 준비 기준, FAQ와 로그인 회원용 AI 입시 상담 방향 가이드를 확인하는 RePERFORMANCE 체대입시 정보 허브입니다.",
 };
 
 const hubLinks = [
   { href: "#university-search", label: "대학 찾기" },
   { href: "#universities", label: "지역별 대학" },
-  { href: "#training-management", label: "실기관리" },
+  { href: "#training-management", label: "실기 관리" },
   { href: "#timeline", label: "2026 흐름" },
-  { href: "#ai-consult", label: "상담준비" },
+  { href: "#ai-consult", label: "상담 준비" },
   { href: "/pe-exam/faq", label: "FAQ" },
 ] as const;
 
@@ -40,7 +40,7 @@ const resourceCards = [
   {
     label: "02",
     title: "지역별 대학",
-    text: "전국 체육관련학과 대학을 권역별로 훑고, 상세 페이지에서 대학별 전형을 이어서 봅니다.",
+    text: "전국 체육 관련 학과 대학을 권역별로 훑고, 상세 페이지에서 대학별 전형을 이어서 봅니다.",
   },
   {
     label: "03",
@@ -64,7 +64,7 @@ const universityScopeCards = [
     text: "지역별 전형 선택 페이지에서 먼저 수시/정시를 고른 뒤, 선택한 전형 전용 페이지에서 이어서 봅니다.",
   },
   {
-    title: "공식자료 기준",
+    title: "공식 자료 기준",
     text: "실기 종목별 기록표와 전년도 입결 세부값은 대학별 모집요강 및 공식 포털 확인을 우선합니다.",
   },
 ] as const;
@@ -82,13 +82,13 @@ const roadmapSteps = [
   ["01", "모집요강 확인", "대학별 모집단위, 전형명, 반영 비율, 실기 종목을 먼저 봅니다."],
   ["02", "현재 위치 정리", "성적, 실기 기록, 가능한 운동 시간, 몸 상태를 한 번에 정리합니다."],
   ["03", "수시·정시 분리", "수시와 정시는 확인해야 할 기준이 달라 준비 경로를 따로 봅니다."],
-  ["04", "상담으로 연결", "공개자료만으로 부족한 부분은 상담에서 개인별 방향으로 정리합니다."],
+  ["04", "상담으로 연결", "공개 자료만으로 부족한 부분은 상담에서 개인별 방향으로 정리합니다."],
 ] as const;
 
 const startFlowItems = [
   {
     number: "01",
-    title: "대학정보 확인",
+    title: "대학 정보 확인",
     text: "지역, 전형, 실기 종목, 공식 확인 링크를 먼저 봅니다.",
     href: "#university-search",
   },
@@ -107,7 +107,7 @@ const startFlowItems = [
   {
     number: "04",
     title: "상담·관리 연결",
-    text: "공개자료에서 끝내지 않고 상담 후 필요한 관리 흐름으로 이어갑니다.",
+    text: "공개 자료에서 끝내지 않고 상담 후 필요한 관리 흐름으로 이어갑니다.",
     href: "/apply?service=pe-exam",
   },
 ] as const;
@@ -157,7 +157,7 @@ const starterGuideCards = [
   {
     label: "STEP 3",
     title: "공식 자료로 최종 확인",
-    text: "기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시결과표가 최종 기준입니다.",
+    text: "기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시 결과표가 최종 기준입니다.",
   },
 ] as const;
 
@@ -343,10 +343,10 @@ export default function PeExamPage() {
         <div className={`container ${styles.heroInner}`}>
           <div className={styles.heroCopy}>
             <p className="eyebrow light-text">PE EXAM SERVICE FLOW</p>
-            <h1>대학정보 확인에서 실기 향상 관리까지 이어집니다.</h1>
+            <h1>대학 정보 확인에서 실기 향상 관리까지 이어집니다.</h1>
             <p>
-              전국 체육관련학과 대학 정보를 먼저 확인하고, 현재 성적과 실기 기록을 정리한 뒤
-              상담과 훈련관리로 연결하는 체대입시 준비 흐름입니다.
+              전국 체육 관련 학과 대학 정보를 먼저 확인하고, 현재 성적과 실기 기록을 정리한 뒤
+              상담과 훈련 관리로 연결하는 체대입시 준비 흐름입니다.
             </p>
             <div className={styles.heroActions}>
               <Link className="button primary" href="#university-search">
@@ -439,7 +439,7 @@ export default function PeExamPage() {
             <p className="eyebrow">TRAINING MANAGEMENT</p>
             <h2>대학을 찾았다면, 이제 실기 기록을 올릴 차례입니다.</h2>
             <p>
-              대학정보는 출발점입니다. 현재 기록을 정확히 보고 종목별 약점을 훈련으로 바꾸며,
+              대학 정보는 출발점입니다. 현재 기록을 정확히 보고 종목별 약점을 훈련으로 바꾸며,
               코치 피드백과 기록 변화를 쌓는 과정이 RePERFORMANCE의 핵심입니다.
             </p>
             <Link className="button dark" href="/apply?service=pe-exam">
@@ -554,21 +554,21 @@ export default function PeExamPage() {
             </p>
           </div>
 
-          <div className={styles.catalogStats} aria-label="체육관련학과 대학 목록 요약">
+          <div className={styles.catalogStats} aria-label="체육 관련 학과 대학 목록 요약">
             <article>
               <span>목록 기준</span>
               <strong>{catalogMeta.count}건</strong>
-              <p>전국 체육관련학과 대학</p>
+              <p>전국 체육 관련 학과 대학</p>
             </article>
             <article>
               <span>KUSF 수시</span>
               <strong>{kusfAdmissionMeta.admissionCount}개</strong>
-              <p>수시 일반전형 요약</p>
+              <p>수시 일반 전형 요약</p>
             </article>
             <article>
               <span>ADIGA 정시</span>
               <strong>{adigaRegularAdmissionMeta.admissionCount}개</strong>
-              <p>정시 예체능 전형방법</p>
+              <p>정시 예체능 전형 방법</p>
             </article>
             <article>
               <span>KUSF 상세</span>
@@ -586,7 +586,15 @@ export default function PeExamPage() {
             ))}
           </div>
 
-          <div className={styles.kusfDataPanel}>
+          <details className={styles.kusfDataDisclosure}>
+            <summary>
+              <span>
+                <strong>공식 자료 연결 범위</strong>
+                <small>KUSF 수시, ADIGA 정시, 실기·학생부 자료의 적용 범위를 확인합니다.</small>
+              </span>
+              <span className={styles.disclosureAction} aria-hidden="true">펼쳐 보기</span>
+            </summary>
+            <div className={styles.kusfDataPanel}>
             <div className={styles.kusfDataHead}>
               <div>
                 <p className="eyebrow">OFFICIAL DATA SNAPSHOT</p>
@@ -596,7 +604,7 @@ export default function PeExamPage() {
                   {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 {kusfAdmissionMeta.admissionCount}개
                   수시 전형과 {adigaRegularAdmissionMeta.sourceName}에서 가져온{" "}
                   {adigaRegularAdmissionMeta.universitiesWithAdmissions}개 대학의{" "}
-                  {adigaRegularAdmissionMeta.admissionCount}개 정시 전형방법입니다. 여기에{" "}
+                  {adigaRegularAdmissionMeta.admissionCount}개 정시 전형 방법입니다. 여기에{" "}
                   {kusfAdmissionDetailMeta.sourceName}에서 수시 실기 상세{" "}
                   {kusfAdmissionDetailMeta.practicalDetailCount}개, 학생부·등급 기준{" "}
                   {kusfAdmissionDetailMeta.gradeDetailCount}개를 추가로 연결했습니다.
@@ -612,7 +620,7 @@ export default function PeExamPage() {
               </div>
             </div>
 
-            <div className={styles.coverageGrid} aria-label="체대입시 공식자료 연결 범위">
+            <div className={styles.coverageGrid} aria-label="체대입시 공식 자료 연결 범위">
               <article>
                 <span>전국 목록</span>
                 <strong>{catalogMeta.count}개 대학</strong>
@@ -622,23 +630,23 @@ export default function PeExamPage() {
                 <span>수시 자료</span>
                 <strong>{kusfAdmissionMeta.admissionCount}개 전형</strong>
                 <p>
-                  {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 일반전형과 실기 상세{" "}
+                  {kusfAdmissionMeta.universitiesWithAdmissions}개 대학의 일반 전형과 실기 상세{" "}
                   {kusfAdmissionDetailMeta.practicalDetailCount}개를 연결했습니다.
                 </p>
               </article>
               <article>
                 <span>정시 자료</span>
-                <strong>{adigaRegularAdmissionMeta.admissionCount}개 전형방법</strong>
+                <strong>{adigaRegularAdmissionMeta.admissionCount}개 전형 방법</strong>
                 <p>
                   {adigaRegularAdmissionMeta.unitCount}개 모집단위와 {adigaRegularSelectionMeta.resultYear}학년도
-                  입시결과 {adigaRegularSelectionMeta.resultRowCount}개 행을 함께 확인합니다.
+                  입시 결과 {adigaRegularSelectionMeta.resultRowCount}개 행을 함께 확인합니다.
                 </p>
               </article>
               <article className={styles.coverageCaution}>
                 <span>별도 확인</span>
-                <strong>수시 평균등급·등급컷</strong>
+                <strong>수시 평균 등급·등급컷</strong>
                 <p>
-                  KUSF 상세 자료는 학생부 반영방법과 최저 기준 중심입니다. 모든 대학의 숫자형 평균등급·등급컷은
+                  KUSF 상세 자료는 학생부 반영 방법과 최저 기준 중심입니다. 모든 대학의 숫자형 평균 등급·등급컷은
                   대학별 상세 페이지에서 공식 모집요강 확인 항목으로 분리했습니다.
                 </p>
               </article>
@@ -646,10 +654,11 @@ export default function PeExamPage() {
 
             <ul className={styles.coverageFootnotes} aria-label="하위 페이지 확인 방식">
               <li>수시생은 지역 선택 후 수시 페이지에서 실기 종목, 학생부 기준, 모집단위별 확인 링크를 봅니다.</li>
-              <li>정시생은 지역 선택 후 정시 페이지에서 전형방법, 모집단위, ADIGA 평가기준·입시결과를 봅니다.</li>
-              <li>기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시결과표가 최종 기준입니다.</li>
+              <li>정시생은 지역 선택 후 정시 페이지에서 전형 방법, 모집단위, ADIGA 평가 기준·입시 결과를 봅니다.</li>
+              <li>기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시 결과표가 최종 기준입니다.</li>
             </ul>
-          </div>
+            </div>
+          </details>
 
           <div className={styles.universityScopeGrid} aria-label="지역별 대학 섹션에서 볼 수 있는 정보">
             {universityScopeCards.map((card) => (
@@ -706,7 +715,7 @@ export default function PeExamPage() {
             <p className="eyebrow">PREPARATION ROADMAP</p>
             <h2>자료 확인 뒤에는 개인별 준비 방향을 분리합니다.</h2>
             <p>
-              공개자료는 출발점입니다. 실제 준비 방향은 현재 기록, 학업 상황, 남은 기간,
+              공개 자료는 출발점입니다. 실제 준비 방향은 현재 기록, 학업 상황, 남은 기간,
               희망 대학을 놓고 상담에서 정리합니다.
             </p>
           </div>

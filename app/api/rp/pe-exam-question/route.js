@@ -64,13 +64,13 @@ function buildQuestion(payload = {}, session) {
   const questionText = cleanValue(payload.questionText);
 
   if (!questionText) {
-    const error = new Error('질문 내용을 입력해주세요.');
+    const error = new Error('질문 내용을 입력해 주세요.');
     error.status = 400;
     throw error;
   }
 
   if (questionText.length > 4000) {
-    const error = new Error('질문은 4000자 이내로 입력해주세요.');
+    const error = new Error('질문은 4000자 이내로 입력해 주세요.');
     error.status = 400;
     throw error;
   }

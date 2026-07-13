@@ -1,14 +1,7 @@
 import Link from "next/link";
 import PeExamWindowLink from "../_components/PeExamWindowLink";
 import { PageShell } from "../_components/SiteChrome";
-import { serviceItems } from "../_components/siteData";
-
-const serviceOrder: Record<string, number> = {
-  "senior-rehab": 0,
-  "athlete-reconditioning": 1,
-  "pe-exam": 2,
-  "pain-care": 3,
-};
+import { orderedServiceItems } from "../_components/siteData";
 
 const serviceTone = {
   "senior-rehab": "회복",
@@ -32,10 +25,6 @@ const serviceSummaries = {
 } as const;
 
 export default function ServicesPage() {
-  const orderedServices = [...serviceItems].sort(
-    (a, b) => (serviceOrder[a.applicationValue] ?? 99) - (serviceOrder[b.applicationValue] ?? 99),
-  );
-
   return (
     <PageShell>
       <section className="service-choice-hero">
@@ -50,7 +39,7 @@ export default function ServicesPage() {
 
       <section className="service-choice-section" aria-label="서비스 선택">
         <div className="container service-choice-grid">
-          {orderedServices.map((item, index) => {
+          {orderedServiceItems.map((item, index) => {
             const tone = serviceTone[item.applicationValue as keyof typeof serviceTone] || "상담";
             const displayTitle = serviceDisplayTitles[item.applicationValue as keyof typeof serviceDisplayTitles] || item.title;
             const summary = serviceSummaries[item.applicationValue as keyof typeof serviceSummaries] || item.target;

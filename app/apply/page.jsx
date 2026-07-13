@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { PageShell } from '../_components/SiteChrome';
-import { serviceItems } from '../_components/siteData';
+import { orderedServiceItems, serviceItems } from '../_components/siteData';
 import { PAIN_AREAS, PE_EXAM_EVENTS, VISIT_PURPOSES } from '../../components/rp-consultation/rpConsultationSchema';
 import styles from './Apply.module.css';
 
@@ -11,19 +11,19 @@ const statusMessages = {
   },
   setup: {
     title: '신청서 저장 준비가 필요합니다.',
-    body: '잠시 후 다시 시도하거나 전화/DM으로 신청 내용을 남겨주세요.',
+    body: '잠시 후 다시 시도하거나 전화 또는 DM으로 신청 내용을 남겨 주세요.',
   },
   invalid: {
-    title: '필수 항목을 확인해주세요.',
+    title: '필수 항목을 확인해 주세요.',
     body: '서비스, 이름, 연락처, 개인정보 동의, PAR-Q 확인 동의는 필수입니다.',
   },
   'rate-limited': {
     title: '신청 요청이 너무 많습니다.',
-    body: '보안을 위해 잠시 제한되었습니다. 잠시 후 다시 시도하거나 전화/DM으로 문의해주세요.',
+    body: '보안을 위해 잠시 제한되었습니다. 잠시 후 다시 시도하거나 전화 또는 DM으로 문의해 주세요.',
   },
   error: {
     title: '신청 저장에 실패했습니다.',
-    body: '잠시 후 다시 시도하거나 전화/DM으로 신청 내용을 남겨주세요.',
+    body: '잠시 후 다시 시도하거나 전화 또는 DM으로 신청 내용을 남겨 주세요.',
   },
 };
 
@@ -42,7 +42,7 @@ const genderOptions = ['남', '여', '기타'];
 
 function resolveServiceKey(value) {
   const text = String(value || '').trim();
-  return serviceItems.some((item) => item.applicationValue === text) ? text : serviceItems[2].applicationValue;
+  return serviceItems.some((item) => item.applicationValue === text) ? text : 'pain-care';
 }
 
 export default async function ApplyPage({ searchParams }) {
@@ -58,7 +58,7 @@ export default async function ApplyPage({ searchParams }) {
           <p className="eyebrow">APPLICATION</p>
           <h1>상담 신청서를 작성합니다.</h1>
           <p>
-            원하는 서비스, 기본 정보, 운동 전 확인 항목을 남겨주세요. 담당 코치가 확인 후 연락드립니다.
+            원하는 서비스, 기본 정보, 운동 전 확인 항목을 남겨 주세요. 담당 코치가 확인 후 연락드립니다.
           </p>
         </div>
       </section>
@@ -79,7 +79,7 @@ export default async function ApplyPage({ searchParams }) {
                 <strong>서비스 선택</strong>
               </div>
               <div className={styles.serviceGrid}>
-                {serviceItems.map((item) => (
+                {orderedServiceItems.map((item) => (
                   <label className={styles.serviceOption} key={item.applicationValue}>
                     <input
                       type="radio"
@@ -227,7 +227,7 @@ export default async function ApplyPage({ searchParams }) {
                 <strong>운동 전 확인</strong>
               </div>
               <p className={styles.helperText}>
-                아래 항목 중 해당되는 내용만 체크해주세요. 상담 전 주의사항을 확인하기 위한 질문입니다.
+                아래 항목 중 해당되는 내용만 체크해 주세요. 상담 전 주의사항을 확인하기 위한 질문입니다.
               </p>
               <div className={styles.parqList}>
                 {parqQuestions.map((question) => (

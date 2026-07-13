@@ -229,3 +229,24 @@
     width: 100%;
   }
 }
+
+.questionPanel {
+  border-radius: 4px;
+  background: #fff;
+}
+
+.loginNotice {
+  margin-top: 4px;
+  padding: 18px 0 0;
+  border: 0;
+  border-top: 1px solid #d9e1ea;
+  border-radius: 0;
+  background: transparent;
+}
+
+.questionForm input,
+.questionForm select,
+.questionForm textarea,
+.questionForm button {
+  border-radius: 3px;
+}

@@ -27,12 +27,12 @@ const statusMessages: Record<string, { title: string; text: string }> = {
     text: "현재 DB 환경변수가 없어 질문을 저장하지 못했습니다.",
   },
   invalid: {
-    title: "필수 항목을 확인해주세요.",
+    title: "필수 항목을 확인해 주세요.",
     text: "질문 내용은 반드시 입력해야 합니다.",
   },
   error: {
     title: "질문 저장 중 오류가 발생했습니다.",
-    text: "잠시 후 다시 시도해주세요.",
+    text: "잠시 후 다시 시도해 주세요.",
   },
 };
 
@@ -84,7 +84,7 @@ export default async function PeExamFaqPage({
             <h2>질문 남기기</h2>
             <p>
               로그인한 회원은 희망 대학, 수시·정시 구분, 궁금한 항목을 남길 수 있습니다.
-              비회원은 상담 신청으로 문의해주세요.
+              비회원은 상담 신청으로 문의해 주세요.
             </p>
 
             {statusMessage && (

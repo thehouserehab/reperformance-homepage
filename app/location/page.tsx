@@ -9,7 +9,7 @@ export default function LocationPage() {
           <p className="eyebrow">LOCATION</p>
           <h1>전주 서신동 RePERFORMANCE</h1>
           <p>
-            {site.address}. {site.addressDetail} {site.parking}입니다.
+            {site.address}. {site.addressDetail} {site.parking}
           </p>
         </div>
       </section>
@@ -49,8 +49,8 @@ export default function LocationPage() {
           </div>
           <aside className="location-contact-panel">
             <p className="eyebrow light-text">QUICK CONTACT</p>
-            <h2>방문 목적을 먼저 남겨주세요.</h2>
-            <p>신청서 작성 후 전화 또는 DM을 남겨주시면 확인 뒤 상담 방향을 안내합니다.</p>
+            <h2>방문 목적을 먼저 남겨 주세요.</h2>
+            <p>신청서 작성 후 전화 또는 DM을 남겨 주시면 확인 뒤 상담 방향을 안내합니다.</p>
             <div className="location-contact-actions">
               <a href={site.serviceApplyHref}>
                 상담 신청하기

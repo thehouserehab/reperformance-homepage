@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const managedItems = ["수업 기록", "개인운동", "식단 기록", "메모", "계약", "일정 관리", "AI 채팅·피드백"] as const;
+const managedItems = ["수업 기록", "개인운동", "식단 기록", "메모", "계약", "일정 관리", "승인형 AI 피드백"] as const;
 
 const websiteItems = ["서비스 안내", "상담 신청", "위치·프로그램 확인", "체대입시 정보 제공"] as const;
 
-const memberManagementItems = ["회원별 기록", "수업 일정", "개인운동", "식단", "메모", "계약·잔여 횟수", "AI 피드백"] as const;
+const memberManagementItems = ["회원별 기록", "수업 일정", "개인운동", "식단", "메모", "계약·잔여 횟수", "승인형 AI 피드백"] as const;
 
 const flowSteps = [
   ["01", "상담 신청", "필요한 서비스와 현재 준비 상황을 남깁니다."],
@@ -31,7 +31,7 @@ export default function MemberPage() {
             <h1>상담을 먼저 진행하고, 필요한 회원에게 관리 안내를 드립니다.</h1>
             <p className={styles.lead}>
               RePERFORMANCE 홈페이지에서는 서비스 안내와 상담 신청을 받습니다. 상담을 완료한 뒤 필요한
-              회원에게만 담당 코치가 이후 관리 방식과 기록 흐름을 안내해드립니다.
+              회원에게만 담당 코치가 이후 관리 방식과 기록 흐름을 안내해 드립니다.
             </p>
             <div className="button-row">
               <Link className="button primary" href="/apply">
@@ -117,7 +117,7 @@ export default function MemberPage() {
         <div className={`container ${styles.bottomInner}`}>
           <div>
             <p className="eyebrow">NEXT STEP</p>
-            <h2>상담을 신청하면, 필요한 다음 단계를 안내해드립니다.</h2>
+            <h2>상담을 신청하면, 필요한 다음 단계를 안내해 드립니다.</h2>
             <p>상담 완료 후 수업과 개인 관리가 필요한 회원에게만 이후 관리 방식을 전달합니다.</p>
           </div>
           <div className={styles.bottomActions}>

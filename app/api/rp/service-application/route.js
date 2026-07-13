@@ -177,7 +177,7 @@ function buildApplication(payload = {}) {
   const option = SERVICE_OPTIONS[selectedService];
 
   if (!selectedService || !option) {
-    const error = new Error('신청 서비스를 선택해주세요.');
+    const error = new Error('신청 서비스를 선택해 주세요.');
     error.status = 400;
     throw error;
   }
@@ -188,7 +188,7 @@ function buildApplication(payload = {}) {
   const parqConsent = cleanValue(payload.parqConsent);
 
   if (!name || !phone || privacyConsent !== 'yes' || parqConsent !== 'yes') {
-    const error = new Error('필수 항목을 확인해주세요.');
+    const error = new Error('필수 항목을 확인해 주세요.');
     error.status = 400;
     throw error;
   }
@@ -480,7 +480,7 @@ function getPublicApplicationError(error) {
   if (error?.status === 503) return '현재 신청 저장소 설정이 완료되지 않았습니다.';
   return getSafePublicErrorMessage(
     error,
-    error?.status === 400 ? '필수 항목을 확인해주세요.' : '서비스 신청 저장 중 오류가 발생했습니다.',
+    error?.status === 400 ? '필수 항목을 확인해 주세요.' : '서비스 신청 저장 중 오류가 발생했습니다.',
   );
 }
 

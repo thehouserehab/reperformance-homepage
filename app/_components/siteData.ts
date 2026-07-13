@@ -12,7 +12,7 @@ export const site = {
   chatGptHref: "https://chatgpt.com/",
   address: "전북 전주시 완산구 서신동 773-2, 2층",
   addressDetail: "서신동 중심 상권 2층에 위치합니다.",
-  parking: "건물 주변 및 인근 주차 가능",
+  parking: "건물 주변 및 인근 주차가 가능합니다.",
   hours: "08:00 ~ 22:00",
 };
 
@@ -46,13 +46,13 @@ export const serviceItems = [
     bullets: ["통증 및 부상 이력 확인", "가동성 및 움직임 평가", "착지·감속 패턴 훈련", "근력 회복 및 컨디셔닝", "재부상 방지 루틴 제공"],
   },
   {
-    number: "03",
+    number: "04",
     label: "Pain Care",
-    title: "일반인 통증 케어 & 근력 회복",
+    title: "일반 재활 · 근력 회복",
     href: "/services/pain-care",
     applyHref: "/apply?service=pain-care",
     applicationValue: "pain-care",
-    memberType: "일반회원",
+    memberType: "일반 회원",
     target: "어깨·허리·무릎 불편감, 운동 초보, 체력 저하",
     message: "통증을 참고 버티는 운동이 아니라, 몸에 맞게 조절하는 운동.",
     description:
@@ -60,9 +60,9 @@ export const serviceItems = [
     bullets: ["통증 부위 및 불편 동작 체크", "자세 및 움직임 확인", "가동성·안정성 운동", "기초 근력 운동", "생활 속 운동 습관 안내"],
   },
   {
-    number: "04",
+    number: "03",
     label: "PE Exam",
-    title: "체대입시 운동 + 입시상담",
+    title: "체대입시 실기 · 입시 상담",
     href: "/services/pe-exam",
     applyHref: "/apply?service=pe-exam",
     applicationValue: "pe-exam",
@@ -74,6 +74,19 @@ export const serviceItems = [
     bullets: ["대학별 정보와 전형 일정 확인", "실기 종목별 준비 기준 안내", "공식 모집요강 확인 방법", "준비 로드맵 안내", "체대입시 상담 신청"],
   },
 ];
+
+const serviceDisplayOrder: Record<string, number> = {
+  "senior-rehab": 0,
+  "athlete-reconditioning": 1,
+  "pe-exam": 2,
+  "pain-care": 3,
+};
+
+export const orderedServiceItems = [...serviceItems].sort(
+  (a, b) =>
+    (serviceDisplayOrder[a.applicationValue] ?? Number.MAX_SAFE_INTEGER) -
+    (serviceDisplayOrder[b.applicationValue] ?? Number.MAX_SAFE_INTEGER),
+);
 
 export const systemItems = [
   {
@@ -92,6 +105,6 @@ export const systemItems = [
     number: "03",
     title: "OPT 기반 프로그램",
     href: "/system/opt-program",
-    summary: "Warm-up부터 Cool-down까지 목적 맞춤 설계",
+    summary: "준비 운동부터 마무리 운동까지 목적에 맞춰 설계",
   },
 ];

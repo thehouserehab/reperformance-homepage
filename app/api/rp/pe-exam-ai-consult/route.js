@@ -740,7 +740,7 @@ function buildRequest(payload = {}, session) {
   const questionFocus = cleanLimitedValue(payload.questionFocus, 1000);
 
   if (!targetUniversity && !practicalRecords && !questionFocus) {
-    const error = new Error('희망 대학, 실기 기록, 상담 목표 중 하나 이상은 입력해주세요.');
+    const error = new Error('희망 대학, 실기 기록, 상담 목표 중 하나 이상은 입력해 주세요.');
     error.status = 400;
     throw error;
   }

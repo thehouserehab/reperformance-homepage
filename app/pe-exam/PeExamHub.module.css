@@ -5009,3 +5009,98 @@
     font-size: 40px;
   }
 }
+
+.kusfDataDisclosure {
+  margin: 34px 0;
+  border-top: 1px solid #111716;
+  border-bottom: 1px solid #111716;
+}
+
+.kusfDataDisclosure > summary {
+  display: flex;
+  min-height: 96px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.kusfDataDisclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.kusfDataDisclosure > summary > span:first-child {
+  display: grid;
+  gap: 7px;
+}
+
+.kusfDataDisclosure > summary strong {
+  color: #111716;
+  font-size: clamp(22px, 2.5vw, 32px);
+  line-height: 1.2;
+}
+
+.kusfDataDisclosure > summary small {
+  color: #56605c;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.disclosureAction {
+  flex: 0 0 auto;
+  min-width: 88px;
+  padding: 11px 14px;
+  border: 1px solid #111716;
+  border-radius: 3px;
+  color: #111716;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.kusfDataDisclosure[open] > summary {
+  border-bottom: 1px solid #d5dbd5;
+}
+
+.kusfDataDisclosure[open] .disclosureAction {
+  background: #111716;
+  color: #fff;
+  font-size: 0;
+}
+
+.kusfDataDisclosure[open] .disclosureAction::after {
+  content: "접어 두기";
+  font-size: 13px;
+}
+
+.kusfDataDisclosure .kusfDataPanel {
+  margin: 0;
+  padding: 28px 0 8px;
+}
+
+@media (max-width: 720px) {
+  .kusfDataDisclosure > summary {
+    min-height: 0;
+    align-items: flex-end;
+    gap: 14px;
+  }
+
+  .kusfDataDisclosure > summary strong {
+    font-size: 22px;
+  }
+
+  .kusfDataDisclosure > summary small {
+    font-size: 13px;
+  }
+
+  .disclosureAction {
+    min-width: 76px;
+    padding: 10px 11px;
+  }
+
+  .kusfDataDisclosure .kusfDataPanel {
+    padding-top: 20px;
+  }
+}

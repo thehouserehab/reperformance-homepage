@@ -154,7 +154,12 @@ body {
 }
 
 .landing-header .brand-mark {
-  background: #fff;
+  background: #202327;
+}
+
+.system-visual-card img {
+  object-position: center 18%;
+  transform: none;
 }
 
 .landing-header-note {
@@ -1318,7 +1323,7 @@ body {
 }
 
 .footer .brand-mark {
-  background: #fff;
+  background: #202327;
 }
 
 .footer .brand-re {

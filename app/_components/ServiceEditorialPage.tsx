@@ -92,7 +92,7 @@ export default function ServiceEditorialPage({
         <div className="container">
           <div className="editorial-section-head">
             <p className="eyebrow">PROGRAM FOCUS</p>
-            <h2>목표를 이루기 위해<br />이 항목을 함께 봅니다.</h2>
+            <h2>목표를 이루기 위해<br />{" "}이 항목을 함께 봅니다.</h2>
           </div>
           <ol className="editorial-program-list">
             {item.bullets.map((bullet, index) => (
@@ -110,7 +110,7 @@ export default function ServiceEditorialPage({
         <div className="container editorial-flow-grid">
           <div className="editorial-flow-heading">
             <p className="eyebrow light-text">HOW IT WORKS</p>
-            <h2>상담에서 훈련까지,<br />기준이 이어집니다.</h2>
+            <h2>상담에서 훈련까지,<br />{" "}기준이 이어집니다.</h2>
           </div>
           <ol className="editorial-flow-list">
             {serviceFlow.map((step) => (

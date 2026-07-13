@@ -147,7 +147,7 @@ export default function PeExamAiConsultClient({ initialValues = {}, universityOp
           text:
             result.setupRequired && result.guidance
               ? "현재 환경에서는 저장만 완료되지 않았습니다. 아래 가이드는 상담 준비용으로 확인할 수 있습니다."
-              : result.error || "잠시 후 다시 시도해주세요.",
+              : result.error || "잠시 후 다시 시도해 주세요.",
         });
         return;
       }
@@ -163,7 +163,7 @@ export default function PeExamAiConsultClient({ initialValues = {}, universityOp
       setStatus({
         tone: "error",
         title: "연결 중 오류가 발생했습니다.",
-        text: "인터넷 연결을 확인한 뒤 다시 시도해주세요.",
+        text: "인터넷 연결을 확인한 뒤 다시 시도해 주세요.",
       });
     } finally {
       setIsSubmitting(false);

@@ -38,7 +38,7 @@ function rateLimitResponse(retryAfterSeconds) {
   return Response.json(
     {
       ok: false,
-      error: `요청이 너무 많습니다. ${Math.ceil(retryAfterSeconds / 60)}분 후 다시 시도해주세요.`,
+      error: `요청이 너무 많습니다. ${Math.ceil(retryAfterSeconds / 60)}분 후 다시 시도해 주세요.`,
       retryAfterSeconds,
     },
     {
@@ -180,7 +180,7 @@ async function readPayload(request) {
 async function sendRecoveryCode({ phone, code, purpose }) {
   const webhookUrl = getSmsWebhookUrl();
   const purposeLabel = purpose === 'reset-password' ? '비밀번호 재설정' : '아이디 찾기';
-  const message = `[RePERFORMANCE] 계정 ${purposeLabel} 인증번호는 ${code}입니다. ${Math.floor(CODE_TTL_SECONDS / 60)}분 안에 입력해주세요.`;
+  const message = `[RePERFORMANCE] 계정 ${purposeLabel} 인증번호는 ${code}입니다. ${Math.floor(CODE_TTL_SECONDS / 60)}분 안에 입력해 주세요.`;
 
   if (!webhookUrl) {
     return {
@@ -228,11 +228,11 @@ async function handleRequestCode(payload, request) {
   const purpose = getPurpose(payload.purpose);
 
   if (!name || !phone) {
-    return Response.json({ ok: false, error: '이름과 전화번호를 입력해주세요.' }, { status: 400 });
+    return Response.json({ ok: false, error: '이름과 전화번호를 입력해 주세요.' }, { status: 400 });
   }
 
   if (phone.length < 9) {
-    return Response.json({ ok: false, error: '올바른 전화번호를 입력해주세요.' }, { status: 400 });
+    return Response.json({ ok: false, error: '올바른 전화번호를 입력해 주세요.' }, { status: 400 });
   }
 
   const retryAfterSeconds = await checkSharedRequestRateLimit({
@@ -362,7 +362,7 @@ async function handleVerifyCode(payload, request) {
     await logRecoveryEvent(request, 'auth.account_recovery.reset_password', 'failure', tokenPayload.username, { reason: 'unsupported_store' });
     return Response.json({
       ok: false,
-      error: '현재 계정 저장소에서는 자동 비밀번호 변경을 지원하지 않습니다. 관리자에게 임시 비밀번호 발급을 요청해주세요.',
+      error: '현재 계정 저장소에서는 자동 비밀번호 변경을 지원하지 않습니다. 관리자에게 임시 비밀번호 발급을 요청해 주세요.',
     }, { status: 409 });
   }
 
@@ -383,7 +383,7 @@ async function handleVerifyCode(payload, request) {
     ok: true,
     username: account.username,
     name: account.name,
-    message: '비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.',
+    message: '비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.',
   });
 }
 
