@@ -6,7 +6,7 @@ export default function SystemPage() {
   return (
     <PageShell>
       <section className="page-hero">
-        <div className="container page-title">
+        <div className="container page-title system-index-title">
           <p className="eyebrow">TRAINING SYSTEM</p>
           <h1>설문, 평가, 프로그램이 하나로 이어집니다.</h1>
           <p>
@@ -16,28 +16,36 @@ export default function SystemPage() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container grid-3">
+      <section className="system-index-section">
+        <div className="container system-index-list">
           {systemItems.map((item) => (
-            <Link href={item.href} className="card interactive-card" key={item.href}>
-              <span className="card-number">{item.number}</span>
-              <h3>{item.title}</h3>
+            <Link href={item.href} className="system-index-row" key={item.href}>
+              <span>{item.number}</span>
+              <div>
+                <p>PROCESS {item.number}</p>
+                <h2>{item.title}</h2>
+              </div>
               <p>{item.summary}</p>
-              <span className="more-link">자세히 보기</span>
+              <span aria-hidden="true">→</span>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="section light">
-        <div className="container">
-          <div className="section-head">
+      <section className="system-document-section">
+        <div className="container system-document-grid">
+          <div>
             <p className="eyebrow">DOCUMENTED CARE</p>
             <h2>안전성과 일관성을 남기는 시스템</h2>
+          </div>
+          <div>
             <p>
               문진, 동의, 평가 기록, 프로그램 기록을 통해 수업의 기준을 남깁니다. 회원이 이해할 수 있는 언어로
               현재 상태와 다음 단계를 안내합니다.
             </p>
+            <Link className="text-link-dark" href="/system/online-survey">
+              첫 단계부터 보기 <span aria-hidden="true">→</span>
+            </Link>
           </div>
         </div>
       </section>

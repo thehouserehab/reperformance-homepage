@@ -3,9 +3,7 @@
   display: grid;
   place-items: center;
   padding: 24px;
-  background:
-    linear-gradient(135deg, rgba(8, 123, 114, .10), rgba(23, 25, 29, .08)),
-    #f7f7f4;
+  background: #111716;
   color: #17191d;
 }
 
@@ -13,9 +11,9 @@
   width: min(100%, 460px);
   padding: 34px;
   border: 1px solid #e2e4df;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .96);
-  box-shadow: 0 24px 80px rgba(23, 25, 29, .10);
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: none;
 }
 
 .brandWrap {
@@ -66,7 +64,7 @@
   width: 100%;
   min-height: 50px;
   border: 1px solid #d9ddd8;
-  border-radius: 8px;
+  border-radius: 3px;
   padding: 0 14px;
   background: #fff;
   color: #17191d;
@@ -97,7 +95,7 @@
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #087b72;
   color: #fff;
   cursor: pointer;
@@ -110,7 +108,7 @@
   margin: 0;
   padding: 12px 14px;
   border: 1px solid rgba(150, 55, 36, .18);
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff0eb;
   color: #963724;
   line-height: 1.6;
@@ -122,8 +120,8 @@
   gap: 8px;
   margin-top: 20px;
   padding: 16px;
-  border-radius: 8px;
-  background: #eff8f6;
+  border-radius: 3px;
+  background: #f2f4f1;
   color: #355a56;
   line-height: 1.6;
   font-size: 13px;

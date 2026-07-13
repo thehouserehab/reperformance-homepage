@@ -1,6 +1,6 @@
 .hero {
-  padding: clamp(72px, 9vw, 118px) 0;
-  background: var(--bg);
+  padding: 104px 0;
+  background: #fff;
 }
 
 .heroInner {
@@ -39,7 +39,7 @@
 .notice {
   padding: 26px;
   border: 1px solid #b9d8d3;
-  border-radius: 16px;
+  border-radius: 3px;
   background: var(--soft);
 }
 
@@ -86,8 +86,8 @@
   min-height: 132px;
   padding: 20px;
   border: 1px solid #cfe2de;
-  border-radius: 16px;
-  background: #f7fbfa;
+  border-radius: 3px;
+  background: #fff;
 }
 
 .managedCard span {
@@ -108,7 +108,7 @@
 }
 
 .rolesSection {
-  background: #f3f7f6;
+  background: #f2f4f1;
 }
 
 .roleGrid {
@@ -122,7 +122,7 @@
   min-height: 320px;
   padding: 30px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 3px;
   background: #fff;
 }
 
@@ -211,7 +211,7 @@
   min-height: 190px;
   padding: 26px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 16px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.05);
 }
 

@@ -15,63 +15,60 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container grid-2">
-          <div className="contact-box">
-            <h2>상담 신청</h2>
+      <section className="contact-editorial-section">
+        <div className="container contact-editorial-grid">
+          <div className="contact-primary-panel">
+            <p className="eyebrow light-text">START CONSULTATION</p>
+            <h2>신청서에서 현재 상태를 먼저 알려주세요.</h2>
             <p>
               운동 목표, 불편한 부위, 주의사항을 먼저 확인합니다. 안전한 운동 진행을 위해 가능한 정확하게 작성해주세요.
             </p>
-            <div className="button-row">
-              <a className="button primary" href={site.serviceApplyHref}>
+            <div>
+              <a className="button cta-primary" href={site.serviceApplyHref}>
                 상담 신청하기
               </a>
             </div>
           </div>
-          <div className="contact-box">
+          <div className="contact-direct-panel">
+            <p className="eyebrow">DIRECT CONTACT</p>
             <h2>직접 문의</h2>
-            <div className="contact-list">
+            <div className="contact-direct-list">
               <div>
                 <strong>전화 상담</strong>
-                <span>{site.phone}</span>
+                <a href={site.phoneHref}>{site.phone}</a>
               </div>
               <div>
                 <strong>인스타그램</strong>
-                <span>{site.instagram}</span>
+                <a href={site.instagramHref} target="_blank" rel="noopener noreferrer">{site.instagram}</a>
               </div>
               <div>
                 <strong>운영 시간</strong>
                 <span>{site.hours}</span>
               </div>
             </div>
-            <div className="button-row">
-              <a href={site.phoneHref} className="button primary">
-                전화하기
-              </a>
-              <a href={site.instagramHref} target="_blank" rel="noopener noreferrer" className="button secondary">
-                DM 보내기
-              </a>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="section light">
+      <section className="contact-prep-section">
         <div className="container">
-          <div className="section-head">
+          <div className="contact-prep-head">
             <p className="eyebrow">WHAT TO SEND</p>
             <h2>상담 전에 알려주시면 좋은 정보</h2>
           </div>
-          <div className="grid-3">
-            <div className="card">
+          <div className="contact-prep-list">
+            <div>
+              <span>01</span>
               <h3>불편한 부위</h3>
               <p>어깨, 허리, 무릎 등 가장 신경 쓰이는 부위를 알려주세요.</p>
             </div>
-            <div className="card">
+            <div>
+              <span>02</span>
               <h3>힘든 동작</h3>
               <p>걷기, 계단, 앉았다 일어나기처럼 실제로 어려운 동작을 알려주세요.</p>
             </div>
-            <div className="card">
+            <div>
+              <span>03</span>
               <h3>운동 목표</h3>
               <p>통증 관리, 체력 회복, 복귀 준비 등 원하는 방향을 알려주세요.</p>
             </div>

@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-const links = [
-  { href: "/services", label: "서비스" },
-  { href: "/services/pe-exam", label: "체대입시" },
-  { href: "/system", label: "시스템" },
-  { href: "/coach", label: "코치" },
-  { href: "/location", label: "위치" },
-  { href: "/login", label: "로그인" },
-];
+import { primaryLinks } from "./navigation";
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -21,7 +13,7 @@ export default function NavLinks() {
 
   return (
     <nav className="nav" aria-label="주요 메뉴">
-      {links.map((link) => (
+      {primaryLinks.map((link) => (
         <Link key={link.href} href={link.href} className={isActive(pathname, link.href) ? "nav-link active" : "nav-link"}>
           {link.label}
         </Link>

@@ -1,13 +1,33 @@
 import Image from "next/image";
 import Link from "next/link";
+import PeExamWindowLink from "./_components/PeExamWindowLink";
 import { BrandLogo, Footer } from "./_components/SiteChrome";
-import { site } from "./_components/siteData";
+import { serviceItems, site, systemItems } from "./_components/siteData";
 
 const brandSignals = [
   "전문 재활",
   "퍼포먼스",
   "트레이닝 관리",
 ] as const;
+
+const homeServiceCopy = {
+  "senior-rehab": {
+    title: "시니어 재활",
+    summary: "보행과 균형, 하체 근력을 회복해 일상 움직임을 다시 편하게 만듭니다.",
+  },
+  "athlete-reconditioning": {
+    title: "선수 케어·퍼포먼스",
+    summary: "부상 이후 복귀 과정과 경기력 회복을 단계적으로 연결합니다.",
+  },
+  "pain-care": {
+    title: "일반 재활",
+    summary: "어깨·허리·무릎의 불편함을 확인하고 가능한 움직임부터 다시 쌓습니다.",
+  },
+  "pe-exam": {
+    title: "체대입시",
+    summary: "대학 정보 확인부터 실기 기록 향상, 상담 준비까지 한 흐름으로 봅니다.",
+  },
+} as const;
 
 export default function Home() {
   return (
@@ -71,6 +91,92 @@ export default function Home() {
               <p>
                 시니어 재활, 선수 케어·퍼포먼스, 체대입시, 일반 재활 중 지금 필요한 목적부터 선택할 수 있습니다.
               </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="home-service-directory" aria-labelledby="home-service-title">
+          <div className="container">
+            <div className="home-section-heading">
+              <div>
+                <p className="eyebrow">CHOOSE YOUR PURPOSE</p>
+                <h2 id="home-service-title">지금 필요한 목적에서<br />시작하세요.</h2>
+              </div>
+              <p>긴 설명을 읽기 전에, 현재 상황에 가까운 서비스를 선택할 수 있습니다.</p>
+            </div>
+            <div className="home-service-list">
+              {serviceItems.map((item, index) => {
+                const copy = homeServiceCopy[item.applicationValue as keyof typeof homeServiceCopy];
+                const content = (
+                  <>
+                    <span className="home-service-index">{String(index + 1).padStart(2, "0")}</span>
+                    <div>
+                      <p>{item.label}</p>
+                      <h3>{copy.title}</h3>
+                    </div>
+                    <p className="home-service-summary">{copy.summary}</p>
+                    <span className="home-service-arrow" aria-hidden="true">→</span>
+                  </>
+                );
+
+                return item.applicationValue === "pe-exam" ? (
+                  <PeExamWindowLink className="home-service-row" href={item.href} key={item.href}>
+                    {content}
+                  </PeExamWindowLink>
+                ) : (
+                  <Link className="home-service-row" href={item.href} key={item.href}>
+                    {content}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="home-method-section" aria-labelledby="home-method-title">
+          <div className="container home-method-grid">
+            <div className="home-method-heading">
+              <p className="eyebrow light-text">MANAGED TRAINING</p>
+              <h2 id="home-method-title">운동만 시키지 않고,<br />변화를 관리합니다.</h2>
+              <p>상담에서 확인한 목표가 실제 수업의 평가와 프로그램으로 이어집니다.</p>
+              <Link href="/system" className="text-link-light">
+                관리 시스템 보기 <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+            <ol className="home-method-steps">
+              {systemItems.map((item) => (
+                <li key={item.href}>
+                  <span>{item.number}</span>
+                  <div>
+                    <h3>{item.title}</h3>
+                    <p>{item.summary}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="home-coach-section">
+          <div className="container home-coach-grid">
+            <div className="home-coach-image">
+              <Image
+                src="/images/coach-profile.jpg"
+                alt="RePERFORMANCE 정우현 코치"
+                fill
+                sizes="(max-width: 900px) 100vw, 46vw"
+              />
+            </div>
+            <div className="home-coach-copy">
+              <p className="eyebrow">HEAD COACH</p>
+              <h2>회복과 훈련 사이를<br />한 사람이 이어서 봅니다.</h2>
+              <p>
+                현재 몸 상태에 맞는 운동을 찾고, 가능한 범위부터 단계적으로 진행합니다. 시니어의 일상 회복부터
+                선수의 복귀, 학생의 실기 향상까지 같은 기준으로 관리합니다.
+              </p>
+              <Link href="/coach" className="text-link-dark">
+                코치 철학 보기 <span aria-hidden="true">→</span>
+              </Link>
             </div>
           </div>
         </section>

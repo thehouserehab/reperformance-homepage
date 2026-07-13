@@ -15,9 +15,9 @@
   min-height: 320px;
   padding: 30px;
   border: 1px solid #e2e4df;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff;
-  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+  box-shadow: none;
 }
 
 .card h2 {
@@ -45,7 +45,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 3px;
   border: 1px solid #d9ddd8;
   background: #fff;
   color: #17191d;
@@ -86,7 +86,7 @@
   min-height: 42px;
   padding: 0 16px;
   border: 1px solid #d9ddd8;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #fff;
   color: #17191d;
   font-weight: 950;
@@ -112,9 +112,9 @@
   min-width: 0;
   padding: 28px;
   border: 1px solid #e2e4df;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff;
-  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+  box-shadow: none;
 }
 
 .findAccountCard h2 {
@@ -144,7 +144,7 @@
   min-height: 48px;
   padding: 0 14px;
   border: 1px solid #d9ddd8;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff;
   color: #17191d;
   font: inherit;
@@ -154,7 +154,7 @@
   min-height: 50px;
   margin-top: 4px;
   border: 1px solid #087b72;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #087b72;
   color: #fff;
   font-weight: 950;
@@ -174,7 +174,7 @@
   gap: 5px;
   padding: 16px;
   border: 1px solid #d9ddd8;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff;
 }
 

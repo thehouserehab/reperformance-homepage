@@ -14,58 +14,51 @@ export default function LocationPage() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="container location-grid">
-          <div className="contact-box stretch-card">
-            <h2>오시는 길</h2>
-            <div className="contact-list">
+      <section className="location-editorial-section">
+        <div className="container location-editorial-grid">
+          <div className="location-details">
+            <p className="eyebrow">VISIT INFORMATION</p>
+            <h2>방문 전에 확인하세요.</h2>
+            <div className="location-detail-list">
               <div>
-                <strong>주소</strong>
+                <span>01</span><strong>주소</strong>
                 <span>{site.address}</span>
               </div>
               <div>
-                <strong>위치 안내</strong>
+                <span>02</span><strong>위치 안내</strong>
                 <span>{site.addressDetail}</span>
               </div>
               <div>
-                <strong>주차</strong>
+                <span>03</span><strong>주차</strong>
                 <span>{site.parking}</span>
               </div>
               <div>
-                <strong>운영 시간</strong>
+                <span>04</span><strong>운영 시간</strong>
                 <span>{site.hours}</span>
               </div>
               <div>
-                <strong>연락처</strong>
+                <span>05</span><strong>연락처</strong>
                 <span>{site.phone}</span>
               </div>
-              <div>
-                <strong>인스타그램</strong>
-                <span>{site.instagram}</span>
-              </div>
             </div>
-            <div className="button-row card-bottom">
+            <div className="button-row">
               <a href={site.naverMapHref} target="_blank" rel="noopener noreferrer" className="button dark">
                 네이버 지도에서 보기
               </a>
             </div>
           </div>
-          <div className="contact-box stretch-card quick-card">
-            <p className="eyebrow">QUICK CONTACT</p>
-            <h2>빠른 문의</h2>
-            <p>신청서 작성 후 전화 또는 DM으로 남겨주시면 확인 뒤 상담 방향을 안내해드립니다.</p>
-            <div className="button-row">
-              <a href={site.serviceApplyHref} className="button primary">
+          <aside className="location-contact-panel">
+            <p className="eyebrow light-text">QUICK CONTACT</p>
+            <h2>방문 목적을 먼저 남겨주세요.</h2>
+            <p>신청서 작성 후 전화 또는 DM을 남겨주시면 확인 뒤 상담 방향을 안내합니다.</p>
+            <div className="location-contact-actions">
+              <a href={site.serviceApplyHref}>
                 상담 신청하기
               </a>
-              <a href={site.phoneHref} className="button secondary">
-                전화하기
-              </a>
-              <a href={site.instagramHref} target="_blank" rel="noopener noreferrer" className="button secondary">
-                인스타그램
-              </a>
+              <a href={site.phoneHref}>전화하기 <span aria-hidden="true">→</span></a>
+              <a href={site.instagramHref} target="_blank" rel="noopener noreferrer">인스타그램 <span aria-hidden="true">→</span></a>
             </div>
-          </div>
+          </aside>
         </div>
       </section>
 

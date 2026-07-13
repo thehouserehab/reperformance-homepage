@@ -3,6 +3,7 @@ import "./globals.css";
 import "./homepage-upgrade.css";
 import "./detail-pages.css";
 import "./pe-exam-slide.css";
+import "./brand-redesign.css";
 
 export const metadata: Metadata = {
   title: "RePERFORMANCE | 전주 서신동 재활 트레이닝",

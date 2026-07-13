@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import NavLinks from "./NavLinks";
+import { primaryLinks } from "./navigation";
 import { site } from "./siteData";
 
 export function BrandLogo() {
@@ -33,9 +34,26 @@ export function Header() {
       <div className="container header-inner">
         <BrandLogo />
         <NavLinks />
-        <Link href="/apply" className="mobile-apply">
-          신청
-        </Link>
+        <div className="mobile-header-actions">
+          <Link href="/apply" className="mobile-apply">
+            신청
+          </Link>
+          <details className="mobile-menu">
+            <summary aria-label="전체 메뉴 열기">메뉴</summary>
+            <nav className="mobile-menu-panel" aria-label="모바일 주요 메뉴">
+              {primaryLinks.map((link, index) => (
+                <Link href={link.href} key={link.href}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{link.label}</strong>
+                </Link>
+              ))}
+              <Link href="/apply" className="mobile-menu-apply">
+                <span>07</span>
+                <strong>상담 신청</strong>
+              </Link>
+            </nav>
+          </details>
+        </div>
       </div>
     </header>
   );
@@ -44,11 +62,31 @@ export function Header() {
 export function Footer() {
   return (
     <footer className="footer">
-      <div className="container footer-inner">
+      <div className="container footer-main">
+        <div className="footer-brand-column">
+          <BrandLogo />
+          <p>현재 상태를 확인하고, 회복에서 퍼포먼스까지 필요한 다음 단계를 설계합니다.</p>
+        </div>
+        <nav className="footer-nav" aria-label="하단 주요 메뉴">
+          <p>EXPLORE</p>
+          {primaryLinks.slice(0, 5).map((link) => (
+            <Link href={link.href} key={link.href}>{link.label}</Link>
+          ))}
+        </nav>
+        <div className="footer-contact-column">
+          <p>CONTACT</p>
+          <a href={site.phoneHref}>{site.phone}</a>
+          <a href={site.instagramHref} target="_blank" rel="noopener noreferrer">{site.instagram}</a>
+          <span>{site.address}</span>
+          <span>{site.hours}</span>
+        </div>
+      </div>
+      <div className="container footer-bottom">
         <p>© RePERFORMANCE. All rights reserved.</p>
-        <p>
-          {site.address} · {site.phone}
-        </p>
+        <div>
+          <Link href="/contact">문의</Link>
+          <Link href="/apply">상담 신청</Link>
+        </div>
       </div>
     </footer>
   );

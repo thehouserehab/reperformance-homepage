@@ -8,9 +8,9 @@
 .form,
 .sidePanel {
   border: 1px solid #e2e4df;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff;
-  box-shadow: 0 20px 54px rgba(23, 25, 29, .06);
+  box-shadow: none;
 }
 
 .form {
@@ -37,9 +37,9 @@
   height: 30px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
-  background: #eff8f6;
-  color: #087b72;
+  border-radius: 2px;
+  background: #0a665b;
+  color: #fff;
   font-size: 12px;
   font-weight: 950;
 }
@@ -71,7 +71,7 @@
 .form textarea {
   width: 100%;
   border: 1px solid #d9ddd8;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fbfbfa;
   color: #17191d;
   font: inherit;
@@ -113,7 +113,7 @@
   align-items: end;
   padding: 14px;
   border: 1px solid #e2e4df;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #f7f9fc;
 }
 
@@ -126,7 +126,7 @@
   gap: 4px;
   padding: 14px;
   border: 1px solid #d9ddd8;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fff;
 }
 
@@ -160,7 +160,7 @@
   gap: 10px !important;
   padding: 12px;
   border: 1px solid #e2e4df;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #fbfbfa;
 }
 
@@ -185,7 +185,7 @@
   align-items: center;
   justify-content: center;
   border: 0;
-  border-radius: 999px;
+  border-radius: 3px;
   background: #087b72;
   color: #fff;
   cursor: pointer;
@@ -205,7 +205,7 @@
   display: grid;
   gap: 6px;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 3px;
   line-height: 1.6;
 }
 
@@ -244,7 +244,7 @@
   display: grid;
   gap: 6px;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 3px;
   background: #f7f7f4;
 }
 
