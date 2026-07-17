@@ -1,17 +1,14 @@
 /**
  * RePERFORMANCE Owner Workspace V2 - Google Sheets Bridge
- * Existing spreadsheet target:
- * 1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E
- *
  * Install:
- * 1) Paste this file into Apps Script bound to the existing spreadsheet.
- * 2) Run setupRPV2() once.
- * 3) Run setRpApiSecretOnce() after changing DEFAULT_SECRET below.
+ * 1) Copy this file into Apps Script and set SPREADSHEET_ID.
+ * 2) Replace DEFAULT_SECRET with a newly generated secret.
+ * 3) Run setupRPV2() and setRpApiSecretOnce() once.
  * 4) Deploy as Web App: Execute as Me / Access: Anyone with link.
  */
 
 const RP_CONFIG = {
-  SPREADSHEET_ID: '1FuiTT6emUqwr2uzhNlaNt7WEq1W9x5a1zI3rs223U6E',
+  SPREADSHEET_ID: 'CHANGE_THIS_TO_SPREADSHEET_ID',
   DEFAULT_SECRET: 'CHANGE_THIS_TO_A_LONG_RANDOM_SECRET',
   SHEETS: {
     dashboard: 'Dashboard',
@@ -124,27 +121,39 @@ function doPost(e) {
   }
 }
 
+function v_(row, keys, fallback) {
+  for (var i = 0; i < keys.length; i++) {
+    var value = row[keys[i]];
+    if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+  }
+  return fallback || '';
+}
+
 function listClients_() {
   const ss = SpreadsheetApp.openById(RP_CONFIG.SPREADSHEET_ID);
   const sh = ss.getSheetByName(RP_CONFIG.SHEETS.members);
   if (!sh || sh.getLastRow() < 2) return [];
   return rowsAsObjects_(sh).map(r => ({
-    id: r['회원ID'] || '',
-    name: r['이름'] || '',
-    phone: r['연락처'] || '',
-    birthDate: r['생년월일'] || '',
-    gender: r['성별'] || '',
-    status: r['회원상태'] || '',
-    coach: r['담당코치'] || '',
-    source: r['방문경로'] || '',
-    goal: r['주목표'] || '',
-    discomfort: r['불편부위'] || '',
-    parqStatus: r['PARQ상태'] || '',
-    exerciseDecision: r['운동진행판단'] || '',
-    optPhase: r['현재OPTPhase'] || '',
-    recommendedProgram: r['추천프로그램'] || '',
-    lastConsultationAt: r['최근상담일'] || '',
-    nextAction: r['다음액션'] || ''
+    id: v_(r, ['회원ID','id','ID']),
+    name: v_(r, ['이름','회원명','성명','name']),
+    phone: v_(r, ['연락처','전화번호','phone']),
+    birthDate: v_(r, ['생년월일','birthDate']),
+    gender: v_(r, ['성별','gender']),
+    memberType: v_(r, ['회원구분','memberType']),
+    status: v_(r, ['회원상태','status']),
+    coach: v_(r, ['담당코치','담당자','coach']),
+    source: v_(r, ['방문경로','source']),
+    goal: v_(r, ['주목표','목표','goal']),
+    discomfort: v_(r, ['불편부위','discomfort']),
+    caution: v_(r, ['주의사항','caution']),
+    totalSessions: v_(r, ['총회차','totalSessions']),
+    remainingSessions: v_(r, ['잔여회차','remainingSessions']),
+    parqStatus: v_(r, ['PARQ상태','PAR-Q상태','parqStatus']),
+    exerciseDecision: v_(r, ['운동진행판단','exerciseDecision']),
+    optPhase: v_(r, ['현재OPTPhase','현재OPT Phase','optPhase']),
+    recommendedProgram: v_(r, ['추천프로그램','recommendedProgram']),
+    lastConsultationAt: v_(r, ['최근상담일','lastConsultationAt']),
+    nextAction: v_(r, ['다음액션','nextAction'])
   })).filter(c => c.id || c.name || c.phone);
 }
 
@@ -160,14 +169,14 @@ function saveClient_(payload) {
   const memberId = payload['회원ID'] || payload.id || generateId_('RP');
   const rowObject = {
     '회원ID': memberId,
-    '이름': payload['이름'] || payload.name || '',
+    '이름': payload['이름'] || payload['회원명'] || payload.name || '',
     '연락처': payload['연락처'] || payload.phone || '',
     '생년월일': payload['생년월일'] || payload.birthDate || '',
     '성별': payload['성별'] || payload.gender || '',
     '회원상태': payload['회원상태'] || payload.status || '상담 예정',
-    '담당코치': payload['담당코치'] || payload.coach || '',
+    '담당코치': payload['담당코치'] || payload['담당자'] || payload.coach || '',
     '방문경로': payload['방문경로'] || payload.source || '',
-    '주목표': payload['주목표'] || payload.goal || '',
+    '주목표': payload['주목표'] || payload['목표'] || payload.goal || '',
     '불편부위': payload['불편부위'] || payload.discomfort || '',
     'PARQ상태': payload['PARQ상태'] || payload.parqStatus || '',
     '운동진행판단': payload['운동진행판단'] || payload.exerciseDecision || '',

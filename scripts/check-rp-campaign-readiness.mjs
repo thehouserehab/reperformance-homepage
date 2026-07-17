@@ -192,9 +192,9 @@ Manual gates before a high-traffic campaign:
 - For paid/admission campaigns, run npm.cmd run ops:campaign:check -- --security-strict with RP_SYSTEM_STATUS_COOKIE so securityMonitoring.status=normal is enforced before traffic increases.
 - Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/conversion-events, /api/rp/consultation-slots, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, /api/rp/clients, /api/rp/auth-accounts, and /api/rp/security-events.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
-- Confirm production RP_DATA_SOURCE, RP_DISABLE_RUNTIME_SCHEMA_SYNC or RP_RUNTIME_SCHEMA_SYNC, RP_DATABASE_POOL_MAX, RP_SMS_WEBHOOK_URL or SMS_WEBHOOK_URL, NEXT_PUBLIC_SITE_URL or RP_SITE_URL, and RP_RATE_LIMIT_FAIL_CLOSED are configured for both production Vercel projects.
+- Confirm production RP_DATA_SOURCE, RP_DISABLE_RUNTIME_SCHEMA_SYNC or RP_RUNTIME_SCHEMA_SYNC, RP_DATABASE_POOL_MAX, RP_SMS_WEBHOOK_URL or SMS_WEBHOOK_URL, NEXT_PUBLIC_SITE_URL or RP_SITE_URL, and RP_RATE_LIMIT_FAIL_CLOSED are configured for the production Vercel project.
 - Confirm RP_ALLOW_ENV_AUTH_ACCOUNTS remains unset or false unless a short emergency bootstrap window is intentionally open.
-- Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention in both production Vercel projects.
+- Confirm CRON_SECRET or RP_MAINTENANCE_CRON_SECRET is configured for /api/rp/maintenance/retention in the production Vercel project.
 - Keep RP_RETENTION_CRON_APPLY disabled until backup/restore readiness and deletion approval are confirmed.
 - Run npm.cmd run ops:campaign:check -- --retention-strict with a production database URL, then run retention apply mode only after backup and restore readiness is confirmed.
 - Confirm Google Drive/Sheets backup remains disabled unless RP_GOOGLE_DRIVE_BACKUP_ENABLED=true, RP_API_SECRET, restore readiness, retention rules, and trusted staff-only sheet access are all confirmed.

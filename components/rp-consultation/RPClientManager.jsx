@@ -5,7 +5,7 @@ import styles from './RPClientManager.module.css';
 import { MEMBER_TYPES, SAMPLE_CLIENTS } from './rpConsultationSchema';
 import { CLIENT_CONTACT_STATUSES, CLIENT_VISIT_STATUSES } from '../../lib/rpClientWorkflow';
 import { getConsultationActivityLabel } from '../../lib/rpConsultationAvailability';
-import { addRpClient, fetchRpClients, updateRpClientWorkflow } from './rpSheetsClient';
+import { addRpClient, fetchRpClients, updateRpClientWorkflow } from './rpClientApi';
 
 const STATUS_FILTERS = ['전체', '상담 전', '상담 중', '등록', '보류', '추가 확인'];
 const CLIENT_PAGE_SIZE = 200;

@@ -1,97 +1,74 @@
 # RePERFORMANCE Vercel production audit
 
-Last checked: 2026-07-11
+Last checked: 2026-07-17
 
-This records point-in-time Vercel state that was verifiable through the connected Vercel app. It is evidence for deployment/runtime status at the check time, not a substitute for the manual firewall, production database, staff-session system-status, and environment-variable checks in the campaign runbook.
+This document records the Vercel state verified during the repository consolidation. It is point-in-time operational evidence, not a substitute for the database, staff-session, Firewall, and migration gates in the campaign runbook.
 
-## Production projects
+## Production project
 
 - Team: `thehouserehab-9727s-projects`
 - Team ID: `team_EfbUpj6INJBMbI08rWAvGdof`
-
-### `reperformance-homepage.vercel.app`
-
 - Project: `reperformance-homepage`
-- Project ID: `prj_W2sXR8dobiMSH9QGksPYnwbhX03Z`
-- Framework: `nextjs`
-- Verified deployment ID: `dpl_HTjFQf7eVCNH9KzrD6Jmqpirwtg4`
-- State: `READY`
-- Target: `production`
-- Source: GitHub `thehouserehab/reperformance-homepage`
-- Branch: `main`
-- Commit: `024e2f5379094a847c72348122a736bc19841b7b`
-- Commit message: `Refine service-led homepage experience`
-- `reperformance-homepage.vercel.app`
-- `reperformance-homepage-thehouserehab-9727s-projects.vercel.app`
-- `reperformance-homepage-git-main-thehouserehab-9727s-projects.vercel.app`
-
-### `reperformance.the-house-exercise.com`
-
-- Project: `project-7r7l8`
 - Project ID: `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`
 - Framework: `nextjs`
-- Verified deployment ID: `dpl_9x9qrpkpKFvR4xmXkvjMcDGngoau`
-- State: `READY`
-- Target: `production`
 - Source: GitHub `thehouserehab/reperformance-homepage`
 - Branch: `main`
-- Commit: `024e2f5379094a847c72348122a736bc19841b7b`
-- Commit message: `Refine service-led homepage experience`
+- Verified deployment before this consolidation commit: `dpl_8vSTa4c6KcaXDrCeyhJdD389mwfw`
+- Verified Git commit before this consolidation commit: `340e9f0`
+- State: `READY`
+- Target: `production`
+
+Both public domains are assigned to this one project:
+
+- `reperformance-homepage.vercel.app`
 - `reperformance.the-house-exercise.com`
-- `project-7r7l8-thehouserehab-9727s-projects.vercel.app`
-- `project-7r7l8-git-main-thehouserehab-9727s-projects.vercel.app`
 
-## Runtime health
+The former duplicate project was removed on 2026-07-17 after its default domain was moved and both domains were verified against the canonical project. Do not create another Vercel project for this repository.
 
-- Vercel runtime error clusters: none found for the queried 1-hour range on both production projects after the `024e2f5` deployment.
-- Runtime logs, recent 1-hour production `5xx` status-code grouping: no matching rows returned for project IDs `prj_W2sXR8dobiMSH9QGksPYnwbhX03Z` and `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`.
-- `/`, `/services`, `/services/pe-exam`, and `/pe-exam` returned `200 OK` on both production domains after the `024e2f5` deployment.
-- `npm.cmd run ops:public:check` passed `456/456` public production checks after the `024e2f5` deployment.
-- Local `npm.cmd run ops:campaign:check`, `npm.cmd run build`, and `npm.cmd run typecheck` passed before the design-only push. The later session-revocation commit remains local until the production database migration is applied and verified.
-- `/api/rp/maintenance/retention` is deployed on both projects. Unauthenticated requests should return `401`, and authenticated cron execution still requires `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET` plus a production database URL before relying on the monthly result.
+## Runtime verification
+
+- Both `/services` URLs returned `200` from the same production deployment and exposed the same `ETag` during the consolidation check.
+- Unauthenticated `/api/rp/clients` requests returned `401` on both domains.
+- The local repository is linked to project ID `prj_VOlVshBafX9Njmw5ZzgVDc9b2syC`; `.vercel/` remains ignored by Git.
+- A new production smoke check is required after every `main` deployment.
+
+## Environment metadata
+
+The production project exposed these environment-variable names at the check time; secret values were not read or printed:
+
+- `RP_AUTH_USERS`
+- `RP_MEMBERS_GID`
+- `RP_API_SECRET`
+- `RP_SHEETS_WEBAPP_URL`
+
+No `DATABASE_URL`, `POSTGRES_URL`, or `RP_DATABASE_URL` key was present. Therefore PostgreSQL-backed conversion, booking, durable session revocation, and full customer workflow features are not production-ready until a managed database is configured and all migrations pass.
 
 ## Known gaps
 
-- Vercel CLI is installed, but local CLI login is not currently usable in this shell session.
-- Production env key presence is covered by `npm.cmd run ops:vercel:check` when `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available. Those tokens were not available in the local shell during this audit.
-- Effective production env values still require `/api/rp/system-status` with a staff session, using `RP_SYSTEM_STATUS_COOKIE` or `RP_ADMIN_SESSION_COOKIE`.
-- Production migration state still requires `npm.cmd run db:migration:check` with production database access.
-- Security-strict staff readiness still requires `npm.cmd run ops:status:check -- --security-strict` with a valid staff session cookie.
-- Active Vercel Firewall configuration still requires the Vercel token-backed production check or manual verification against `docs/RP_VERCEL_FIREWALL_RULES.md`.
-- The repository Firewall checker is now strict: partial, inactive, or log-only rules do not pass. `npm.cmd run ops:firewall:sync` provides a token-backed dry-run and an explicitly gated apply path for both production projects.
-- Keep `RP_RETENTION_CRON_APPLY` disabled until backup/restore readiness and deletion approval are complete.
-- `npm.cmd run ops:public:check` is the no-secret public production smoke check for page status, first-landing CTA visibility, service-choice links, PE exam search/training-management entry points, page/cache headers, hashed static asset immutable caching, response latency thresholds, unauthenticated API rejection, foreign-origin write rejection, and external management service separation after each deploy.
+- Configure a production PostgreSQL URL, apply every migration in `database/migrations`, and run `npm.cmd run db:migration:check`.
+- Add and verify the required runtime, rate-limit, password, recovery, identity-verification, SMS delivery, canonical-origin, and retention variables checked by `npm.cmd run ops:vercel:check`, including `RP_DATABASE_POOL_MAX`, `RP_RATE_LIMIT_FAIL_CLOSED`, `RP_SMS_WEBHOOK_URL`, and `CRON_SECRET` or `RP_MAINTENANCE_CRON_SECRET`.
+- Treat the historical Apps Script API secret as compromised because it existed in Git history. Rotate `RP_API_SECRET` in Apps Script Script Properties and Vercel together.
+- Verify the active Vercel Firewall baseline with `npm.cmd run ops:firewall:sync` and `npm.cmd run ops:vercel:check`.
+- Run `/api/rp/system-status` with a valid staff session after the database and production variables are configured.
+- Keep `RP_RETENTION_CRON_APPLY` disabled until backup, restore, and deletion approval are complete.
 
-## Required follow-up
-
-- Confirm production environment variables in both Vercel projects.
-- Confirm firewall rules using `docs/RP_VERCEL_FIREWALL_RULES.md`.
-- Verify `/api/rp/system-status` with a staff session after deploy.
-
-## Automated Vercel check
-
-When a Vercel token is available, run:
+## Verification commands
 
 ```powershell
 $env:VERCEL_TOKEN="..."
 npm.cmd run ops:vercel:check
-```
-
-For token-backed production readiness:
-
-```powershell
 npm.cmd run ops:campaign:check -- --build --typecheck --vercel
 ```
 
-The check reads both default production Vercel projects, latest production deployments, production env keys, and active Firewall config. The env-key gate includes database URL, `RP_DATA_SOURCE`, runtime schema-sync disable flag, `RP_DATABASE_POOL_MAX`, auth/recovery/password secrets, SMS verification webhook, canonical site origin, `RP_RATE_LIMIT_FAIL_CLOSED`, and retention cron secret. It does not print secret values. To check a custom subset, pass `--project-id=...` or set comma-separated `RP_VERCEL_PROJECT_IDS`.
+The Vercel check targets the canonical project by default. Use `RP_VERCEL_PROJECT_ID` or `--project-id=...` for an explicit single-project override. `RP_VERCEL_PROJECT_IDS` is retained only for exceptional multi-project audits. Secret values are never printed.
 
-For final staff/database/security readiness when production secrets are available:
+For full staff, database, and security readiness when production credentials are available:
 
 ```powershell
 npm.cmd run ops:campaign:check -- --database --vercel --security-strict --retention-strict
 ```
 
-For public post-deploy verification without Vercel secrets:
+For public post-deploy verification without Vercel credentials:
 
 ```powershell
 npm.cmd run ops:public:check

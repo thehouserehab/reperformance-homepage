@@ -58,7 +58,7 @@ If `VERCEL_TOKEN` or `RP_VERCEL_TOKEN` is available, include production Vercel g
 npm.cmd run ops:campaign:check -- --build --typecheck --database --vercel
 ```
 
-This additionally checks both production Vercel projects by default: `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies latest production deployment, required production env keys, strict Firewall coverage, Bot Protection, and that each production deployment matches the current local Git `HEAD`. Firewall readiness requires active mitigation for every protected RP route and edge rate-limit coverage for abuse-sensitive public routes; inactive, partial, or log-only rules do not pass. The env-key gate includes database URL, `RP_DATA_SOURCE`, runtime schema-sync disable flag, `RP_DATABASE_POOL_MAX`, auth/recovery/password secrets, SMS verification webhook, canonical site origin, `RP_RATE_LIMIT_FAIL_CLOSED`, and retention cron secret. Secret values are not printed; effective values are verified through `/api/rp/system-status`.
+This additionally checks the single production Vercel project that serves both `reperformance-homepage.vercel.app` and `reperformance.the-house-exercise.com`. It verifies the latest production deployment, required production env keys, strict Firewall coverage, Bot Protection, and that the deployment matches the current local Git `HEAD`. Firewall readiness requires active mitigation for every protected RP route and edge rate-limit coverage for abuse-sensitive public routes; inactive, partial, or log-only rules do not pass. The env-key gate includes database URL, `RP_DATA_SOURCE`, runtime schema-sync disable flag, `RP_DATABASE_POOL_MAX`, auth/recovery/password secrets, SMS verification webhook, canonical site origin, `RP_RATE_LIMIT_FAIL_CLOSED`, and retention cron secret. Secret values are not printed; effective values are verified through `/api/rp/system-status`.
 
 After a deployment, or when no Vercel token is available, run the public production smoke and security check:
 
@@ -112,7 +112,7 @@ Do not start a high-traffic campaign until these manual gates are checked:
 - Latest production deployment and runtime health have been checked against `docs/RP_VERCEL_PRODUCTION_AUDIT.md`.
 - Local release state is clean before deployment: `npm.cmd run ops:release:check` passes from `main`, with no uncommitted paths and no ahead/behind drift against `origin/main`.
 - Sensitive data exposure gate is clean before deployment: `npm.cmd run ops:sensitive:check` passes with no raw public-route error logging or missing public error sanitization.
-- Both production Vercel projects point at the expected GitHub `main` commit. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
+- The production Vercel project points at the expected GitHub `main` commit for both public domains. This is automated when `npm.cmd run ops:campaign:check -- --vercel` is run from the release commit.
 - `npm.cmd run ops:audit` passes; this includes API route protection inventory, same-origin checks for state-changing routes, request-size checks for JSON body routes, and source-code separation from the external management service.
 - `/api/rp/system-status` works with a staff session and reports PostgreSQL as configured.
 - `/api/rp/system-status` reports all required PostgreSQL tables and indexes as ready, including `authSessionRevocationReady=true`, rate-limit, AI usage, retention, and security-event indexes. Apply `database/migrations/20260711_auth_session_revocation.sql` before deploying the versioned-session code.
@@ -160,7 +160,7 @@ npm.cmd run ops:vercel:check
 
 The sync command is plan-only by default. Applying requires both the opt-in environment variable and exact confirmation token. It rereads the active configuration and fails if Vercel leaves an unpublished draft; in that case review `vercel firewall diff`, run `vercel firewall publish --yes`, and rerun `ops:vercel:check`. Review Firewall events after applying, especially if a legitimate event kiosk or shared school network may send more than 120 API requests per IP per minute.
 
-To check a custom subset, pass `--project-id=...` for one project or set comma-separated `RP_VERCEL_PROJECT_IDS`.
+The default target is the canonical project in `RP_VERCEL_PROJECT_ID`. For an exceptional external audit, pass `--project-id=...`; comma-separated `RP_VERCEL_PROJECT_IDS` remains available only as an explicit multi-project override.
 
 To check a custom public URL subset without Vercel secrets:
 

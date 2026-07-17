@@ -1,0 +1,37 @@
+# RePERFORMANCE 운영 문서
+
+문서는 목적별로 나눕니다. 동일한 설정을 여러 문서에 복사하지 않고 아래 기준 문서를 우선합니다.
+
+## 시작점
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): 코드, 데이터, 외부 시스템의 책임 경계
+- [DEPLOYMENT.md](DEPLOYMENT.md): GitHub와 Vercel 배포 절차
+- [RP_CAMPAIGN_READINESS_RUNBOOK.md](RP_CAMPAIGN_READINESS_RUNBOOK.md): 캠페인 전 전체 운영 점검
+
+## 데이터베이스와 고객 데이터
+
+- [RP_DATABASE_MIGRATION_RUNBOOK.md](RP_DATABASE_MIGRATION_RUNBOOK.md): 마이그레이션 적용과 확인
+- [RP_MANAGED_POSTGRES_SETUP.md](RP_MANAGED_POSTGRES_SETUP.md): PostgreSQL 연결
+- [RP_CUSTOMER_DATA_AUTH_MODEL.md](RP_CUSTOMER_DATA_AUTH_MODEL.md): 고객·계정 데이터 저장 기준
+- [RP_CUSTOMER_CONVERSION_FOUNDATION.md](RP_CUSTOMER_CONVERSION_FOUNDATION.md): 유입부터 상담·방문까지의 전환 데이터
+- [RP_DATA_RETENTION.md](RP_DATA_RETENTION.md): 보관 기간과 삭제 정책
+- [RP_GOOGLE_SHEETS_FALLBACK.md](RP_GOOGLE_SHEETS_FALLBACK.md): 선택적 Sheets 백업/fallback
+
+## 인증과 보안
+
+- [RP_ADMIN_AUTH_SETUP.md](RP_ADMIN_AUTH_SETUP.md): 계정과 관리자 권한 설정
+- [RP_PRODUCTION_SECRET_POLICY.md](RP_PRODUCTION_SECRET_POLICY.md): 운영 비밀값 기준
+- [RP_PRIVACY_SECURITY_REVIEW.md](RP_PRIVACY_SECURITY_REVIEW.md): 개인정보·보안 검토
+- [RP_SECURITY_EVENT_AUDIT_LOG.md](RP_SECURITY_EVENT_AUDIT_LOG.md): 보안 이벤트 감사
+- [RP_SECURITY_SCALE_DATA_PLAN.md](RP_SECURITY_SCALE_DATA_PLAN.md): 확장 시 보안·데이터 계획
+- [RP_SHARED_RATE_LIMITING.md](RP_SHARED_RATE_LIMITING.md): 공유 사용량 제한
+- [RP_VERCEL_FIREWALL_RULES.md](RP_VERCEL_FIREWALL_RULES.md): Vercel 방화벽 규칙
+
+## 서비스 운영
+
+- [RP_SERVICE_APPLICATION_SETUP.md](RP_SERVICE_APPLICATION_SETUP.md): 상담 신청 저장
+- [RP_PE_EXAM_DATA_AUTOMATION.md](RP_PE_EXAM_DATA_AUTOMATION.md): 체대입시 데이터 갱신
+- [RP_TRAFFIC_LOAD_TEST.md](RP_TRAFFIC_LOAD_TEST.md): 공개 페이지 부하 점검
+- [RP_VERCEL_PRODUCTION_AUDIT.md](RP_VERCEL_PRODUCTION_AUDIT.md): 프로덕션 감사 기록
+
+문서 내용이 충돌하면 `ARCHITECTURE.md`, 현재 코드, 최신 데이터베이스 마이그레이션 순서로 판단하고 오래된 문서를 갱신합니다.

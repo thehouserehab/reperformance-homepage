@@ -492,14 +492,23 @@ addCheck(
 );
 addCheck(
   "security",
-  "Customer Google Sheet fallback is explicit opt-in with no bundled sheet identifiers",
+  "Customer Google Sheet fallback is explicit opt-in with one sanitized integration source",
   includesAll("app/api/rp/clients/route.js", [
     "assertGoogleDriveFallbackEnabled",
     "isGoogleDriveBackupEnabled",
     "getGoogleDriveBackupSkipReason",
     "RP_SHEET_ID and RP_MEMBERS_GID are required",
   ])
-    && !/DEFAULT_SHEET_ID|DEFAULT_MEMBERS_GID|spreadsheets\/d\/[A-Za-z0-9_-]{20,}/.test(readFile("app/api/rp/clients/route.js")),
+    && !/DEFAULT_SHEET_ID|DEFAULT_MEMBERS_GID|spreadsheets\/d\/[A-Za-z0-9_-]{20,}/.test(readFile("app/api/rp/clients/route.js"))
+    && includesAll("integrations/google-apps-script/Code.gs", [
+      "SPREADSHEET_ID: 'CHANGE_THIS_TO_SPREADSHEET_ID'",
+      "DEFAULT_SECRET: 'CHANGE_THIS_TO_A_LONG_RANDOM_SECRET'",
+    ])
+    && [
+      "rp-v2-1-sheets-live-patch",
+      "rp-v2-existing-sheet-addon",
+      "rp-v2-google-sheet-final-addon",
+    ].every((dir) => listFiles(dir).length === 0),
 );
 addCheck(
   "security",
@@ -970,6 +979,7 @@ addCheck(
     && includesAll("scripts/check-rp-vercel-production.mjs", [
       "VERCEL_TOKEN",
       "DEFAULT_PROJECTS",
+      "RP_VERCEL_PROJECT_ID",
       "RP_VERCEL_PROJECT_IDS",
       "RP_DATA_SOURCE",
       "RP_DISABLE_RUNTIME_SCHEMA_SYNC",
@@ -989,11 +999,11 @@ addCheck(
       "SMS verification webhook",
     ])
     && includesAll("docs/RP_VERCEL_PRODUCTION_AUDIT.md", [
-      "Verified deployment ID",
-      "Commit:",
+      "Verified deployment before this consolidation commit",
+      "Verified Git commit before this consolidation commit",
       "RP_DATABASE_POOL_MAX",
       "RP_RATE_LIMIT_FAIL_CLOSED",
-      "SMS verification webhook",
+      "RP_SMS_WEBHOOK_URL",
     ]),
 );
 addCheck(
@@ -1139,9 +1149,10 @@ addCheck(
   "traffic",
   "Vercel production audit document exists",
   includesAll("docs/RP_VERCEL_PRODUCTION_AUDIT.md", [
-    "Production projects",
-    "prj_W2sXR8dobiMSH9QGksPYnwbhX03Z",
+    "Production project",
     "prj_VOlVshBafX9Njmw5ZzgVDc9b2syC",
+    "reperformance-homepage.vercel.app",
+    "reperformance.the-house-exercise.com",
     "CRON_SECRET",
     "Known gaps",
   ]),
@@ -1225,7 +1236,7 @@ addCheck(
       "rp_clients_page_cursor_idx",
       "updated_at DESC, created_at DESC, id DESC",
     ])
-    && includesAll("components/rp-consultation/rpSheetsClient.js", [
+    && includesAll("components/rp-consultation/rpClientApi.js", [
       "fetchRpClients(options = {})",
       "URLSearchParams",
       "params.set('cursor', cursor)",

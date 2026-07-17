@@ -172,6 +172,14 @@ addResult(
   ]),
 );
 
+const appsScriptSource = readFile("integrations/google-apps-script/Code.gs");
+addResult(
+  "integrations",
+  "Google Apps Script source keeps spreadsheet and API secret values as placeholders",
+  /SPREADSHEET_ID:\s*['"]CHANGE_THIS_TO_SPREADSHEET_ID['"]/.test(appsScriptSource)
+    && /DEFAULT_SECRET:\s*['"]CHANGE_THIS_TO_A_LONG_RANDOM_SECRET['"]/.test(appsScriptSource),
+);
+
 const byArea = new Map();
 for (const result of results) {
   if (!byArea.has(result.area)) byArea.set(result.area, []);

@@ -7,8 +7,10 @@ import {
 
 const DEFAULT_TEAM_ID = "team_EfbUpj6INJBMbI08rWAvGdof";
 const DEFAULT_PROJECTS = [
-  { id: "prj_W2sXR8dobiMSH9QGksPYnwbhX03Z", label: "reperformance-homepage.vercel.app" },
-  { id: "prj_VOlVshBafX9Njmw5ZzgVDc9b2syC", label: "reperformance.the-house-exercise.com" },
+  {
+    id: "prj_VOlVshBafX9Njmw5ZzgVDc9b2syC",
+    label: "reperformance-homepage.vercel.app + reperformance.the-house-exercise.com",
+  },
 ];
 const API_BASE = "https://api.vercel.com";
 const CONFIRM_TOKEN = "APPLY_RP_VERCEL_FIREWALL";
