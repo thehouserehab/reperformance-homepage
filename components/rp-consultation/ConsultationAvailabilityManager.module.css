@@ -1,0 +1,302 @@
+.wrap {
+  min-height: 100vh;
+  padding: 36px;
+  background: #f3f5f4;
+  color: #17191d;
+}
+
+.topbar,
+.layout,
+.summaryGrid {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #087b72;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.topbar h1,
+.createPanel h2,
+.slotHeader h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.topbar h1 {
+  font-size: clamp(32px, 5vw, 54px);
+}
+
+.topbar p:not(.eyebrow),
+.createPanel p,
+.slotItem p {
+  color: #5f6368;
+  line-height: 1.65;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions a,
+.slotHeader button,
+.slotItem button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #bec5c0;
+  border-radius: 3px;
+  background: #fff;
+  color: #17191d;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.summaryGrid > div {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px solid #d5dbd5;
+  background: #fff;
+}
+
+.summaryGrid span {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.summaryGrid strong {
+  font-size: 28px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(280px, .72fr) minmax(0, 1.28fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.createPanel,
+.slotPanel {
+  border: 1px solid #d5dbd5;
+  background: #fff;
+}
+
+.createPanel {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  position: sticky;
+  top: 24px;
+}
+
+.createPanel label {
+  display: grid;
+  gap: 8px;
+}
+
+.createPanel label span {
+  color: #4a4f55;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.createPanel input,
+.createPanel select {
+  min-height: 50px;
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid #cdd3ce;
+  border-radius: 3px;
+  background: #fff;
+  color: #17191d;
+  font: inherit;
+}
+
+.createPanel > button {
+  min-height: 52px;
+  border: 0;
+  border-radius: 3px;
+  background: #0a665b;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 950;
+}
+
+.createPanel button:disabled,
+.slotHeader button:disabled,
+.slotItem button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.helper {
+  margin: 0;
+  font-size: 12px;
+}
+
+.slotPanel {
+  min-width: 0;
+  padding: 28px;
+}
+
+.slotHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.success,
+.error {
+  padding: 12px 14px;
+  border: 1px solid rgba(8, 123, 114, .25);
+  background: #eff8f6;
+  color: #355a56;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.error {
+  border-color: rgba(150, 55, 36, .2);
+  background: #fff0eb;
+  color: #963724;
+}
+
+.slotList {
+  display: grid;
+  gap: 8px;
+}
+
+.slotItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #d9ddd8;
+  background: #fafbfa;
+}
+
+.slotItem > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.slotItem strong {
+  font-size: 17px;
+}
+
+.slotItem p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.status {
+  width: fit-content;
+  padding: 4px 7px;
+  border: 1px solid #cdd3ce;
+  color: #5f6368;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.open {
+  border-color: rgba(8, 123, 114, .26);
+  background: #eff8f6;
+  color: #087b72;
+}
+
+.booked {
+  border-color: #17191d;
+  background: #17191d;
+  color: #fff;
+}
+
+.closed,
+.past {
+  background: #ecefed;
+}
+
+.bookingClient {
+  color: #087b72 !important;
+  font-weight: 850;
+}
+
+.emptyState {
+  padding: 48px 18px;
+  border: 1px dashed #cdd3ce;
+  color: #5f6368;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .wrap {
+    padding: 24px 16px;
+  }
+
+  .topbar,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .createPanel {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions,
+  .actions a,
+  .slotHeader button,
+  .slotItem button {
+    width: 100%;
+  }
+
+  .slotHeader,
+  .slotItem {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .createPanel,
+  .slotPanel {
+    padding: 20px;
+  }
+}

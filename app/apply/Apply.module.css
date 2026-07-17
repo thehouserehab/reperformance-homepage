@@ -19,6 +19,25 @@
   padding: 42px;
 }
 
+.formIntro {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  border-left: 4px solid #0a665b;
+  background: #edf5f2;
+}
+
+.formIntro strong {
+  color: #17191d;
+  font-size: 17px;
+}
+
+.formIntro span {
+  color: #4a4f55;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
 .formSection {
   display: grid;
   gap: 18px;
@@ -47,6 +66,81 @@
 .sectionTitle strong {
   color: #17191d;
   font-size: 18px;
+}
+
+.sectionBadge {
+  margin-left: auto;
+  color: #087b72;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.optionalSection {
+  padding-bottom: 30px;
+  border-bottom: 1px solid #d5dbd5;
+}
+
+.optionalSummary {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.optionalSummary::-webkit-details-marker {
+  display: none;
+}
+
+.optionalSummary > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+  background: #17191d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.optionalSummary strong {
+  color: #17191d;
+  font-size: 18px;
+}
+
+.optionalSummary em {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #d5dbd5;
+  color: #5f6368;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.optionalSummary::after {
+  content: '+';
+  grid-column: 4;
+  grid-row: 1;
+  color: #087b72;
+  font-size: 22px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.optionalSection[open] .optionalSummary::after {
+  content: '−';
+}
+
+.optionalBody {
+  display: grid;
+  gap: 18px;
+  padding-top: 22px;
 }
 
 .serviceGrid,
@@ -229,7 +323,8 @@
 }
 
 .submitButton,
-.sideActions a {
+.sideActions a,
+.outlineButton {
   min-height: 58px;
   display: inline-flex;
   align-items: center;
@@ -242,6 +337,13 @@
   font: inherit;
   font-weight: 950;
   text-decoration: none;
+}
+
+.outlineButton {
+  border: 1px solid #17191d;
+  background: #fff;
+  color: #17191d;
+  padding: 0 20px;
 }
 
 .success,
@@ -329,12 +431,429 @@
   background: transparent;
 }
 
+.successSection {
+  padding-top: 42px;
+}
+
+.successLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.successMain,
+.successAside {
+  border: 1px solid #d5dbd5;
+  background: #fff;
+}
+
+.successMain {
+  padding: 42px;
+}
+
+.receiptMark {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 28px;
+  background: #0a665b;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 950;
+}
+
+.successMain h2,
+.successAside h2 {
+  margin: 0;
+  color: #17191d;
+  letter-spacing: 0;
+}
+
+.successMain h2 {
+  max-width: 680px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.18;
+}
+
+.afterSubmitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 34px;
+  border-top: 1px solid #d5dbd5;
+  border-bottom: 1px solid #d5dbd5;
+}
+
+.afterSubmitGrid > div {
+  min-width: 0;
+  padding: 24px 18px;
+  border-right: 1px solid #d5dbd5;
+}
+
+.afterSubmitGrid > div:first-child {
+  padding-left: 0;
+}
+
+.afterSubmitGrid > div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.afterSubmitGrid span {
+  display: block;
+  margin-bottom: 18px;
+  color: #087b72;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.afterSubmitGrid strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #17191d;
+  font-size: 18px;
+}
+
+.afterSubmitGrid p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.bookingSections {
+  display: contents;
+}
+
+.bookingPanel {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #d5dbd5;
+  background: #f7f8f7;
+}
+
+.bookingDateTabs {
+  min-width: 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 0 6px;
+  scrollbar-width: thin;
+}
+
+.bookingDateButton,
+.bookingDateActive {
+  min-width: 132px;
+  min-height: 64px;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  padding: 10px 14px;
+  border: 1px solid #cdd3ce;
+  border-radius: 3px;
+  background: #fff;
+  color: #30353a;
+  cursor: pointer;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.bookingDateButton strong,
+.bookingDateActive strong {
+  font-size: 14px;
+}
+
+.bookingDateButton span,
+.bookingDateActive span {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bookingDateActive {
+  border-color: #0a665b;
+  background: #0a665b;
+  color: #fff;
+}
+
+.bookingTimeFieldset,
+.activityFieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.bookingTimeFieldset legend {
+  margin-bottom: 10px;
+  color: #30353a;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.bookingTimeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bookingTimeOption,
+.flexibleTimeOption,
+.activityOption {
+  cursor: pointer;
+}
+
+.bookingTimeOption input,
+.flexibleTimeOption input,
+.activityOption input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bookingTimeOption > span {
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid #cdd3ce;
+  border-radius: 3px;
+  background: #fff;
+  text-align: center;
+}
+
+.bookingTimeOption strong {
+  color: #17191d;
+  font-size: 16px;
+}
+
+.bookingTimeOption small {
+  color: #74797f;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.bookingTimeOption:has(input:checked) > span {
+  border-color: #0a665b;
+  background: #edf5f2;
+  box-shadow: inset 0 -3px 0 #0a665b;
+}
+
+.bookingTimeOption:has(input:focus-visible) > span,
+.flexibleTimeOption:has(input:focus-visible) > span,
+.activityOption:has(input:focus-visible) > span {
+  outline: 3px solid rgba(8, 123, 114, 0.24);
+  outline-offset: 2px;
+}
+
+.flexibleTimeOption > span {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  border: 1px dashed #aab2ac;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.flexibleTimeOption strong,
+.flexibleTimeOption small {
+  color: #4a4f55;
+}
+
+.flexibleTimeOption small {
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.flexibleTimeOption:has(input:checked) > span {
+  border-style: solid;
+  border-color: #0a665b;
+  background: #edf5f2;
+}
+
+.bookingState {
+  display: grid;
+  gap: 5px;
+  padding: 18px;
+  border: 1px solid #d9ddd8;
+  background: #fff;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.bookingState strong {
+  color: #30353a;
+  font-size: 14px;
+}
+
+.bookingError {
+  margin: 0;
+  color: #963724;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.activityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.activityOption > span {
+  min-height: 128px;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 18px;
+  border: 1px solid #d5dbd5;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.activityOption strong {
+  color: #17191d;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.activityOption small {
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.activityOption:has(input:checked) > span {
+  border-color: #0a665b;
+  background: #edf5f2;
+  box-shadow: inset 4px 0 0 #0a665b;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.successActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.successActions a {
+  flex: 1 1 0;
+  padding: 0 20px;
+}
+
+.successAside {
+  padding: 34px;
+  border-color: #111716;
+  background: #111716;
+  color: #fff;
+}
+
+.successAside h2 {
+  color: #fff;
+  font-size: 30px;
+  line-height: 1.25;
+}
+
+.successAside ul {
+  display: grid;
+  gap: 12px;
+  margin: 26px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.successAside li {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, .18);
+  color: rgba(255, 255, 255, .78);
+  line-height: 1.55;
+}
+
+.successAside dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.successAside dl div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.successAside dt {
+  color: #54d0c2;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.successAside dd {
+  margin: 0;
+  color: rgba(255, 255, 255, .78);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.successAside a {
+  color: #fff;
+}
+
+.noreNotice {
+  margin: 26px 0 0;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  color: rgba(255, 255, 255, .72);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 @media (max-width: 980px) {
   .layout,
   .serviceGrid,
   .formGrid,
-  .sideActions {
+  .sideActions,
+  .successLayout {
     grid-template-columns: 1fr;
+  }
+
+  .afterSubmitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .afterSubmitGrid > div,
+  .afterSubmitGrid > div:first-child,
+  .afterSubmitGrid > div:last-child {
+    padding: 20px 0;
+    border-right: 0;
+    border-bottom: 1px solid #d5dbd5;
+  }
+
+  .afterSubmitGrid > div:last-child {
+    border-bottom: 0;
   }
 
   .sidePanel {
@@ -344,12 +863,60 @@
 
 @media (max-width: 640px) {
   .form,
-  .sidePanel {
+  .sidePanel,
+  .successMain,
+  .successAside {
     padding: 24px;
+  }
+
+  .optionalSummary {
+    grid-template-columns: 34px minmax(0, 1fr) 28px;
+  }
+
+  .optionalSummary em {
+    grid-column: 2;
+    width: fit-content;
+  }
+
+  .optionalSummary::after {
+    grid-column: 3;
+    grid-row: 1;
+    place-self: center;
+  }
+
+  .successActions {
+    flex-direction: column;
   }
 
   .checkGrid {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .bookingPanel {
+    padding: 14px;
+  }
+
+  .bookingTimeGrid,
+  .activityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bookingTimeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .flexibleTimeOption > span {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .flexibleTimeOption small {
+    text-align: left;
+  }
+
+  .activityOption > span {
+    min-height: 0;
   }
 }

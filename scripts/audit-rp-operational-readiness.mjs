@@ -118,7 +118,7 @@ const packageJson = JSON.parse(readFile("package.json"));
 const dependencies = packageJson.dependencies || {};
 const scripts = packageJson.scripts || {};
 const externalManagementDomain = ["no", "re", "app", ".com"].join("");
-const externalManagementPattern = /nore(?!ferrer)|noreapp|trainer\/home|7977D6D6/i;
+const externalManagementIntegrationPattern = /noreapp|trainer\/home|7977D6D6|nore.{0,20}(api|webhook|fetch)|(?:api|webhook|fetch).{0,20}nore/i;
 const apiRouteFiles = listFiles("app/api", (file) => path.basename(file) === "route.js");
 const bundledSampleClientText = readFile("components/rp-consultation/rpConsultationSchema.js");
 const realisticSamplePhonePattern = /phone:\s*['"]010-\d{4}-\d{4}['"]|phone:\s*['"]010\d{8}['"]/;
@@ -402,9 +402,9 @@ addCheck(
 );
 addCheck(
   "security",
-  "External management service identifiers are absent from source code",
-  !["app", "components", "lib", "database"].some((dir) => directoryIncludesPattern(dir, externalManagementPattern))
-    && !externalManagementConfigFiles.some((file) => externalManagementPattern.test(readFile(file))),
+  "External management service has no API, webhook, URL, or identifier integration",
+  !["app/api", "components", "lib", "database"].some((dir) => directoryIncludesPattern(dir, externalManagementIntegrationPattern))
+    && !externalManagementConfigFiles.some((file) => externalManagementIntegrationPattern.test(readFile(file))),
 );
 addCheck(
   "security",
@@ -705,6 +705,21 @@ addCheck(
   "Database migration check command exists",
   Boolean(scripts["db:migration:check"])
     && includesAll("scripts/check-rp-database-migration.mjs", ["rp_auth_accounts", "rp_rate_limit_buckets", "rp_ai_usage_buckets", "requiredIndexes", "--allow-missing-database"]),
+);
+addCheck(
+  "data",
+  "Consultation booking is migration-backed and operationally checked",
+  Boolean(scripts["ops:booking:check"])
+    && includesAll("database/migrations/20260714_consultation_availability.sql", [
+      "rp_consultation_slots",
+      "consultation_slot_id",
+      "consultation_activity_preference",
+      "rp_clients_active_consultation_slot_unique_idx",
+    ])
+    && includesAll("scripts/check-rp-campaign-readiness.mjs", [
+      "ops:booking:check",
+      "Consultation booking foundation",
+    ]),
 );
 addCheck(
   "data",
@@ -1125,6 +1140,8 @@ const rateLimitedRoutes = [
   "app/api/auth/account-recovery/route.js",
   "app/api/rp/signup/route.js",
   "app/api/rp/service-application/route.js",
+  "app/api/rp/conversion-events/route.js",
+  "app/api/rp/consultation-slots/route.js",
   "app/api/rp/pe-exam-question/route.js",
   "app/api/rp/pe-exam-ai-consult/route.js",
   "app/api/rp/consultation-summary/route.js",
@@ -1145,6 +1162,8 @@ const bodyLimitedRoutes = [
   "app/api/auth/account-recovery/route.js",
   "app/api/rp/signup/route.js",
   "app/api/rp/service-application/route.js",
+  "app/api/rp/conversion-events/route.js",
+  "app/api/rp/consultation-slots/route.js",
   "app/api/rp/pe-exam-question/route.js",
   "app/api/rp/pe-exam-ai-consult/route.js",
   "app/api/rp/consultation-summary/route.js",

@@ -4,6 +4,7 @@ import "./homepage-upgrade.css";
 import "./detail-pages.css";
 import "./pe-exam-slide.css";
 import "./brand-redesign.css";
+import RPConversionTracker from "../components/conversion/RPConversionTracker";
 
 export const metadata: Metadata = {
   title: "RePERFORMANCE | 전주 서신동 재활 트레이닝",
@@ -25,7 +26,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        <RPConversionTracker />
+        {children}
+      </body>
     </html>
   );
 }

@@ -44,6 +44,14 @@ const steps = [
     command: [npmCommand, "run", "ops:sensitive:check"],
   },
   {
+    name: "Customer conversion foundation",
+    command: [npmCommand, "run", "ops:conversion:check"],
+  },
+  {
+    name: "Consultation booking foundation",
+    command: [npmCommand, "run", "ops:booking:check"],
+  },
+  {
     name: includeRetentionStrict ? "Data retention strict production gate" : "Data retention dry-run",
     command: retentionCommand,
   },
@@ -174,7 +182,7 @@ Manual gates before a high-traffic campaign:
 - Run npm.cmd run db:migration:check against production PostgreSQL.
 - Verify /api/rp/system-status with a staff session in production, or run npm.cmd run ops:campaign:check -- --status with RP_SYSTEM_STATUS_COOKIE.
 - For paid/admission campaigns, run npm.cmd run ops:campaign:check -- --security-strict with RP_SYSTEM_STATUS_COOKIE so securityMonitoring.status=normal is enforced before traffic increases.
-- Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, /api/rp/clients, /api/rp/auth-accounts, and /api/rp/security-events.
+- Confirm Vercel Firewall or equivalent edge rules protect /api/auth/*, /api/rp/signup, /api/rp/service-application, /api/rp/conversion-events, /api/rp/consultation-slots, /api/rp/pe-exam-question, /api/rp/pe-exam-ai-consult, /api/rp/clients, /api/rp/auth-accounts, and /api/rp/security-events.
 - Confirm production DATABASE_URL or RP_DATABASE_URL is configured and connection limits match the managed PostgreSQL plan.
 - Confirm production RP_DATA_SOURCE, RP_DISABLE_RUNTIME_SCHEMA_SYNC or RP_RUNTIME_SCHEMA_SYNC, RP_DATABASE_POOL_MAX, RP_SMS_WEBHOOK_URL or SMS_WEBHOOK_URL, NEXT_PUBLIC_SITE_URL or RP_SITE_URL, and RP_RATE_LIMIT_FAIL_CLOSED are configured for both production Vercel projects.
 - Confirm RP_ALLOW_ENV_AUTH_ACCOUNTS remains unset or false unless a short emergency bootstrap window is intentionally open.

@@ -3,10 +3,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import styles from './RPClientManager.module.css';
 import { MEMBER_TYPES, SAMPLE_CLIENTS } from './rpConsultationSchema';
-import { addRpClient, fetchRpClients } from './rpSheetsClient';
+import { CLIENT_CONTACT_STATUSES, CLIENT_VISIT_STATUSES } from '../../lib/rpClientWorkflow';
+import { getConsultationActivityLabel } from '../../lib/rpConsultationAvailability';
+import { addRpClient, fetchRpClients, updateRpClientWorkflow } from './rpSheetsClient';
 
 const STATUS_FILTERS = ['전체', '상담 전', '상담 중', '등록', '보류', '추가 확인'];
 const CLIENT_PAGE_SIZE = 200;
+const WORKFLOW_INITIAL_STATE = {
+  contactStatus: '연락 대기',
+  visitStatus: '미정',
+  scheduledVisitAt: '',
+  nextAction: '',
+  nextActionAt: '',
+  followUpReason: '',
+};
 const DIRECT_CLIENT_INITIAL_STATE = {
   name: '',
   phone: '',
@@ -75,6 +85,7 @@ function buildLocalClient(record) {
     concern: record.concern || '',
     totalSessions: Number(record.totalSessions) || 0,
     remainingSessions: Number(record.remainingSessions) || 0,
+    ...WORKFLOW_INITIAL_STATE,
   };
 }
 
@@ -102,6 +113,34 @@ function formatDateTime(value) {
   } catch (_) {
     return String(value);
   }
+}
+
+function toDateTimeLocal(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (number) => String(number).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function buildWorkflowDraft(client) {
+  if (!client) return WORKFLOW_INITIAL_STATE;
+  return {
+    contactStatus: client.contactStatus || '연락 대기',
+    visitStatus: client.visitStatus || '미정',
+    scheduledVisitAt: toDateTimeLocal(client.scheduledVisitAt),
+    nextAction: client.nextAction || '',
+    nextActionAt: toDateTimeLocal(client.nextActionAt),
+    followUpReason: client.followUpReason || '',
+  };
+}
+
+function formatAttribution(client) {
+  const source = client?.latestSource || client?.firstSource;
+  const medium = client?.latestMedium || client?.firstMedium;
+  const campaign = client?.latestCampaign || client?.firstCampaign;
+  return [source, medium, campaign].filter(Boolean).join(' · ') || client?.route || '기록 없음';
 }
 
 function buildAiLimitDrafts(accounts) {
@@ -166,6 +205,10 @@ export default function RPClientManager() {
   const [authError, setAuthError] = useState('');
   const [aiLimitDrafts, setAiLimitDrafts] = useState({});
   const [updatingAiUsername, setUpdatingAiUsername] = useState('');
+  const [workflowDraft, setWorkflowDraft] = useState(WORKFLOW_INITIAL_STATE);
+  const [isSavingWorkflow, setIsSavingWorkflow] = useState(false);
+  const [workflowStatus, setWorkflowStatus] = useState('');
+  const [workflowError, setWorkflowError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -262,6 +305,13 @@ export default function RPClientManager() {
         client.status,
         client.memberType,
         client.route,
+        client.contactStatus,
+        client.visitStatus,
+        client.nextAction,
+        client.latestSource,
+        client.latestCampaign,
+        client.visitStatus,
+        client.consultationActivityPreference,
         client.goal,
         formatList(client.purpose, ''),
         formatList(client.painAreas, ''),
@@ -275,24 +325,59 @@ export default function RPClientManager() {
     return clients.find((client) => client.id === selectedId) || filteredClients[0] || clients[0] || null;
   }, [clients, filteredClients, selectedId]);
 
+  useEffect(() => {
+    setWorkflowDraft(buildWorkflowDraft(selectedClient));
+    setWorkflowStatus('');
+    setWorkflowError('');
+  }, [selectedClient?.id]);
+
   const stats = useMemo(() => {
     const total = clients.length;
     const attention = clients.filter((client) => getRiskLabel(client) !== '일반').length;
     const registered = clients.filter((client) => String(client.status || '').includes('등록')).length;
     const activeSessions = clients.filter((client) => Number(client.remainingSessions) > 0).length;
     const peExam = clients.filter(isPeExamClient).length;
+    const contactPending = clients.filter((client) => (client.contactStatus || '연락 대기') === '연락 대기').length;
+    const visitBooked = clients.filter((client) => ['예약 승인 대기', '방문 예약 완료', '방문 전 확인'].includes(client.visitStatus)).length;
 
     return [
       { label: '전체 고객', value: `${total}명` },
+      { label: '연락 대기', value: `${contactPending}명` },
+      { label: '방문 예정', value: `${visitBooked}명` },
       { label: '주의 확인', value: `${attention}명` },
       { label: '등록 상태', value: `${registered}명` },
-      { label: '잔여회차 있음', value: `${activeSessions}명` },
-      { label: '체대입시생', value: `${peExam}명` },
+      { label: '관리 중', value: `${activeSessions}명 · 입시 ${peExam}명` },
     ];
   }, [clients]);
 
   function updateNewClient(field, value) {
     setNewClient((current) => ({ ...current, [field]: value }));
+  }
+
+  function updateWorkflowDraft(field, value) {
+    setWorkflowDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  async function handleSaveWorkflow(event) {
+    event.preventDefault();
+    if (!selectedClient?.id) return;
+
+    try {
+      setIsSavingWorkflow(true);
+      setWorkflowError('');
+      setWorkflowStatus('');
+      const result = await updateRpClientWorkflow(selectedClient.id, workflowDraft);
+      const updatedClient = result.client;
+      setClients((current) => current.map((client) => (
+        client.id === updatedClient.id ? updatedClient : client
+      )));
+      setWorkflowDraft(buildWorkflowDraft(updatedClient));
+      setWorkflowStatus('연락·방문 상태와 다음 행동을 저장했습니다.');
+    } catch (error) {
+      setWorkflowError(error?.message || '고객 진행 상태를 저장하지 못했습니다.');
+    } finally {
+      setIsSavingWorkflow(false);
+    }
   }
 
   function closeAddForm() {
@@ -469,6 +554,7 @@ export default function RPClientManager() {
             {showAddForm ? '추가 닫기' : '고객 추가'}
           </button>
           <a className={styles.ghostButton} href="/admin">운영 홈</a>
+          <a className={styles.ghostButton} href="/admin/availability">예약 시간</a>
           <a className={styles.ghostButton} href="/admin/consultation">상담 화면</a>
         </div>
       </header>
@@ -716,7 +802,9 @@ export default function RPClientManager() {
                   onClick={() => setSelectedId(client.id)}
                 >
                   <span className={styles.clientName}>{client.name}</span>
-                  <span className={styles.clientMeta}>{client.id} · {client.status || '상태 미입력'}</span>
+                  <span className={styles.clientMeta}>
+                    {client.id} · {client.status || '상태 미입력'} · {client.contactStatus || '연락 대기'} · {client.visitStatus || '미정'}
+                  </span>
                   <span className={riskLabel === '일반' ? styles.safeChip : styles.warnChip}>{riskLabel}</span>
                 </button>
               );
@@ -744,7 +832,9 @@ export default function RPClientManager() {
                 <div>
                   <p className={styles.eyebrow}>SELECTED CLIENT</p>
                   <h2>{selectedClient.name}</h2>
-                  <p>{selectedClient.id} · {selectedClient.status || '상태 미입력'}</p>
+                  <p>
+                    {selectedClient.id} · {selectedClient.status || '상태 미입력'} · {selectedClient.contactStatus || '연락 대기'}
+                  </p>
                 </div>
                 <a className={styles.primaryButton} href={`/admin/consultation?clientId=${encodeURIComponent(selectedClient.id)}`}>
                   이 고객 상담하기
@@ -755,7 +845,7 @@ export default function RPClientManager() {
                 <div className={styles.infoCard}>
                   <span>연락처</span>
                   <strong>{selectedClient.phone || '미입력'}</strong>
-                  <p>{selectedClient.route ? `유입경로 · ${selectedClient.route}` : '유입경로 미입력'}</p>
+                  <p>{`유입경로 · ${formatAttribution(selectedClient)}`}</p>
                 </div>
                 <div className={styles.infoCard}>
                   <span>기본 정보</span>
@@ -772,7 +862,94 @@ export default function RPClientManager() {
                   <strong>{selectedClient.coachName || '정우현'}</strong>
                   <p>상담 저장 시 담당자로 기록됩니다.</p>
                 </div>
+                <div className={styles.infoCard}>
+                  <span>상담 희망 시간</span>
+                  <strong>{formatDateTime(selectedClient.scheduledVisitAt)}</strong>
+                  <p>{selectedClient.visitStatus || '일정 미정'}</p>
+                </div>
+                <div className={styles.infoCard}>
+                  <span>상담 진행 방식</span>
+                  <strong>{getConsultationActivityLabel(selectedClient.consultationActivityPreference) || '미입력'}</strong>
+                  <p>계약 전 상담 준비 정보입니다.</p>
+                </div>
               </div>
+
+              <section className={styles.workflowPanel} aria-labelledby="client-workflow-title">
+                <div className={styles.workflowHeader}>
+                  <div>
+                    <p className={styles.eyebrow}>CONTACT & VISIT</p>
+                    <h3 id="client-workflow-title">연락, 방문, 다음 행동</h3>
+                    <p>상담 상태와 별개로 실제 연락과 방문 진행을 기록합니다.</p>
+                  </div>
+                  <div className={workflowError ? styles.errorStatus : styles.connectionStatus}>
+                    {workflowError || workflowStatus || `마지막 연락 · ${formatDateTime(selectedClient.lastContactedAt)}`}
+                  </div>
+                </div>
+
+                <div className={styles.workflowLayout}>
+                  <form className={styles.workflowForm} onSubmit={handleSaveWorkflow}>
+                    <label>
+                      <span>연락 상태</span>
+                      <select value={workflowDraft.contactStatus} onChange={(event) => updateWorkflowDraft('contactStatus', event.target.value)}>
+                        {CLIENT_CONTACT_STATUSES.map((status) => <option key={status}>{status}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span>방문 상태</span>
+                      <select value={workflowDraft.visitStatus} onChange={(event) => updateWorkflowDraft('visitStatus', event.target.value)}>
+                        {CLIENT_VISIT_STATUSES.map((status) => <option key={status}>{status}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      <span>희망·확정 방문일</span>
+                      <input type="datetime-local" value={workflowDraft.scheduledVisitAt} onChange={(event) => updateWorkflowDraft('scheduledVisitAt', event.target.value)} />
+                    </label>
+                    <label>
+                      <span>다음 행동 예정일</span>
+                      <input type="datetime-local" value={workflowDraft.nextActionAt} onChange={(event) => updateWorkflowDraft('nextActionAt', event.target.value)} />
+                    </label>
+                    <label className={styles.workflowWide}>
+                      <span>다음 행동</span>
+                      <input value={workflowDraft.nextAction} onChange={(event) => updateWorkflowDraft('nextAction', event.target.value)} placeholder="예: 전화로 방문 가능 시간 확인" />
+                    </label>
+                    <label className={styles.workflowWide}>
+                      <span>재연락·보류 사유</span>
+                      <textarea value={workflowDraft.followUpReason} onChange={(event) => updateWorkflowDraft('followUpReason', event.target.value)} placeholder="연락 결과와 다음 확인 사항을 짧게 기록합니다." />
+                    </label>
+                    <div className={styles.workflowActions}>
+                      <button className={styles.primaryButton} type="submit" disabled={isSavingWorkflow}>
+                        {isSavingWorkflow ? '저장 중...' : '진행 상태 저장'}
+                      </button>
+                    </div>
+                  </form>
+
+                  <div className={styles.attributionSummary}>
+                    <span className={styles.cardLabel}>유입 기록</span>
+                    <dl>
+                      <div>
+                        <dt>세션 최초 유입</dt>
+                        <dd>{[selectedClient.firstSource, selectedClient.firstMedium, selectedClient.firstCampaign].filter(Boolean).join(' · ') || selectedClient.route || '기록 없음'}</dd>
+                      </div>
+                      <div>
+                        <dt>세션 최초 페이지</dt>
+                        <dd>{selectedClient.firstLandingPath || '기록 없음'}</dd>
+                      </div>
+                      <div>
+                        <dt>최근 캠페인 유입</dt>
+                        <dd>{formatAttribution(selectedClient)}</dd>
+                      </div>
+                      <div>
+                        <dt>신청 직전 페이지</dt>
+                        <dd>{selectedClient.applicationReferrerPath || '기록 없음'}</dd>
+                      </div>
+                      <div>
+                        <dt>캠페인·연계 코드</dt>
+                        <dd>{[selectedClient.campaignCode, selectedClient.partnerCode, selectedClient.qrCode, selectedClient.referralCode].filter(Boolean).join(' · ') || '기록 없음'}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </section>
 
               <div className={styles.twoColumn}>
                 <div className={styles.card}>

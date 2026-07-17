@@ -11,6 +11,7 @@ import {
   listDatabaseClients,
   saveDatabaseClient,
   saveDatabaseConsultation,
+  updateDatabaseClientWorkflow,
 } from '../../../../lib/rpDatabase';
 import {
   getGoogleDriveBackupSkipReason,
@@ -277,6 +278,13 @@ function mapClient(record, index = 0) {
     concern: String(caution || ''),
     totalSessions: Number(getValue(record, ['총회차', 'totalSessions'])) || 0,
     remainingSessions: Number(getValue(record, ['잔여회차', 'remainingSessions'])) || 0,
+    contactStatus: String(getValue(record, ['연락상태', 'contactStatus']) || '연락 대기'),
+    visitStatus: String(getValue(record, ['방문상태', 'visitStatus']) || '미정'),
+    scheduledVisitAt: String(getValue(record, ['방문예정일', 'scheduledVisitAt']) || ''),
+    lastContactedAt: String(getValue(record, ['마지막연락일', 'lastContactedAt']) || ''),
+    nextAction: String(getValue(record, ['다음행동', 'nextAction']) || ''),
+    nextActionAt: String(getValue(record, ['다음행동예정일', 'nextActionAt']) || ''),
+    followUpReason: String(getValue(record, ['후속관리사유', 'followUpReason']) || ''),
   };
 }
 
@@ -665,5 +673,30 @@ export async function POST(request) {
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
     return NextResponse.json({ ok: false, error: error?.message || '상담 기록 저장 중 오류가 발생했습니다.' }, { status: 500 });
+  }
+}
+
+export async function PATCH(request) {
+  const originCheck = checkSameOriginRequest(request);
+  if (!originCheck.ok) return buildForbiddenOriginResponse();
+
+  const sizeCheck = checkRequestBodySize(request, REQUEST_SIZE_LIMITS.medium);
+  if (!sizeCheck.ok) return buildRequestTooLargeResponse(sizeCheck.maxBytes);
+
+  const auth = await requireStaffSession();
+  if (auth.response) return auth.response;
+
+  const rateLimitResponse = await checkClientsLimit(request, auth.session, 'write');
+  if (rateLimitResponse) return rateLimitResponse;
+
+  try {
+    const payload = await request.json().catch(() => ({}));
+    const result = await updateDatabaseClientWorkflow(payload.clientId, payload.workflow || {});
+    return NextResponse.json({ ok: true, ...result });
+  } catch (error) {
+    return NextResponse.json(
+      { ok: false, error: error?.message || '고객 연락·방문 상태 저장 중 오류가 발생했습니다.' },
+      { status: error?.message === '고객을 찾을 수 없습니다.' ? 404 : 400 },
+    );
   }
 }

@@ -576,6 +576,138 @@
   gap: 16px;
 }
 
+.workflowPanel {
+  display: grid;
+  gap: 18px;
+  padding: 22px 0;
+  border-top: 1px solid #e2e4df;
+  border-bottom: 1px solid #e2e4df;
+}
+
+.workflowHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.workflowHeader h3 {
+  margin: 0 0 7px;
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.workflowHeader p:not(.eyebrow) {
+  margin: 0;
+  color: #5f6368;
+  line-height: 1.6;
+}
+
+.workflowHeader .connectionStatus,
+.workflowHeader .errorStatus {
+  flex: 0 1 360px;
+  margin-top: 0;
+  line-height: 1.5;
+}
+
+.workflowLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, .5fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.workflowForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.workflowForm label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.workflowForm label > span {
+  color: #5f6368;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.workflowForm input,
+.workflowForm select,
+.workflowForm textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d9ddd8;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  color: #17191d;
+  font: inherit;
+  outline: none;
+}
+
+.workflowForm textarea {
+  min-height: 88px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.workflowForm input:focus,
+.workflowForm select:focus,
+.workflowForm textarea:focus {
+  border-color: #087b72;
+  box-shadow: 0 0 0 4px rgba(8, 123, 114, .10);
+}
+
+.workflowWide,
+.workflowActions {
+  grid-column: 1 / -1;
+}
+
+.workflowActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.attributionSummary {
+  min-width: 0;
+  padding: 18px;
+  border-left: 3px solid #087b72;
+  background: #f5f6f3;
+}
+
+.attributionSummary dl {
+  display: grid;
+  gap: 12px;
+  margin: 15px 0 0;
+}
+
+.attributionSummary dl div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.attributionSummary dt {
+  color: #5f6368;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.attributionSummary dd {
+  margin: 0;
+  color: #17191d;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .detailHeader {
   display: flex;
   justify-content: space-between;
@@ -599,7 +731,7 @@
 .infoGrid,
 .twoColumn {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -683,6 +815,10 @@
     grid-template-columns: 1fr;
   }
 
+  .workflowLayout {
+    grid-template-columns: 1fr;
+  }
+
   .sidebar,
   .detailPanel {
     min-height: auto;
@@ -701,7 +837,8 @@
   .topbar,
   .detailHeader,
   .addPanelHeader,
-  .aiAccessHeader {
+  .aiAccessHeader,
+  .workflowHeader {
     flex-direction: column;
     align-items: stretch;
   }
@@ -727,11 +864,17 @@
   .addForm,
   .aiAccountGrid,
   .aiLimitForm,
-  .aiAccountCard dl {
+  .aiAccountCard dl,
+  .workflowForm {
     grid-template-columns: 1fr;
   }
 
   .fieldWide {
+    grid-column: auto;
+  }
+
+  .workflowWide,
+  .workflowActions {
     grid-column: auto;
   }
 

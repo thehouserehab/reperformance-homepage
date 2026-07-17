@@ -43,6 +43,12 @@ const workspaceLinks = [
     label: "고객 확인",
   },
   {
+    title: "상담 가능 시간 관리",
+    description: "홈페이지 신청서에 공개할 상담 날짜와 시간을 등록하고 예약 요청 상태를 확인합니다.",
+    href: "/admin/availability",
+    label: "예약 시간",
+  },
+  {
     title: "보안 이벤트 열기",
     description: "로그인 실패, 계정 복구, AI 승인 변경 같은 민감 이벤트의 최근 패턴을 확인합니다.",
     href: "/admin/security",
@@ -103,6 +109,7 @@ export default function AdminPage() {
           <div className="button-row">
             <a className="button primary" href="/admin/clients">고객관리</a>
             <a className="button secondary" href="/admin/consultation">상담 화면</a>
+            <a className="button secondary" href="/admin/availability">예약 시간</a>
             <form action="/api/admin/logout" method="post">
               <button className="button secondary" type="submit">로그아웃</button>
             </form>

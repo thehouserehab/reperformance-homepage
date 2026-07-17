@@ -1,10 +1,19 @@
 import { NextResponse } from 'next/server';
 import {
   getDatabasePoolConfig,
+  getAvailableDatabaseConsultationSlot,
   isDatabaseConfigured,
+  isDatabaseConsultationSlotConflict,
   isRuntimeSchemaSyncDisabled,
+  recordDatabaseConversionEvent,
   saveDatabaseClient,
 } from '../../../../lib/rpDatabase';
+import { getAttributionRouteLabel, normalizeAttribution } from '../../../../lib/rpAttribution';
+import {
+  FLEXIBLE_CONSULTATION_SLOT_ID,
+  normalizeConsultationActivityPreference,
+  normalizeConsultationSlotId,
+} from '../../../../lib/rpConsultationAvailability';
 import {
   callGoogleDriveBackup,
   getGoogleDriveBackupSkipReason,
@@ -71,7 +80,22 @@ async function backupServiceApplication(application, client) {
     };
   }
 
-  const backupPayload = buildMinimizedApplicationPayload(application);
+  const storedPayload = buildMinimizedApplicationPayload(application);
+  const backupPayload = {
+    ...storedPayload,
+    attribution: {
+      firstSource: storedPayload.attribution.firstSource,
+      firstMedium: storedPayload.attribution.firstMedium,
+      firstCampaign: storedPayload.attribution.firstCampaign,
+      latestSource: storedPayload.attribution.latestSource,
+      latestMedium: storedPayload.attribution.latestMedium,
+      latestCampaign: storedPayload.attribution.latestCampaign,
+      campaignCode: storedPayload.attribution.campaignCode,
+      partnerCode: storedPayload.attribution.partnerCode,
+      qrCode: storedPayload.attribution.qrCode,
+      maxAffiliation: storedPayload.attribution.maxAffiliation,
+    },
+  };
   const backupApplication = buildGoogleDriveBackupApplication(application, backupPayload);
   const backupClient = buildGoogleDriveBackupClient(client);
   const payload = {
@@ -186,8 +210,17 @@ function buildApplication(payload = {}) {
   const phone = cleanLimitedValue(payload.phone, 40);
   const privacyConsent = cleanValue(payload.privacyConsent);
   const parqConsent = cleanValue(payload.parqConsent);
+  const consultationSlotId = normalizeConsultationSlotId(payload.consultationSlotId);
+  const consultationActivityPreference = normalizeConsultationActivityPreference(payload.consultationActivityPreference);
 
-  if (!name || !phone || privacyConsent !== 'yes' || parqConsent !== 'yes') {
+  if (
+    !name
+    || !phone
+    || !consultationSlotId
+    || !consultationActivityPreference
+    || privacyConsent !== 'yes'
+    || parqConsent !== 'yes'
+  ) {
     const error = new Error('필수 항목을 확인해 주세요.');
     error.status = 400;
     throw error;
@@ -203,6 +236,7 @@ function buildApplication(payload = {}) {
     peExamTargetDepartment ? `목표 학과: ${peExamTargetDepartment}` : '',
     peExamPracticalEvents.length ? `실기 종목: ${peExamPracticalEvents.join(', ')}` : '',
   ].filter(Boolean);
+  const attribution = normalizeAttribution(payload);
 
   return {
     id: buildId('APP'),
@@ -219,7 +253,6 @@ function buildApplication(payload = {}) {
     painAreas: normalizeLimitedArray(payload.painAreas, 16, 80),
     painScore: Number(payload.painScore) || 0,
     weeklyFrequency: cleanLimitedValue(payload.weeklyFrequency, 120),
-    preferredTime: cleanLimitedValue(payload.preferredTime, 160),
     exerciseExperience: cleanLimitedValue(payload.exerciseExperience, 800),
     concern: cleanLimitedValue(payload.concern, 1000),
     peExamTargetUniversities,
@@ -231,6 +264,9 @@ function buildApplication(payload = {}) {
     parqStatus: parqYesItems.length ? '추가 확인 필요' : '설문 완료',
     privacyConsent,
     parqConsent,
+    consultationSlotId,
+    consultationActivityPreference,
+    attribution,
     source: 'homepage-service-application',
   };
 }
@@ -246,11 +282,34 @@ function buildMinimizedApplicationPayload(application) {
     serviceLabel: application.serviceLabel,
     memberType: application.memberType,
     source: application.source,
+    attribution: {
+      firstSource: application.attribution.firstSource,
+      firstMedium: application.attribution.firstMedium,
+      firstCampaign: application.attribution.firstCampaign || null,
+      firstLandingPath: application.attribution.firstLandingPath,
+      latestSource: application.attribution.latestSource,
+      latestMedium: application.attribution.latestMedium,
+      latestCampaign: application.attribution.latestCampaign || null,
+      utmContent: application.attribution.utmContent || null,
+      applicationReferrerPath: application.attribution.applicationReferrerPath || null,
+      campaignCode: application.attribution.campaignCode || null,
+      referralCode: application.attribution.referralCode || null,
+      partnerCode: application.attribution.partnerCode || null,
+      qrCode: application.attribution.qrCode || null,
+      maxAffiliation: application.attribution.maxAffiliation,
+    },
     consent: {
       privacy: application.privacyConsent === 'yes',
       parq: application.parqConsent === 'yes',
     },
     parqStatus: application.parqStatus,
+    consultation: {
+      slotMode: application.consultationSlot?.id ? 'published-slot' : 'schedule-coordination',
+      slotId: application.consultationSlot?.id || null,
+      requestedVisitAt: application.consultationSlot?.startsAt || null,
+      requestedVisitEndsAt: application.consultationSlot?.endsAt || null,
+      activityPreference: application.consultationActivityPreference,
+    },
     counts: {
       purpose: application.purpose.length,
       painAreas: application.painAreas.length,
@@ -380,6 +439,18 @@ async function ensureApplicationSchema() {
 }
 
 async function saveServiceApplication(application) {
+  let consultationSlot = null;
+  if (application.consultationSlotId !== FLEXIBLE_CONSULTATION_SLOT_ID) {
+    consultationSlot = await getAvailableDatabaseConsultationSlot(application.consultationSlotId);
+    if (!consultationSlot) {
+      const error = new Error('선택한 상담 시간이 더 이상 예약 가능하지 않습니다.');
+      error.status = 409;
+      error.code = 'CONSULTATION_SLOT_UNAVAILABLE';
+      throw error;
+    }
+  }
+
+  application = { ...application, consultationSlot };
   const storedPayload = buildMinimizedApplicationPayload(application);
   const clientResult = await saveDatabaseClient({
     id: application.clientId,
@@ -387,7 +458,7 @@ async function saveServiceApplication(application) {
     phone: application.phone,
     birth: application.birth,
     gender: application.gender,
-    route: '홈페이지 서비스 신청',
+    route: getAttributionRouteLabel(application.attribution),
     memberType: application.memberType,
     status: application.parqYesItems.length ? '추가 확인' : '상담 전',
     coachName: '정우현',
@@ -400,11 +471,17 @@ async function saveServiceApplication(application) {
     concern: [
       application.concern,
       application.weeklyFrequency ? `운동 가능 빈도: ${application.weeklyFrequency}` : '',
-      application.preferredTime ? `선호 시간: ${application.preferredTime}` : '',
       application.exerciseExperience ? `운동 경험: ${application.exerciseExperience}` : '',
       application.parqMemo ? `PAR-Q 추가 메모: ${application.parqMemo}` : '',
       application.peExamMemo ? `체대입시 메모: ${application.peExamMemo}` : '',
     ].filter(Boolean).join('\n'),
+    contactStatus: '연락 대기',
+    visitStatus: consultationSlot ? '예약 승인 대기' : '일정 협의 중',
+    scheduledVisitAt: consultationSlot?.startsAt || null,
+    consultationSlotId: consultationSlot?.id || null,
+    consultationActivityPreference: application.consultationActivityPreference,
+    nextAction: consultationSlot ? '예약 신청 확인 및 최종 확정 연락' : '가능한 상담 일정 확인 및 연락',
+    attribution: application.attribution,
     source: application.source,
   });
 
@@ -449,6 +526,16 @@ async function saveServiceApplication(application) {
     ],
   );
 
+  if (application.attribution.sessionId) {
+    await recordDatabaseConversionEvent({
+      eventName: 'application_submitted',
+      pagePath: '/apply',
+      serviceKey: application.selectedService,
+      applicationId: application.id,
+      attribution: application.attribution,
+    }).catch(() => null);
+  }
+
   const backup = await backupServiceApplication(application, clientResult.client);
 
   return { ok: true, action: 'database', backupSource: 'google-drive', backup, application, client: clientResult.client };
@@ -473,11 +560,15 @@ function buildPublicApplicationResult(result) {
     backup: buildPublicBackupResult(result.backup),
     applicationId: result.application?.id || null,
     clientId: result.client?.id || null,
+    reservationRequested: Boolean(result.application?.consultationSlot?.id),
   };
 }
 
 function getPublicApplicationError(error) {
   if (error?.status === 503) return '현재 신청 저장소 설정이 완료되지 않았습니다.';
+  if (error?.status === 409 || isDatabaseConsultationSlotConflict(error)) {
+    return '선택한 상담 시간이 방금 마감되었습니다. 다른 시간을 선택해 주세요.';
+  }
   return getSafePublicErrorMessage(
     error,
     error?.status === 400 ? '필수 항목을 확인해 주세요.' : '서비스 신청 저장 중 오류가 발생했습니다.',
@@ -525,13 +616,15 @@ export async function POST(request) {
 
     return redirectTo(request, 'success', { clientId: result.client?.id });
   } catch (error) {
+    const slotUnavailable = error?.code === 'CONSULTATION_SLOT_UNAVAILABLE'
+      || isDatabaseConsultationSlotConflict(error);
     if (jsonMode) {
       return NextResponse.json(
         { ok: false, error: getPublicApplicationError(error) },
-        { status: getPublicErrorStatus(error) },
+        { status: slotUnavailable ? 409 : getPublicErrorStatus(error) },
       );
     }
 
-    return redirectTo(request, error?.status === 400 ? 'invalid' : 'error');
+    return redirectTo(request, slotUnavailable ? 'slot-unavailable' : error?.status === 400 ? 'invalid' : 'error');
   }
 }

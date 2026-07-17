@@ -13,6 +13,8 @@
     "data:retention:audit": "node scripts/audit-rp-data-retention.mjs",
     "ops:audit": "node scripts/audit-rp-operational-readiness.mjs",
     "ops:campaign:check": "node scripts/check-rp-campaign-readiness.mjs",
+    "ops:conversion:check": "node scripts/check-rp-conversion-foundation.mjs",
+    "ops:booking:check": "node scripts/check-rp-consultation-booking.mjs",
     "ops:firewall:policy": "node scripts/check-rp-firewall-policy.mjs",
     "ops:firewall:sync": "node scripts/sync-rp-vercel-firewall.mjs",
     "ops:load:policy": "node scripts/check-rp-load-test-policy.mjs",

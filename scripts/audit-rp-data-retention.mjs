@@ -41,6 +41,7 @@ function buildCliPlan() {
     questionDays: getNumberArg("question-days", 730),
     rateLimitDays: getNumberArg("rate-limit-days", 7),
     aiUsageDays: getNumberArg("ai-usage-days", 400),
+    conversionEventDays: getNumberArg("conversion-event-days", 400),
   });
 }
 
@@ -130,7 +131,7 @@ function evaluateGates(summary, gates) {
 if (hasArg("help")) {
   console.log(`Usage:
   node scripts/audit-rp-data-retention.mjs
-  node scripts/audit-rp-data-retention.mjs --application-payload-days=365 --ai-consult-days=365 --question-days=730 --ai-usage-days=400
+  node scripts/audit-rp-data-retention.mjs --application-payload-days=365 --ai-consult-days=365 --question-days=730 --ai-usage-days=400 --conversion-event-days=400
   node scripts/audit-rp-data-retention.mjs --require-database --require-tables --max-prunable-candidates=0
   node scripts/audit-rp-data-retention.mjs --fail-on-candidates
   RP_RETENTION_ALLOW_APPLY=true node scripts/audit-rp-data-retention.mjs --apply --confirm=${RETENTION_CONFIRM_TOKEN}

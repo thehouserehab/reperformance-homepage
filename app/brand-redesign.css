@@ -493,14 +493,23 @@ body {
   box-shadow: none;
 }
 
+.service-choice-card-top {
+  min-width: 0;
+  box-sizing: border-box;
+  padding-inline: clamp(8px, 1.2vw, 18px) 12px;
+}
+
 .service-choice-card-featured {
-  background: var(--brand-ink);
+  background: #0d1d19;
+}
+
+.service-choice-card-featured .service-choice-kicker,
+.service-choice-card-featured .card-label {
+  color: var(--brand-gold) !important;
 }
 
 .service-choice-card:hover,
 .service-choice-card:focus-visible {
-  padding-right: 18px;
-  padding-left: 18px;
   transform: none;
   box-shadow: none;
 }

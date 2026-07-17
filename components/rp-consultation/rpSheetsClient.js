@@ -56,6 +56,24 @@ export async function addRpClient(client) {
   return payload;
 }
 
+export async function updateRpClientWorkflow(clientId, workflow) {
+  const response = await fetch('/api/rp/clients', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ clientId, workflow }),
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.ok === false) {
+    throw new Error(payload?.error || `고객 연락·방문 상태를 저장하지 못했습니다. (${response.status})`);
+  }
+
+  return payload;
+}
+
 export async function saveRpConsultation(record) {
   const response = await fetch('/api/rp/clients', {
     method: 'POST',

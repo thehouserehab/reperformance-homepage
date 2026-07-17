@@ -5,6 +5,8 @@ export const RP_FIREWALL_REQUIRED_PATHS = [
   "/api/auth/account-recovery",
   "/api/rp/signup",
   "/api/rp/service-application",
+  "/api/rp/conversion-events",
+  "/api/rp/consultation-slots",
   "/api/rp/pe-exam-question",
   "/api/rp/pe-exam-ai-consult",
   "/api/rp/clients",
@@ -20,6 +22,8 @@ export const RP_FIREWALL_RATE_LIMIT_REQUIRED_PATHS = [
   "/api/auth/account-recovery",
   "/api/rp/signup",
   "/api/rp/service-application",
+  "/api/rp/conversion-events",
+  "/api/rp/consultation-slots",
   "/api/rp/pe-exam-question",
   "/api/rp/pe-exam-ai-consult",
 ];

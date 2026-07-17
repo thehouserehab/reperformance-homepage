@@ -92,6 +92,8 @@ Protect:
 
 - `/api/rp/signup`
 - `/api/rp/service-application`
+- `/api/rp/conversion-events`
+- `/api/rp/consultation-slots`
 
 Suggested edge action:
 
@@ -128,6 +130,7 @@ Suggested starting point:
 Protect:
 
 - `/api/rp/clients`
+- `/api/rp/consultation-slots`의 `POST`, `PATCH`
 - `/api/rp/auth-accounts`
 - `/api/rp/consultation-summary`
 - `/api/rp/security-events`

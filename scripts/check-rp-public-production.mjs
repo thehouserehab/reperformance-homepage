@@ -68,10 +68,14 @@ const foreignOriginApiChecks = [
   { path: "/api/auth/account-recovery", method: "POST", label: "account recovery POST" },
   { path: "/api/rp/signup", method: "POST", label: "signup POST" },
   { path: "/api/rp/service-application", method: "POST", label: "service application POST" },
+  { path: "/api/rp/conversion-events", method: "POST", label: "conversion events POST" },
+  { path: "/api/rp/consultation-slots", method: "POST", label: "consultation slots POST" },
+  { path: "/api/rp/consultation-slots", method: "PATCH", label: "consultation slots PATCH" },
   { path: "/api/rp/pe-exam-question", method: "POST", label: "PE exam question POST" },
   { path: "/api/rp/pe-exam-ai-consult", method: "POST", label: "PE exam AI consult POST" },
   { path: "/api/rp/consultation-summary", method: "POST", label: "consultation summary POST" },
   { path: "/api/rp/clients", method: "POST", label: "clients POST" },
+  { path: "/api/rp/clients", method: "PATCH", label: "clients PATCH" },
   { path: "/api/rp/auth-accounts", method: "PATCH", label: "auth accounts PATCH" },
 ];
 
