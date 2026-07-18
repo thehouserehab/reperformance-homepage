@@ -26,13 +26,30 @@ assert.equal(availability.normalizeConsultationSlotId('../private'), '');
 
 const window = availability.normalizeConsultationSlotWindow({
   startsAt: '2026-07-20T01:00:00.000Z',
-  endsAt: '2026-07-20T02:00:00.000Z',
+  endsAt: '2026-07-20T01:30:00.000Z',
 });
-assert.equal(window.durationMinutes, 60);
+assert.equal(window.durationMinutes, 30);
 assert.throws(() => availability.normalizeConsultationSlotWindow({
   startsAt: '2026-07-20T01:00:00.000Z',
-  endsAt: '2026-07-20T01:05:00.000Z',
+  endsAt: '2026-07-20T02:00:00.000Z',
 }));
+assert.throws(() => availability.normalizeConsultationSlotWindow({
+  startsAt: '2026-07-19T01:00:00.000Z',
+  endsAt: '2026-07-19T01:30:00.000Z',
+}));
+assert.throws(() => availability.normalizeConsultationSlotWindow({
+  startsAt: '2026-07-20T00:15:00.000Z',
+  endsAt: '2026-07-20T00:45:00.000Z',
+}));
+
+const generatedSlots = availability.buildDefaultConsultationSlots({
+  now: new Date('2026-07-19T00:00:00.000Z'),
+});
+assert.ok(generatedSlots.length > 0, 'weekday default consultation slots must be generated');
+assert.ok(generatedSlots.every((slot) => slot.id.startsWith('AUTO-')));
+assert.ok(generatedSlots.every((slot) => (
+  new Date(slot.endsAt).getTime() - new Date(slot.startsAt).getTime()
+) === 30 * 60 * 1000));
 
 const migration = read('database/migrations/20260714_consultation_availability.sql');
 for (const fragment of [
@@ -49,6 +66,17 @@ assert.ok(bookingFields.includes('name="consultationSlotId"'));
 assert.ok(bookingFields.includes('name="consultationActivityPreference"'));
 assert.ok(bookingFields.includes('required'));
 assert.ok(bookingFields.includes('/api/rp/consultation-slots'));
+assert.ok(bookingFields.includes('bookingCalendar'));
+assert.ok(bookingFields.includes('30분'));
+
+const serviceFields = read('app/apply/ApplicationServiceFields.jsx');
+assert.ok(serviceFields.includes("selectedService === 'pe-exam'"));
+assert.ok(serviceFields.includes('name="peExamTargetUniversities"'));
+assert.ok(serviceFields.includes('모두 선택 입력'));
+
+const parqFields = read('app/apply/ParqSafetyScreening.jsx');
+assert.ok(parqFields.includes('name="parqScreening"'));
+assert.ok(parqFields.includes("screening === 'review'"));
 
 const slotRoute = read('app/api/rp/consultation-slots/route.js');
 assert.ok(slotRoute.includes('checkSameOriginRequest'));
@@ -59,10 +87,27 @@ const applicationRoute = read('app/api/rp/service-application/route.js');
 assert.ok(applicationRoute.includes("visitStatus: consultationSlot ? '예약 승인 대기' : '일정 협의 중'"));
 assert.ok(applicationRoute.includes("error.code = 'CONSULTATION_SLOT_UNAVAILABLE'"));
 assert.ok(applicationRoute.includes('consultationActivityPreference'));
+assert.ok(applicationRoute.includes("parqScreening === 'review'"));
+assert.ok(applicationRoute.includes("selectedService === 'pe-exam'"));
+assert.ok(applicationRoute.includes('sendApplicationNotification'));
+
+const databaseSource = read('lib/rpDatabase.js');
+assert.ok(databaseSource.includes("INTERVAL '30 minutes'"));
+assert.ok(databaseSource.includes("TIME '09:00'"));
+assert.ok(databaseSource.includes("TIME '22:00'"));
+assert.ok(databaseSource.includes('rp_clients_active_consultation_slot_unique_idx'));
+
+const notificationSource = read('lib/rpApplicationNotification.js');
+assert.ok(notificationSource.includes('RP_APPLICATION_NOTIFICATION_WEBHOOK_URL'));
+assert.ok(notificationSource.includes('applicantNameMasked'));
+assert.ok(!notificationSource.includes('application.phone'));
+assert.ok(!notificationSource.includes('parqYesItems'));
+assert.ok(!notificationSource.includes('peExamMemo'));
 
 for (const source of [
   read('app/api/rp/consultation-slots/route.js'),
   read('lib/rpConsultationAvailability.js'),
+  notificationSource,
   migration,
 ]) {
   assert.ok(!/nore.*(?:api|webhook|fetch)|(?:api|webhook|fetch).*nore/i.test(source), 'booking must not integrate with NORE');

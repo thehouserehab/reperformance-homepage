@@ -28,6 +28,7 @@ import {
   REQUEST_SIZE_LIMITS,
 } from '../../../../lib/rpRequestGuards';
 import { getPublicErrorStatus, getSafePublicErrorMessage } from '../../../../lib/rpPublicErrors';
+import { sendApplicationNotification } from '../../../../lib/rpApplicationNotification';
 
 export const dynamic = 'force-dynamic';
 
@@ -210,6 +211,7 @@ function buildApplication(payload = {}) {
   const phone = cleanLimitedValue(payload.phone, 40);
   const privacyConsent = cleanValue(payload.privacyConsent);
   const parqConsent = cleanValue(payload.parqConsent);
+  const parqScreening = cleanValue(payload.parqScreening);
   const consultationSlotId = normalizeConsultationSlotId(payload.consultationSlotId);
   const consultationActivityPreference = normalizeConsultationActivityPreference(payload.consultationActivityPreference);
 
@@ -218,6 +220,7 @@ function buildApplication(payload = {}) {
     || !phone
     || !consultationSlotId
     || !consultationActivityPreference
+    || !['none', 'review'].includes(parqScreening)
     || privacyConsent !== 'yes'
     || parqConsent !== 'yes'
   ) {
@@ -226,12 +229,24 @@ function buildApplication(payload = {}) {
     throw error;
   }
 
-  const parqYesItems = normalizeLimitedArray(payload.parqYesItems, 12, 120);
-  const peExamTargetUniversities = cleanLimitedValue(payload.peExamTargetUniversities, 300);
-  const peExamTargetDepartment = cleanLimitedValue(payload.peExamTargetDepartment, 160);
-  const peExamPracticalEvents = normalizeLimitedArray(payload.peExamPracticalEvents, 20, 80);
+  const submittedParqItems = normalizeLimitedArray(payload.parqYesItems, 12, 120);
+  const submittedParqMemo = cleanLimitedValue(payload.parqMemo, 1000);
+  const parqYesItems = parqScreening === 'review' ? submittedParqItems : [];
+  const parqMemo = parqScreening === 'review' ? submittedParqMemo : '';
+  if (parqScreening === 'review' && !parqYesItems.length && !parqMemo) {
+    const error = new Error('운동 전 확인이 필요한 내용을 하나 이상 선택하거나 직접 입력해 주세요.');
+    error.status = 400;
+    throw error;
+  }
+
+  const isPeExam = selectedService === 'pe-exam';
+  const peExamTargetUniversities = isPeExam ? cleanLimitedValue(payload.peExamTargetUniversities, 300) : '';
+  const peExamTargetDepartment = isPeExam ? cleanLimitedValue(payload.peExamTargetDepartment, 160) : '';
+  const peExamPracticalEvents = isPeExam
+    ? normalizeLimitedArray(payload.peExamPracticalEvents, 20, 80)
+    : [];
   const peExamParts = [
-    cleanLimitedValue(payload.peExamMemo, 1200),
+    isPeExam ? cleanLimitedValue(payload.peExamMemo, 1200) : '',
     peExamTargetUniversities ? `희망 대학: ${peExamTargetUniversities}` : '',
     peExamTargetDepartment ? `목표 학과: ${peExamTargetDepartment}` : '',
     peExamPracticalEvents.length ? `실기 종목: ${peExamPracticalEvents.join(', ')}` : '',
@@ -259,9 +274,10 @@ function buildApplication(payload = {}) {
     peExamTargetDepartment,
     peExamPracticalEvents,
     peExamMemo: cleanLimitedValue(peExamParts.join('\n'), 1800),
-    parqMemo: cleanLimitedValue(payload.parqMemo, 1000),
+    parqScreening,
+    parqMemo,
     parqYesItems,
-    parqStatus: parqYesItems.length ? '추가 확인 필요' : '설문 완료',
+    parqStatus: parqScreening === 'review' ? '추가 확인 필요' : '이상 없음',
     privacyConsent,
     parqConsent,
     consultationSlotId,
@@ -302,6 +318,7 @@ function buildMinimizedApplicationPayload(application) {
       privacy: application.privacyConsent === 'yes',
       parq: application.parqConsent === 'yes',
     },
+    parqScreening: application.parqScreening,
     parqStatus: application.parqStatus,
     consultation: {
       slotMode: application.consultationSlot?.id ? 'published-slot' : 'schedule-coordination',
@@ -537,8 +554,21 @@ async function saveServiceApplication(application) {
   }
 
   const backup = await backupServiceApplication(application, clientResult.client);
+  const notification = await sendApplicationNotification(application).catch(() => ({
+    ok: false,
+    skipped: false,
+    reason: 'delivery_failed',
+  }));
 
-  return { ok: true, action: 'database', backupSource: 'google-drive', backup, application, client: clientResult.client };
+  return {
+    ok: true,
+    action: 'database',
+    backupSource: 'google-drive',
+    backup,
+    notification,
+    application,
+    client: clientResult.client,
+  };
 }
 
 function buildPublicBackupResult(backup) {
@@ -561,6 +591,7 @@ function buildPublicApplicationResult(result) {
     applicationId: result.application?.id || null,
     clientId: result.client?.id || null,
     reservationRequested: Boolean(result.application?.consultationSlot?.id),
+    notificationDelivered: Boolean(result.notification?.ok && !result.notification?.skipped),
   };
 }
 

@@ -38,6 +38,38 @@
   line-height: 1.65;
 }
 
+.requirementLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(10, 102, 91, 0.16);
+}
+
+.requirementLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+}
+
+.requirementLegend b {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  padding: 0 8px;
+  background: #0a665b;
+  color: #fff;
+  font-size: 11px;
+}
+
+.requirementLegend span:last-child b {
+  border: 1px solid #b9c2bd;
+  background: #fff;
+  color: #4a4f55;
+}
+
 .formSection {
   display: grid;
   gap: 18px;
@@ -210,6 +242,63 @@
   line-height: 1.55;
 }
 
+.serviceSpecificPanel {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid #bfd3cc;
+  border-left: 4px solid #0a665b;
+  background: #f4f8f6;
+}
+
+.serviceSpecificHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.serviceSpecificHead > div {
+  display: grid;
+  gap: 5px;
+}
+
+.serviceSpecificHead span {
+  color: #087b72;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.serviceSpecificHead strong {
+  color: #17191d;
+  font-size: 20px;
+}
+
+.serviceSpecificHead em {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 1px solid #c5cec9;
+  background: #fff;
+  color: #5f6368;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.serviceSpecificPanel > p,
+.serviceSpecificNotice {
+  margin: 0;
+  color: #5f6368;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.serviceSpecificNotice {
+  padding: 13px 15px;
+  border-left: 3px solid #c5cec9;
+  background: #f7f8f7;
+}
+
 .form label {
   display: grid;
   gap: 8px;
@@ -295,6 +384,75 @@
 .parqList {
   display: grid;
   gap: 10px;
+}
+
+.safetyChoiceFieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.safetyChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.safetyChoiceOption {
+  cursor: pointer;
+}
+
+.safetyChoiceOption input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.safetyChoiceOption > span {
+  min-height: 126px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #d5dbd5;
+  background: #fff;
+}
+
+.safetyChoiceOption strong {
+  color: #17191d;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.safetyChoiceOption small {
+  color: #5f6368;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.safetyChoiceOption:has(input:checked) > span {
+  border-color: #0a665b;
+  background: #edf5f2;
+  box-shadow: inset 4px 0 0 #0a665b;
+}
+
+.safetyChoiceOption:has(input:focus-visible) > span {
+  outline: 3px solid rgba(8, 123, 114, 0.24);
+  outline-offset: 2px;
+}
+
+.safetyDetails {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(150, 55, 36, 0.2);
+  background: #fffaf8;
 }
 
 .parqCard,
@@ -534,6 +692,142 @@
   padding: 18px;
   border: 1px solid #d5dbd5;
   background: #f7f8f7;
+}
+
+.bookingPolicyBar {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid #c8d8d2;
+  background: #edf5f2;
+}
+
+.bookingPolicyBar strong {
+  color: #0a665b;
+  font-size: 14px;
+}
+
+.bookingPolicyBar span {
+  color: #4a4f55;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.bookingCalendar {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #d5dbd5;
+  background: #fff;
+}
+
+.bookingCalendarHead {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+}
+
+.bookingCalendarHead strong {
+  color: #17191d;
+  font-size: 17px;
+  text-align: center;
+}
+
+.bookingCalendarHead button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #cdd3ce;
+  background: #fff;
+  color: #17191d;
+  cursor: pointer;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.bookingCalendarHead button:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.bookingCalendarWeekdays,
+.bookingCalendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.bookingCalendarWeekdays span {
+  padding: 6px 0;
+  color: #74797f;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.bookingCalendarDay,
+.bookingCalendarDayActive {
+  position: relative;
+  aspect-ratio: 1;
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d9ddd8;
+  background: #fff;
+  color: #30353a;
+  cursor: pointer;
+  font: inherit;
+}
+
+.bookingCalendarDay strong,
+.bookingCalendarDayActive strong {
+  font-size: 13px;
+}
+
+.bookingCalendarDay span,
+.bookingCalendarDayActive span {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  min-width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  background: #dbece7;
+  color: #0a665b;
+  font-size: 9px;
+  font-weight: 950;
+}
+
+.bookingCalendarDay:disabled {
+  border-color: transparent;
+  background: #f4f5f4;
+  color: #b1b5b2;
+  cursor: default;
+}
+
+.bookingCalendarDayActive {
+  border-color: #0a665b;
+  background: #0a665b;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #0a665b;
+}
+
+.bookingCalendarDayActive span {
+  background: #f2a65a;
+  color: #17191d;
+}
+
+.bookingCalendarDay:focus-visible,
+.bookingCalendarDayActive:focus-visible,
+.bookingCalendarHead button:focus-visible {
+  outline: 3px solid rgba(8, 123, 114, 0.24);
+  outline-offset: 2px;
 }
 
 .bookingDateTabs {
@@ -897,8 +1191,36 @@
     padding: 14px;
   }
 
+  .bookingPolicyBar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .bookingCalendar {
+    padding: 10px;
+  }
+
+  .bookingCalendarWeekdays,
+  .bookingCalendarGrid {
+    gap: 2px;
+  }
+
+  .bookingCalendarDay span,
+  .bookingCalendarDayActive span {
+    width: 6px;
+    min-width: 6px;
+    height: 6px;
+    right: 3px;
+    bottom: 3px;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0;
+  }
+
   .bookingTimeGrid,
-  .activityGrid {
+  .activityGrid,
+  .safetyChoiceGrid {
     grid-template-columns: 1fr;
   }
 
@@ -917,6 +1239,19 @@
   }
 
   .activityOption > span {
+    min-height: 0;
+  }
+
+  .serviceSpecificHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .serviceSpecificHead em {
+    width: fit-content;
+  }
+
+  .safetyChoiceOption > span {
     min-height: 0;
   }
 }

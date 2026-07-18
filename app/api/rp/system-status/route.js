@@ -31,6 +31,7 @@ import {
   getAiDailyLimitMax,
 } from '../../../../lib/rpAiAccess';
 import { getProductionSecretStatus } from '../../../../lib/rpSecurity';
+import { getApplicationNotificationStatus } from '../../../../lib/rpApplicationNotification';
 
 export const dynamic = 'force-dynamic';
 
@@ -381,6 +382,7 @@ function buildHighTrafficReadiness({
   peExamData,
   trafficControls,
   databasePool,
+  applicationNotification,
 }) {
   const blockers = [];
   const warnings = [];
@@ -427,6 +429,20 @@ function buildHighTrafficReadiness({
   }
   if (googleDriveBackup.enabled && !googleDriveBackup.configured) {
     addReadinessIssue(blockers, 'google_backup_enabled_but_not_configured', 'Google backup is enabled without a complete backup web app URL and API secret configuration.');
+  }
+  if (!applicationNotification.configured) {
+    addReadinessIssue(
+      warnings,
+      'application_notification_not_configured',
+      'Configure the new-application notification webhook so staff can respond without relying only on manual admin checks.',
+    );
+  }
+  if (applicationNotification.configured && !applicationNotification.signed) {
+    addReadinessIssue(
+      warnings,
+      'application_notification_not_signed',
+      'Configure RP_APPLICATION_NOTIFICATION_WEBHOOK_SECRET so application notification payloads can be authenticated.',
+    );
   }
   if (productionRuntime && auth.seedAccounts.allowed) {
     addReadinessIssue(blockers, 'production_env_auth_accounts_enabled', 'Disable RP_ALLOW_ENV_AUTH_ACCOUNTS after bootstrap so PostgreSQL accounts are the production login source.');
@@ -727,6 +743,7 @@ async function buildStatus() {
     },
   };
   const peExamData = buildPeExamDataStatus();
+  const applicationNotification = getApplicationNotificationStatus();
   const securityMonitoring = await buildSecurityMonitoringStatus({
     databaseConfigured,
     databaseSchema,
@@ -757,6 +774,7 @@ async function buildStatus() {
     peExamData,
     trafficControls,
     databasePool,
+    applicationNotification,
   });
   const objectiveReadiness = buildObjectiveReadiness({
     storage,
@@ -774,6 +792,7 @@ async function buildStatus() {
     auth,
     trafficControls,
     securityMonitoring,
+    applicationNotification,
     peExamData,
     highTrafficReadiness,
     objectiveReadiness,

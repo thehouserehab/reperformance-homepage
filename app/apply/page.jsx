@@ -2,7 +2,9 @@ import Link from 'next/link';
 import { PageShell } from '../_components/SiteChrome';
 import { orderedServiceItems, serviceItems, site } from '../_components/siteData';
 import { PAIN_AREAS, PE_EXAM_EVENTS, VISIT_PURPOSES } from '../../components/rp-consultation/rpConsultationSchema';
+import ApplicationServiceFields from './ApplicationServiceFields';
 import ConsultationBookingFields from './ConsultationBookingFields';
+import ParqSafetyScreening from './ParqSafetyScreening';
 import styles from './Apply.module.css';
 
 const statusMessages = {
@@ -16,7 +18,7 @@ const statusMessages = {
   },
   invalid: {
     title: '필수 항목을 확인해 주세요.',
-    body: '서비스, 이름, 연락처, 상담 희망 시간, 상담 방식, 개인정보 및 안전 확인 동의를 확인해 주세요.',
+    body: '서비스, 이름, 연락처, 상담 희망 시간, 상담 방식, 안전 확인, 개인정보 동의를 확인해 주세요.',
   },
   'slot-unavailable': {
     title: '선택한 상담 시간이 방금 마감되었습니다.',
@@ -140,35 +142,19 @@ export default async function ApplyPage({ searchParams }) {
             )}
 
             <div className={styles.formIntro}>
-              <strong>예약 시간과 상담 방식을 먼저 선택합니다.</strong>
-              <span>목표, 운동 경험, 체대입시 기록은 상담 준비를 돕는 선택 정보입니다. 지금 정리하기 어렵다면 비워두셔도 됩니다.</span>
+              <strong>필수 항목만으로 먼저 접수할 수 있습니다.</strong>
+              <span>필수는 예약과 연락에 필요한 정보입니다. 운동 경험과 목표, 체대입시 기록은 알고 있는 경우에만 입력해 주세요.</span>
+              <div className={styles.requirementLegend} aria-label="입력 항목 안내">
+                <span><b>필수</b> 접수·예약에 꼭 필요</span>
+                <span><b>선택</b> 상담 준비를 돕는 정보</span>
+              </div>
             </div>
 
-            <div className={styles.formSection}>
-              <div className={styles.sectionTitle}>
-                <span>01</span>
-                <strong>서비스 선택</strong>
-                <em className={styles.sectionBadge}>필수</em>
-              </div>
-              <div className={styles.serviceGrid}>
-                {orderedServiceItems.map((item) => (
-                  <label className={styles.serviceOption} key={item.applicationValue}>
-                    <input
-                      type="radio"
-                      name="service"
-                      value={item.applicationValue}
-                      defaultChecked={item.applicationValue === selectedService}
-                      required
-                    />
-                    <span className={styles.serviceText}>
-                      <em>{item.number} · {item.label}</em>
-                      <strong>{item.title}</strong>
-                      <small>{item.target}</small>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            <ApplicationServiceFields
+              initialService={selectedService}
+              peExamEvents={PE_EXAM_EVENTS}
+              serviceItems={orderedServiceItems}
+            />
 
             <div className={styles.formSection}>
               <div className={styles.sectionTitle}>
@@ -263,67 +249,11 @@ export default async function ApplyPage({ searchParams }) {
               </div>
             </details>
 
-            <details className={styles.optionalSection} open={selectedService === 'pe-exam'}>
-              <summary className={styles.optionalSummary}>
-                <span>06</span>
-                <strong>체대입시 추가 정보</strong>
-                <em>선택 입력</em>
-              </summary>
-              <div className={styles.optionalBody}>
-                <div className={styles.formGrid}>
-                <label>
-                  <span>희망 대학</span>
-                  <input name="peExamTargetUniversities" type="text" placeholder="예: 한국체대, 용인대, 전북대" />
-                </label>
-                <label>
-                  <span>목표 학과</span>
-                  <input name="peExamTargetDepartment" type="text" placeholder="예: 체육교육과, 스포츠과학과" />
-                </label>
-                </div>
-                <div>
-                <span className={styles.groupLabel}>준비 실기 종목</span>
-                <div className={styles.checkGrid}>
-                  {PE_EXAM_EVENTS.map((item) => (
-                    <label className={styles.checkCard} key={item}>
-                      <input type="checkbox" name="peExamPracticalEvents" value={item} />
-                      <span>{item}</span>
-                    </label>
-                  ))}
-                </div>
-                </div>
-                <label>
-                <span>현재 실기 기록 / 내신·수능 상태 / 원서 전략 메모</span>
-                <textarea name="peExamMemo" placeholder="예: 제자리멀리뛰기 225cm, 윗몸 52개. 내신 4등급대, 실기 반영 높은 대학 우선 상담 희망." />
-                </label>
-              </div>
-            </details>
+            <ParqSafetyScreening questions={parqQuestions} />
 
             <div className={styles.formSection}>
               <div className={styles.sectionTitle}>
                 <span>07</span>
-                <strong>운동 전 확인</strong>
-                <em className={styles.sectionBadge}>안전 확인</em>
-              </div>
-              <p className={styles.helperText}>
-                아래 항목 중 해당되는 내용만 체크해 주세요. 상담 전 주의사항을 확인하기 위한 질문입니다.
-              </p>
-              <div className={styles.parqList}>
-                {parqQuestions.map((question) => (
-                  <label className={styles.parqCard} key={question}>
-                    <input type="checkbox" name="parqYesItems" value={question} />
-                    <span>{question}</span>
-                  </label>
-                ))}
-              </div>
-              <label>
-                <span>추가로 알려야 할 건강 상태</span>
-                <textarea name="parqMemo" placeholder="운동 시 주의가 필요한 사항이나 의료진에게 운동 제한 안내를 받은 내용이 있다면 적어주세요." />
-              </label>
-            </div>
-
-            <div className={styles.formSection}>
-              <div className={styles.sectionTitle}>
-                <span>08</span>
                 <strong>동의</strong>
                 <em className={styles.sectionBadge}>필수</em>
               </div>

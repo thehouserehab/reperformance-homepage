@@ -95,14 +95,19 @@ function hasEarlyPracticalRequirement(admission: EarlyAdmission) {
 }
 
 function hasEarlyPracticalRecordDetail(admission: EarlyAdmission) {
-  return (
-    hasEarlyPracticalRequirement(admission) &&
-    (admission.hasPracticalDetail || admission.practicalTasks.length > 0 || admission.practicalCriteriaItems.length > 0)
+  if (!hasEarlyPracticalRequirement(admission)) return false;
+
+  return makePracticalRecordRows(admission.practicalTasks, admission.practicalCriteriaItems).some(
+    hasResolvedPracticalStandard,
   );
 }
 
 function getEarlyStatusBadges(admission: EarlyAdmission) {
   const practicalRequired = hasEarlyPracticalRequirement(admission);
+  const resolvedRecordCount = makePracticalRecordRows(
+    admission.practicalTasks,
+    admission.practicalCriteriaItems,
+  ).filter(hasResolvedPracticalStandard).length;
   const practicalBadges = practicalRequired
     ? [
         {
@@ -110,8 +115,8 @@ function getEarlyStatusBadges(admission: EarlyAdmission) {
           tone: admission.practicalTasks.length ? "good" : "warn",
         },
         {
-          label: hasEarlyPracticalRecordDetail(admission) ? "기록 기준 상세" : "기록 기준 확인 필요",
-          tone: hasEarlyPracticalRecordDetail(admission) ? "good" : "warn",
+          label: resolvedRecordCount ? `검증 기록 기준 ${resolvedRecordCount}개` : "기록표 공식 확인",
+          tone: resolvedRecordCount ? "good" : "warn",
         },
       ]
     : [
@@ -140,6 +145,10 @@ function getEarlyStatusBadges(admission: EarlyAdmission) {
 
 function getRegularStatusBadges(admission: RegularAdmission) {
   const practicalRequired = hasPositivePracticalMethod(admission.method);
+  const resolvedRecordCount = makePracticalRecordRows(
+    admission.practicalTasks,
+    admission.practicalCriteriaItems,
+  ).filter(hasResolvedPracticalStandard).length;
 
   return [
     {
@@ -147,12 +156,14 @@ function getRegularStatusBadges(admission: RegularAdmission) {
       tone: admission.units.length ? "good" : "warn",
     },
     {
-      label: admission.practicalTasks.length
-        ? `실기 종목 ${admission.practicalTasks.length}개`
+      label: resolvedRecordCount
+        ? `검증 기록 기준 ${resolvedRecordCount}개`
+        : admission.practicalTasks.length
+          ? `실기 종목 ${admission.practicalTasks.length}개 · 기록표 확인`
         : practicalRequired
           ? "실기 반영 확인"
           : "실기 반영 없음",
-      tone: admission.practicalTasks.length || practicalRequired ? "neutral" : "muted",
+      tone: resolvedRecordCount ? "good" : admission.practicalTasks.length || practicalRequired ? "neutral" : "muted",
     },
     {
       label: admission.hasResultDetail ? "입결 표 연결" : "등급·입결 별도 확인",
@@ -162,7 +173,9 @@ function getRegularStatusBadges(admission: RegularAdmission) {
 }
 
 function splitTaskInlineStandard(task: string) {
-  const colonMatch = task.match(/^(.{2,44}?)\s*[:：]\s*(.+(?:점|초|m|cm|kg).*)$/i);
+  const colonMatch = task.match(
+    /^(.{2,44}?)\s*[:：]\s*(.*\d+(?:\.\d+)?\s*(?:점|초|cm|kg|회|m).*)$/i,
+  );
   if (colonMatch?.[1] && colonMatch[2]) {
     return {
       event: colonMatch[1].trim(),
@@ -170,7 +183,9 @@ function splitTaskInlineStandard(task: string) {
     };
   }
 
-  const bracketStandards = [...task.matchAll(/\(([^)]*(?:점|초|m|cm|kg)[^)]*)\)/gi)]
+  const bracketStandards = [
+    ...task.matchAll(/\(([^)]*\d+(?:\.\d+)?\s*(?:점|초|cm|kg|회|m)[^)]*)\)/gi),
+  ]
     .map((match) => match[1].trim())
     .filter(Boolean);
 
@@ -182,13 +197,35 @@ function splitTaskInlineStandard(task: string) {
   };
 }
 
+function isVerifiedScoringStandard(value: string) {
+  const standard = value.normalize("NFKC").trim();
+  const valuePattern = "\\d+(?:\\.\\d+)?\\s*(?:회|초|cm|kg|점|m)";
+  const quantitativeMatches = standard.match(new RegExp(valuePattern, "gi")) || [];
+  if (!quantitativeMatches.length) return false;
+
+  const hasScoringSignal = /만점|최고|최저|배점|이상|이내|기준|등급|구간|감점|\d+(?:\.\d+)?\s*(?:회|초|cm|kg|점|m)?\s*(?:~|-)\s*\d/i.test(
+    standard,
+  );
+  const isSingleRecordValue = /^(?:(?:남자?|여자?|남녀|공통)\s*)?\d+(?:\.\d+)?\s*(?:회|초|cm|kg|점|m)\s*$/i.test(
+    standard,
+  );
+  const isEventWithSingleValue =
+    quantitativeMatches.length === 1 &&
+    /^[^\d]{2,50}\d+(?:\.\d+)?\s*(?:회|초|cm|kg|점|m)\s*(?:이상|이내)?\s*$/i.test(standard);
+  return hasScoringSignal || isSingleRecordValue || isEventWithSingleValue;
+}
+
 function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readonly string[]) {
   const isPracticalRatioItem = (item: string) => /^실기\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
   const isPracticalShareItem = (item: string) => /^실기\s*반영\s*:?\s*\d+(?:\.\d+)?%?$/i.test(item);
   const ratioItem = criteriaItems.find((item) => isPracticalRatioItem(item) || isPracticalShareItem(item));
+  const specificTasks = tasks.filter(
+    (task) => !/^\*?\s*(?:기초\s*)?(?:운동능력|체력)?\s*\d+\s*종목(?:\s*평가)?\s*$/i.test(task.trim()),
+  );
+  const displayTasks = specificTasks.length ? specificTasks : tasks;
 
   if (!tasks.length && !criteriaItems.length) return [];
-  if (!tasks.length) {
+  if (!displayTasks.length) {
     return criteriaItems.map((item, index) => {
       const isRatioOnly = isPracticalRatioItem(item) || isPracticalShareItem(item);
 
@@ -199,30 +236,53 @@ function makePracticalRecordRows(tasks: readonly string[], criteriaItems: readon
     });
   }
 
-  return tasks.map((task, index) => {
+  return displayTasks.map((task) => {
     const taskStandard = splitTaskInlineStandard(task);
+    const normalizedEvent = normalizePracticalEvent(taskStandard.event);
     const related =
-      criteriaItems.find((item) => !isPracticalRatioItem(item) && !isPracticalShareItem(item) && item.includes(taskStandard.event) && item !== task) ||
-      criteriaItems.find((item) => !isPracticalRatioItem(item) && !isPracticalShareItem(item) && item !== task && /\d+\s*(?:회|초|m|cm|kg|점)|실시|반영|이상|이내/i.test(item)) ||
-      criteriaItems.find((item) => !isPracticalRatioItem(item) && !isPracticalShareItem(item) && item !== task && item.length > task.length) ||
+      criteriaItems.find((item) => {
+        if (isPracticalRatioItem(item) || isPracticalShareItem(item) || item === task) return false;
+        const normalizedItem = normalizePracticalEvent(item);
+        return (
+          normalizedEvent.length >= 2 &&
+          normalizedItem.includes(normalizedEvent) &&
+          isVerifiedScoringStandard(item)
+        );
+      }) ||
       "";
+    const inlineStandard = isVerifiedScoringStandard(taskStandard.standard) ? taskStandard.standard : "";
 
     return {
       event: taskStandard.event,
       standard:
-        taskStandard.standard ||
+        inlineStandard ||
         related ||
         (ratioItem ? `${ratioItem} · 종목별 기록 기준은 공식 모집요강 확인` : "공식 모집요강 기록표 확인"),
     };
   });
 }
 
+function normalizePracticalEvent(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/제멀/g, "제자리멀리뛰기")
+    .replace(/10미터/g, "10m")
+    .replace(/\s|[·ㆍ,./_()\[\]{}:：-]/g, "");
+}
+
 function getRegularGradeRows(rows: readonly RegularResultRow[]) {
   return rows.filter((row) => row.note || row.percentileAverage70 || row.englishGrade70 || row.convertedScore70);
 }
 
-function hasResolvedPracticalStandard(row: { readonly standard: string }) {
-  return !row.standard.includes("공식 모집요강") && !row.standard.includes("확인");
+function hasResolvedPracticalStandard(row: { readonly event: string; readonly standard: string }) {
+  return (
+    row.event !== "실기 반영 비율" &&
+    !row.event.startsWith("실기 기준") &&
+    !row.standard.includes("공식 모집요강") &&
+    !row.standard.includes("확인") &&
+    isVerifiedScoringStandard(row.standard)
+  );
 }
 
 function uniqueOfficialLinks(links: readonly OfficialCheckLink[]) {
@@ -604,7 +664,11 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
                     </dl>
                     {recordRows.length ? (
                       <div className={styles.practicalRecordPanel}>
-                        <strong>입시종목별 기록 기준·실기 반영</strong>
+                        <strong>실기 종목·검증된 기록 기준</strong>
+                        <p className={styles.practicalRecordEvidenceNotice}>
+                          종목과 같은 문맥에서 확인된 수치만 표시합니다. 수치가 없는 항목은 다른 기준을 추정해 붙이지 않으며,
+                          해당 연도 공식 모집요강 기록표에서 확인합니다.
+                        </p>
                         <dl className={styles.practicalRecordGrid}>
                           {recordRows.map((row, rowIndex) => (
                             <div key={`${admission.admissionName}-${row.event}-${rowIndex}`}>
@@ -665,7 +729,11 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
                       </dl>
                       {recordRows.length ? (
                         <div className={styles.practicalRecordPanel}>
-                          <strong>입시종목별 기록 기준·실기 반영</strong>
+                          <strong>실기 종목·검증된 기록 기준</strong>
+                          <p className={styles.practicalRecordEvidenceNotice}>
+                            종목과 같은 문맥에서 확인된 수치만 표시합니다. 수치가 없는 항목은 다른 기준을 추정해 붙이지 않으며,
+                            해당 연도 공식 모집요강 기록표에서 확인합니다.
+                          </p>
                           <dl className={styles.practicalRecordGrid}>
                             {recordRows.map((row, rowIndex) => (
                               <div key={`${admission.admissionName}-${row.event}-${rowIndex}`}>

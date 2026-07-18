@@ -49,80 +49,55 @@ const gradeOptions = [
 const INITIAL_RESULT_LIMIT = 4;
 const RESULT_PAGE_SIZE = 4;
 
-function getGradeFilterFromText(text) {
-  const match = text.match(/(?:내신|등급|성적)?\s*(\d+(?:\.\d+)?)\s*등급/);
-  if (!match?.[1]) return "";
-
-  const grade = Number(match[1]);
-  if (!Number.isFinite(grade)) return "";
-  if (grade <= 2.49) return "grade-1-2";
-  if (grade <= 3.49) return "grade-3";
-  if (grade <= 4.49) return "grade-4";
-  return "grade-5-plus";
-}
-
 function getCardPracticalKeys(card) {
   return (card.practicalItems || []).map(normalizePracticalKey).filter(Boolean);
 }
 
-function findPracticalOption(options, text) {
-  const normalizedText = normalizePracticalKey(text);
-  if (!normalizedText) return "";
-
-  return (
-    options.find((option) => {
-      const optionKey = normalizePracticalKey(option.value);
-      return optionKey && (normalizedText.includes(optionKey) || optionKey.includes(normalizedText));
-    })?.value || ""
-  );
-}
-
 export default function PeExamHomeSearchClient(props) {
   const { cards = [], practicalOptions = [], regionOptions = [] } = props;
+  const [searchMode, setSearchMode] = useState("school");
   const [query, setQuery] = useState("");
-  const [conditionQuery, setConditionQuery] = useState("");
   const [dataFilter, setDataFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [trackFilter, setTrackFilter] = useState("all");
   const [gradeFilter, setGradeFilter] = useState("all");
   const [includePractical, setIncludePractical] = useState("all");
-  const [excludePractical, setExcludePractical] = useState("none");
+  const [currentRecord, setCurrentRecord] = useState("");
   const [resultLimit, setResultLimit] = useState(INITIAL_RESULT_LIMIT);
   const normalizedQuery = normalizeSearch(query);
   const includePracticalKey = includePractical === "all" ? "" : normalizePracticalKey(includePractical);
-  const excludePracticalKey = excludePractical === "none" ? "" : normalizePracticalKey(excludePractical);
-
-  function applyConditionSearch() {
-    const text = conditionQuery.trim();
-    if (!text) return;
-
-    const inferredGrade = getGradeFilterFromText(text);
-    const inferredPractical = findPracticalOption(practicalOptions, text);
-    const inferredTrack = text.includes("수시") ? "early" : text.includes("정시") ? "regular" : "";
-    const hasInferredFilter = Boolean(inferredTrack || inferredGrade || inferredPractical);
-
-    if (inferredTrack) setTrackFilter(inferredTrack);
-    if (inferredGrade) setGradeFilter(inferredGrade);
-    if (inferredPractical) setIncludePractical(inferredPractical);
-    setQuery(hasInferredFilter ? "" : text);
-    setResultLimit(INITIAL_RESULT_LIMIT);
-  }
 
   function resetFilters() {
     setQuery("");
-    setConditionQuery("");
     setDataFilter("all");
     setRegionFilter("all");
     setTrackFilter("all");
     setGradeFilter("all");
     setIncludePractical("all");
-    setExcludePractical("none");
+    setCurrentRecord("");
     setResultLimit(INITIAL_RESULT_LIMIT);
   }
 
   function updateFilter(setter, value) {
     setter(value);
     setResultLimit(INITIAL_RESULT_LIMIT);
+  }
+
+  function changeSearchMode(nextMode) {
+    setSearchMode(nextMode);
+    setResultLimit(INITIAL_RESULT_LIMIT);
+
+    if (nextMode === "school") {
+      setRegionFilter("all");
+      setTrackFilter("all");
+      setGradeFilter("all");
+      setIncludePractical("all");
+      setCurrentRecord("");
+      return;
+    }
+
+    setQuery("");
+    setDataFilter("all");
   }
 
   const filteredCards = useMemo(() => {
@@ -136,24 +111,18 @@ export default function PeExamHomeSearchClient(props) {
       const matchesIncludedPractical =
         !includePracticalKey ||
         cardPracticalKeys.some((key) => key.includes(includePracticalKey) || includePracticalKey.includes(key));
-      const matchesExcludedPractical =
-        !excludePracticalKey ||
-        !cardPracticalKeys.some((key) => key.includes(excludePracticalKey) || excludePracticalKey.includes(key));
-
       return (
         matchesQuery &&
         matchesData &&
         matchesRegion &&
         matchesTrack &&
         matchesGrade &&
-        matchesIncludedPractical &&
-        matchesExcludedPractical
+        matchesIncludedPractical
       );
     });
   }, [
     cards,
     dataFilter,
-    excludePracticalKey,
     gradeFilter,
     includePracticalKey,
     normalizedQuery,
@@ -169,59 +138,66 @@ export default function PeExamHomeSearchClient(props) {
     trackFilter !== "all" ||
     gradeFilter !== "all" ||
     includePractical !== "all" ||
-    excludePractical !== "none";
+    currentRecord;
 
   return (
     <div className={styles.homeSearchTool}>
-      <div className={styles.homeSearchControls}>
-        <label className={styles.homeSearchLabel}>
-          <span>대학 정보 검색</span>
-          <input
-            aria-label="체대입시 대학 정보 검색"
-            onChange={(event) => updateFilter(setQuery, event.target.value)}
-            placeholder="학교명, 지역, 학과, 실기 종목 검색"
-            type="search"
-            value={query}
-          />
-        </label>
-
-        <div className={styles.homeSearchFilterGroup} role="group" aria-label="대학 정보 자료 필터">
-          {dataFilters.map((item) => (
-            <button
-              aria-pressed={dataFilter === item.key}
-              key={item.key}
-              onClick={() => updateFilter(setDataFilter, item.key)}
-              type="button"
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+      <div className={styles.homeSearchModeTabs} role="group" aria-label="대학 찾기 방법">
+        <button
+          aria-pressed={searchMode === "school"}
+          onClick={() => changeSearchMode("school")}
+          type="button"
+        >
+          <span>01</span>
+          대학명으로 찾기
+        </button>
+        <button
+          aria-pressed={searchMode === "condition"}
+          onClick={() => changeSearchMode("condition")}
+          type="button"
+        >
+          <span>02</span>
+          내 조건으로 후보 찾기
+        </button>
       </div>
 
-      <div className={styles.homeSearchAdvanced}>
-        <div className={styles.conditionSearchRow}>
-          <label>
-            <span>조건문 빠른 검색</span>
+      {searchMode === "school" ? (
+        <div className={styles.homeSearchControls}>
+          <label className={styles.homeSearchLabel}>
+            <span>대학 정보 검색</span>
             <input
-              onChange={(event) => updateFilter(setConditionQuery, event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  applyConditionSearch();
-                }
-              }}
-              placeholder="예: 내신 4등급이고 제멀 300cm, 정시 위주로 보고 싶어요"
+              aria-label="체대입시 대학 정보 검색"
+              onChange={(event) => updateFilter(setQuery, event.target.value)}
+              placeholder="학교명 또는 줄임말 검색 (예: 한체대, 용인대)"
               type="search"
-              value={conditionQuery}
+              value={query}
             />
           </label>
-          <button onClick={applyConditionSearch} type="button">
-            조건 적용
-          </button>
-        </div>
 
-        <div className={styles.homeSearchSelectGrid}>
+          <div className={styles.homeSearchFilterGroup} role="group" aria-label="대학 정보 자료 필터">
+            {dataFilters.map((item) => (
+              <button
+                aria-pressed={dataFilter === item.key}
+                key={item.key}
+                onClick={() => updateFilter(setDataFilter, item.key)}
+                type="button"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className={styles.homeSearchAdvanced}>
+          <div className={styles.homeSearchAdvancedHead}>
+            <div>
+              <strong>확인하고 싶은 조건을 직접 선택하세요.</strong>
+              <p>자동 합격 예측이 아니라, 공개 자료에서 조건이 일치하는 대학 후보를 줄여주는 검색입니다.</p>
+            </div>
+            <span>판정·추천 아님</span>
+          </div>
+
+          <div className={styles.homeSearchSelectGrid}>
           <label className={styles.homeSearchSelectLabel}>
             <span>지역</span>
             <select value={regionFilter} onChange={(event) => updateFilter(setRegionFilter, event.target.value)}>
@@ -246,7 +222,7 @@ export default function PeExamHomeSearchClient(props) {
           </label>
 
           <label className={styles.homeSearchSelectLabel}>
-            <span>본인 성적대</span>
+            <span>공개 자료에서 확인할 등급대</span>
             <select value={gradeFilter} onChange={(event) => updateFilter(setGradeFilter, event.target.value)}>
               {gradeOptions.map((grade) => (
                 <option key={grade.value} value={grade.value}>
@@ -268,23 +244,27 @@ export default function PeExamHomeSearchClient(props) {
             </select>
           </label>
 
-          <label className={styles.homeSearchSelectLabel}>
-            <span>제외 실기</span>
-            <select value={excludePractical} onChange={(event) => updateFilter(setExcludePractical, event.target.value)}>
-              <option value="none">제외 없음</option>
-              {practicalOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className={`${styles.homeSearchSelectLabel} ${styles.homeSearchRecordField}`}>
+              <span>내 현재 기록 (선택)</span>
+              <input
+                onChange={(event) => updateFilter(setCurrentRecord, event.target.value)}
+                placeholder="예: 제멀 285cm, 10m 왕복 8.4초"
+                type="text"
+                value={currentRecord}
+              />
+            </label>
+          </div>
+
+          <p className={styles.homeSearchPrivacyNote}>
+            현재 기록은 이 화면에서 비교 메모로만 사용하며 서버에 저장하지 않습니다. 대학별 점수 환산은 상세 페이지의
+            공식 모집요강 기록표를 기준으로 확인해야 합니다.
+          </p>
         </div>
-      </div>
+      )}
 
       <div className={styles.homeSearchResultBar}>
         <p className={styles.homeSearchMeta}>
-          검색 결과 {filteredCards.length}개 · 상세 페이지 연결 {cards.length}개
+          {searchMode === "condition" ? "조건 일치 후보" : "검색 결과"} {filteredCards.length}개 · 상세 페이지 연결 {cards.length}개
         </p>
         {hasActiveFilters ? (
           <button onClick={resetFilters} type="button">
@@ -295,9 +275,17 @@ export default function PeExamHomeSearchClient(props) {
 
       {gradeFilter !== "all" ? (
         <p className={styles.searchSummaryNotice}>
-          등급대 필터는 공개 입결·등급 자료가 연결된 대학을 우선 보여줍니다. 수시 평균등급이 없는 대학은 공식 모집요강에서
-          별도 확인이 필요합니다.
+          선택한 등급대가 공개 입결·등급 자료에서 확인되는 대학만 표시합니다. 이는 지원 가능성이나 합격을 예측한 결과가
+          아니며, 모집연도와 전형별 공식 자료를 반드시 함께 확인해야 합니다.
         </p>
+      ) : null}
+
+      {searchMode === "condition" && currentRecord ? (
+        <div className={styles.homeSearchRecordSummary}>
+          <span>내 기록 메모</span>
+          <strong>{currentRecord}</strong>
+          <p>아래 후보의 확인 종목과 나란히 보고, 정확한 배점·만점 기준은 대학 상세 페이지에서 확인하세요.</p>
+        </div>
       ) : null}
 
       {visibleCards.length ? (
@@ -321,6 +309,19 @@ export default function PeExamHomeSearchClient(props) {
                 </dl>
 
                 {card.preview ? <p className={styles.homeSearchPreview}>{card.preview}</p> : null}
+
+                {searchMode === "condition" && currentRecord ? (
+                  <div className={styles.homeSearchRecordCompare}>
+                    <div>
+                      <span>내 기록</span>
+                      <strong>{currentRecord}</strong>
+                    </div>
+                    <div>
+                      <span>대학 확인 종목</span>
+                      <strong>{card.preview}</strong>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className={styles.homeSearchActions}>
                   <Link href={card.earlyHref}>
@@ -353,7 +354,7 @@ export default function PeExamHomeSearchClient(props) {
       ) : (
         <div className={styles.universityEmptyState}>
           <strong>검색 결과가 없습니다.</strong>
-          <span>등급대나 제외 실기 조건을 줄이거나, 공식 확인이 필요한 대학까지 보려면 필터를 초기화해보세요.</span>
+          <span>조건을 줄이거나 필터를 초기화하면 공식 확인이 필요한 대학까지 다시 볼 수 있습니다.</span>
         </div>
       )}
     </div>

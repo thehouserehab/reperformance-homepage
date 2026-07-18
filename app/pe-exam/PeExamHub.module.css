@@ -2109,6 +2109,17 @@
   line-height: 1.35;
 }
 
+.practicalRecordEvidenceNotice {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid #0d7464;
+  background: #f0f5f2;
+  color: #55625c;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
 .practicalRecordGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -3831,6 +3842,88 @@
   background: #fff;
 }
 
+.homeSearchModeTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px;
+  border: 1px solid #d8ddd8;
+  background: #eef1ee;
+}
+
+.homeSearchModeTabs button {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #4e5652;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.homeSearchModeTabs button span {
+  color: #7e8782;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.homeSearchModeTabs button[aria-pressed="true"] {
+  background: #0d1d19;
+  color: #fff;
+}
+
+.homeSearchModeTabs button[aria-pressed="true"] span {
+  color: #d5a44c;
+}
+
+.homeSearchModeTabs button:focus-visible {
+  outline: 3px solid rgba(13, 116, 100, 0.28);
+  outline-offset: 2px;
+}
+
+.homeSearchAdvancedHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #dde1dd;
+}
+
+.homeSearchAdvancedHead strong,
+.homeSearchAdvancedHead p {
+  margin: 0;
+}
+
+.homeSearchAdvancedHead strong {
+  color: #0d1d19;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.homeSearchAdvancedHead p {
+  margin-top: 5px;
+  color: #68716d;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.homeSearchAdvancedHead > span {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid #cbd1cc;
+  color: #5b645f;
+  font-size: 11px;
+  font-weight: 950;
+}
+
 .conditionSearchRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3849,7 +3942,8 @@
 }
 
 .conditionSearchRow input,
-.homeSearchSelectLabel select {
+.homeSearchSelectLabel select,
+.homeSearchSelectLabel input {
   width: 100%;
   min-width: 0;
   height: 46px;
@@ -3880,8 +3974,23 @@
 
 .homeSearchSelectGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.homeSearchRecordField {
+  grid-column: span 2;
+}
+
+.homeSearchPrivacyNote {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid #0d7464;
+  background: #f0f5f2;
+  color: #53605a;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.6;
 }
 
 .homeSearchResultBar {
@@ -3934,6 +4043,71 @@
   font-size: 13px;
   font-weight: 800;
   line-height: 1.55;
+}
+
+.homeSearchRecordSummary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 14px;
+  align-items: baseline;
+  padding: 16px 18px;
+  border: 1px solid #cfd9d3;
+  background: #f3f7f4;
+}
+
+.homeSearchRecordSummary span {
+  color: #0d7464;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.homeSearchRecordSummary strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #0d1d19;
+  font-size: 15px;
+}
+
+.homeSearchRecordSummary p {
+  grid-column: 2;
+  margin: 0;
+  color: #66706a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.homeSearchRecordCompare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border: 1px solid #d9ded9;
+  background: #d9ded9;
+}
+
+.homeSearchRecordCompare div {
+  min-width: 0;
+  padding: 12px;
+  background: #f7f8f7;
+}
+
+.homeSearchRecordCompare span,
+.homeSearchRecordCompare strong {
+  display: block;
+}
+
+.homeSearchRecordCompare span {
+  margin-bottom: 6px;
+  color: #65706a;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.homeSearchRecordCompare strong {
+  overflow-wrap: anywhere;
+  color: #0d1d19;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .breadcrumbTrail {
@@ -4054,6 +4228,36 @@
 
   .homeSearchMoreActions {
     flex-direction: column;
+  }
+
+  .homeSearchModeTabs {
+    grid-template-columns: 1fr;
+  }
+
+  .homeSearchModeTabs button {
+    min-height: 52px;
+  }
+
+  .homeSearchAdvancedHead {
+    display: grid;
+    gap: 10px;
+  }
+
+  .homeSearchAdvancedHead > span {
+    justify-self: start;
+  }
+
+  .homeSearchRecordField {
+    grid-column: auto;
+  }
+
+  .homeSearchRecordSummary,
+  .homeSearchRecordCompare {
+    grid-template-columns: 1fr;
+  }
+
+  .homeSearchRecordSummary p {
+    grid-column: auto;
   }
 
   .breadcrumbTrailInner {

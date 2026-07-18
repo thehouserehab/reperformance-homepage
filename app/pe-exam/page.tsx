@@ -204,9 +204,72 @@ function extractGradeBands(texts: string[]) {
   return [...bands];
 }
 
+const commonUniversityAliases: Record<string, string[]> = {
+  한국체육대학교: ["한체대", "한국체대", "KNSU"],
+  서울대학교: ["서울대"],
+  연세대학교: ["연세대"],
+  고려대학교: ["고려대"],
+  성균관대학교: ["성균관대", "성대"],
+  한양대학교: ["한양대"],
+  경희대학교: ["경희대"],
+  중앙대학교: ["중앙대"],
+  건국대학교: ["건국대"],
+  동국대학교: ["동국대"],
+  국민대학교: ["국민대"],
+  단국대학교: ["단국대"],
+  세종대학교: ["세종대"],
+  용인대학교: ["용인대"],
+  명지대학교: ["명지대"],
+  경기대학교: ["경기대"],
+  가천대학교: ["가천대"],
+  인하대학교: ["인하대"],
+  인천대학교: ["인천대"],
+  강원대학교: ["강원대"],
+  경북대학교: ["경북대"],
+  경상국립대학교: ["경상대", "경상국립대"],
+  공주대학교: ["공주대"],
+  부산대학교: ["부산대"],
+  부경대학교: ["부경대"],
+  전남대학교: ["전남대"],
+  전북대학교: ["전북대", "JBNU"],
+  제주대학교: ["제주대"],
+  충남대학교: ["충남대"],
+  충북대학교: ["충북대"],
+  조선대학교: ["조선대"],
+  원광대학교: ["원광대"],
+};
+
+function getGeneratedSchoolAliases(name: string) {
+  const aliases = new Set<string>();
+  const cleanName = name.replace(/\s*본교$/, "").trim();
+  const shortenedName = cleanName.replace(/대학교/g, "대").replace(/대학$/g, "대");
+
+  if (shortenedName !== cleanName) aliases.add(shortenedName);
+  if (cleanName.startsWith("국립")) {
+    aliases.add(cleanName.replace(/^국립/, ""));
+    aliases.add(shortenedName.replace(/^국립/, ""));
+  }
+  if (cleanName.includes("캠퍼스")) aliases.add(shortenedName.replace(/캠퍼스/g, "").trim());
+
+  for (const [officialName, commonAliases] of Object.entries(commonUniversityAliases)) {
+    if (cleanName.includes(officialName) || officialName.includes(cleanName)) {
+      commonAliases.forEach((alias) => aliases.add(alias));
+    }
+  }
+
+  return [...aliases].filter(Boolean);
+}
+
 function getSchoolSearchKeywords(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
-  if (!("searchKeywords" in school) || !Array.isArray(school.searchKeywords)) return [];
-  return school.searchKeywords;
+  const manualKeywords =
+    "searchKeywords" in school && Array.isArray(school.searchKeywords) ? school.searchKeywords : [];
+  const displayName = getSchoolDisplayName(school);
+
+  return uniqueItems([
+    ...manualKeywords,
+    ...getGeneratedSchoolAliases(displayName),
+    ...getGeneratedSchoolAliases(school.name),
+  ]);
 }
 
 const universitySearchCards = peExamRegionDetails
@@ -291,6 +354,7 @@ const universitySearchCards = peExamRegionDetails
           practicalFilterItems.join(" "),
           gradePreview,
         ].join(" "),
+        aliases: searchKeywords,
         flags: {
           early: school.earlyAdmissions.length > 0,
           regular: school.regularAdmissions.length > 0,
@@ -312,15 +376,25 @@ const universitySearchRegionOptions = peExamRegionDetails.map((region) => ({
   text: region.areas.join(" · "),
 }));
 
-const practicalSearchOptions = uniqueItems(
-  universitySearchCards.flatMap((card) => card.practicalItems),
-)
-  .sort((a, b) => a.localeCompare(b, "ko"))
-  .slice(0, 40)
-  .map((item) => ({
-    value: item,
-    label: item,
-  }));
+const practicalSearchOptions = [
+  { value: "제자리멀리뛰기", label: "제자리멀리뛰기" },
+  { value: "10m 왕복달리기", label: "10m 왕복달리기" },
+  { value: "20m 왕복달리기", label: "20m 왕복달리기" },
+  { value: "윗몸일으키기", label: "윗몸일으키기" },
+  { value: "좌전굴", label: "좌전굴·윗몸앞으로굽히기" },
+  { value: "배근력", label: "배근력" },
+  { value: "메디신볼던지기", label: "메디신볼던지기" },
+  { value: "핸드볼공던지기", label: "핸드볼공던지기" },
+  { value: "제자리높이뛰기", label: "제자리높이뛰기" },
+  { value: "Z런", label: "Z런·지그재그런" },
+  { value: "100m 달리기", label: "100m 달리기" },
+  { value: "80m 달리기", label: "80m 달리기" },
+  { value: "농구", label: "농구·레이업" },
+  { value: "배구", label: "배구" },
+  { value: "축구", label: "축구" },
+  { value: "체조", label: "체조" },
+  { value: "태권도", label: "태권도" },
+] as const;
 
 export default function PeExamPage() {
   const faqPreview = faqItems.slice(0, 4);

@@ -64,6 +64,7 @@ const fetchSteps = [
 const gateSteps = [
   ["Freshness/source-year gate", [process.execPath, "scripts/check-pe-exam-data-freshness.mjs"]],
   ["University coverage audit", [process.execPath, "scripts/audit-pe-exam-university-coverage.mjs"]],
+  ["Practical-standard safety gate", [process.execPath, "scripts/check-pe-exam-practical-standards.mjs"]],
 ];
 
 console.log("RePERFORMANCE PE exam data refresh");

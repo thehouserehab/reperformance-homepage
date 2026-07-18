@@ -44,11 +44,53 @@ function getDurationMinutes(slot) {
   return Math.max(0, Math.round((endsAt - startsAt) / 60000));
 }
 
+function getMonthKey(dateKey) {
+  return String(dateKey || '').slice(0, 7);
+}
+
+function formatMonthLabel(monthKey) {
+  if (!/^\d{4}-\d{2}$/.test(monthKey)) return '';
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+function buildCalendarDays(monthKey) {
+  if (!/^\d{4}-\d{2}$/.test(monthKey)) return [];
+  const [year, month] = monthKey.split('-').map(Number);
+  const firstDay = new Date(Date.UTC(year, month - 1, 1));
+  const mondayOffset = (firstDay.getUTCDay() + 6) % 7;
+  const gridStart = new Date(Date.UTC(year, month - 1, 1 - mondayOffset));
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const value = new Date(gridStart);
+    value.setUTCDate(gridStart.getUTCDate() + index);
+    const key = value.toISOString().slice(0, 10);
+    return {
+      key,
+      day: value.getUTCDate(),
+      inCurrentMonth: getMonthKey(key) === monthKey,
+    };
+  });
+}
+
+function shiftMonth(monthKey, amount) {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1 + amount, 1)).toISOString().slice(0, 7);
+}
+
+const calendarWeekdays = ['월', '화', '수', '목', '금', '토', '일'];
+
 export default function ConsultationBookingFields() {
   const [slots, setSlots] = useState([]);
   const [selectedDate, setSelectedDate] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [policy, setPolicy] = useState(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,7 +109,10 @@ export default function ConsultationBookingFields() {
 
         const nextSlots = Array.isArray(payload.slots) ? payload.slots : [];
         setSlots(nextSlots);
-        setSelectedDate(nextSlots[0]?.startsAt ? getDateKey(nextSlots[0].startsAt) : '');
+        setPolicy(payload?.policy || null);
+        const firstDate = nextSlots[0]?.startsAt ? getDateKey(nextSlots[0].startsAt) : '';
+        setSelectedDate(firstDate);
+        setSelectedMonth(getMonthKey(firstDate));
       } catch (loadError) {
         if (loadError?.name !== 'AbortError') {
           setError(loadError?.message || '예약 가능 시간을 불러오지 못했습니다.');
@@ -91,7 +136,28 @@ export default function ConsultationBookingFields() {
     return Array.from(groups.entries()).map(([key, items]) => ({ key, slots: items }));
   }, [slots]);
 
-  const visibleSlots = dateGroups.find((group) => group.key === selectedDate)?.slots || [];
+  const slotsByDate = useMemo(
+    () => new Map(dateGroups.map((group) => [group.key, group.slots])),
+    [dateGroups],
+  );
+  const visibleSlots = (slotsByDate.get(selectedDate) || [])
+    .slice()
+    .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
+  const monthKeys = useMemo(
+    () => [...new Set(dateGroups.map((group) => getMonthKey(group.key)))],
+    [dateGroups],
+  );
+  const calendarDays = useMemo(() => buildCalendarDays(selectedMonth), [selectedMonth]);
+  const firstMonth = monthKeys[0] || '';
+  const lastMonth = monthKeys.at(-1) || '';
+
+  function moveMonth(amount) {
+    const nextMonth = shiftMonth(selectedMonth, amount);
+    if (!nextMonth || (firstMonth && nextMonth < firstMonth) || (lastMonth && nextMonth > lastMonth)) return;
+    setSelectedMonth(nextMonth);
+    const firstAvailableDate = dateGroups.find((group) => getMonthKey(group.key) === nextMonth)?.key || '';
+    setSelectedDate(firstAvailableDate);
+  }
 
   return (
     <div className={styles.bookingSections}>
@@ -102,8 +168,14 @@ export default function ConsultationBookingFields() {
           <em className={styles.sectionBadge}>필수</em>
         </div>
         <p className={styles.helperText}>
-          현재 신청 가능한 시간을 확인하고 하나를 선택해 주세요. 담당자 확인 연락 후 예약이 최종 확정됩니다.
+          캘린더에서 날짜를 고른 뒤 30분 상담 시간을 선택해 주세요. 신청 접수가 완료되면 해당 시간은 다른 신청에서
+          제외되며, 담당자 확인 연락 후 예약이 최종 확정됩니다.
         </p>
+
+        <div className={styles.bookingPolicyBar} aria-label="상담 예약 운영 시간">
+          <strong>월~금 09:00~22:00</strong>
+          <span>{policy?.slotDurationMinutes || 30}분 단위 · 서울 시간 기준</span>
+        </div>
 
         <div className={styles.bookingPanel}>
           {loading ? (
@@ -112,28 +184,53 @@ export default function ConsultationBookingFields() {
 
           {!loading && dateGroups.length ? (
             <>
-              <div className={styles.bookingDateTabs} role="tablist" aria-label="상담 날짜 선택">
-                {dateGroups.map((group) => {
-                  const firstSlot = group.slots[0];
-                  const active = group.key === selectedDate;
-                  return (
-                    <button
-                      className={active ? styles.bookingDateActive : styles.bookingDateButton}
-                      type="button"
-                      role="tab"
-                      aria-selected={active}
-                      key={group.key}
-                      onClick={() => setSelectedDate(group.key)}
-                    >
-                      <strong>{formatDateLabel(firstSlot.startsAt)}</strong>
-                      <span>{group.slots.length}개 가능</span>
-                    </button>
-                  );
-                })}
+              <div className={styles.bookingCalendar} aria-label="상담 날짜 선택">
+                <div className={styles.bookingCalendarHead}>
+                  <button
+                    aria-label="이전 달 보기"
+                    disabled={!selectedMonth || selectedMonth <= firstMonth}
+                    onClick={() => moveMonth(-1)}
+                    type="button"
+                  >
+                    ←
+                  </button>
+                  <strong>{formatMonthLabel(selectedMonth)}</strong>
+                  <button
+                    aria-label="다음 달 보기"
+                    disabled={!selectedMonth || selectedMonth >= lastMonth}
+                    onClick={() => moveMonth(1)}
+                    type="button"
+                  >
+                    →
+                  </button>
+                </div>
+                <div className={styles.bookingCalendarWeekdays} aria-hidden="true">
+                  {calendarWeekdays.map((weekday) => <span key={weekday}>{weekday}</span>)}
+                </div>
+                <div className={styles.bookingCalendarGrid}>
+                  {calendarDays.map((day) => {
+                    const daySlots = slotsByDate.get(day.key) || [];
+                    const active = day.key === selectedDate;
+                    return (
+                      <button
+                        aria-label={daySlots.length ? `${day.key}, ${daySlots.length}개 시간 가능` : `${day.key}, 예약 불가`}
+                        aria-pressed={active}
+                        className={active ? styles.bookingCalendarDayActive : styles.bookingCalendarDay}
+                        disabled={!day.inCurrentMonth || !daySlots.length}
+                        key={day.key}
+                        onClick={() => setSelectedDate(day.key)}
+                        type="button"
+                      >
+                        <strong>{day.day}</strong>
+                        {daySlots.length ? <span>{daySlots.length}</span> : null}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <fieldset className={styles.bookingTimeFieldset}>
-                <legend>희망 시간 선택</legend>
+                <legend>{visibleSlots[0] ? `${formatDateLabel(visibleSlots[0].startsAt)} 희망 시간` : '희망 시간 선택'}</legend>
                 <div className={styles.bookingTimeGrid}>
                   {visibleSlots.map((slot) => (
                     <label className={styles.bookingTimeOption} key={slot.id}>
