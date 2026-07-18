@@ -14,6 +14,10 @@ import {
   sourceLinks,
 } from "./peExamData";
 import PeExamHomeSearchClient from "./PeExamHomeSearchClient";
+import {
+  getVerifiedPracticalStandards,
+  verifiedPracticalEventOptions,
+} from "./peExamVerifiedStandards";
 import styles from "./PeExamHub.module.css";
 
 export const metadata: Metadata = {
@@ -327,6 +331,7 @@ const universitySearchCards = peExamRegionDetails
 
       return {
         key: `${region.slug}-${school.slug}`,
+        universityCode: school.code,
         name,
         meta: `${school.area} · ${school.schoolType}`,
         regionLabel: region.region,
@@ -355,6 +360,7 @@ const universitySearchCards = peExamRegionDetails
           gradePreview,
         ].join(" "),
         aliases: searchKeywords,
+        verifiedStandards: getVerifiedPracticalStandards(school.code),
         flags: {
           early: school.earlyAdmissions.length > 0,
           regular: school.regularAdmissions.length > 0,
@@ -502,6 +508,7 @@ export default function PeExamPage() {
           <PeExamHomeSearchClient
             cards={universitySearchCards}
             practicalOptions={practicalSearchOptions}
+            recordOptions={verifiedPracticalEventOptions}
             regionOptions={universitySearchRegionOptions}
           />
         </div>

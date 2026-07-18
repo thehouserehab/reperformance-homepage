@@ -11,6 +11,11 @@ import {
   peExamRegionDetails,
   sourceLinks,
 } from "../../../../peExamData";
+import {
+  formatVerifiedThreshold,
+  getVerifiedPracticalStandards,
+  type VerifiedPracticalStandard,
+} from "../../../../peExamVerifiedStandards";
 import styles from "../../../../PeExamHub.module.css";
 
 type SchoolPageProps = {
@@ -300,6 +305,29 @@ function getSchoolOfficialLinks(school: RegionSchool): readonly OfficialCheckLin
   return school.officialLinks;
 }
 
+function groupVerifiedStandardsByDepartment(standards: readonly VerifiedPracticalStandard[]) {
+  const departmentMap = new Map<string, Map<string, VerifiedPracticalStandard[]>>();
+
+  standards.forEach((standard) => {
+    const eventMap = departmentMap.get(standard.department) || new Map<string, VerifiedPracticalStandard[]>();
+    const eventStandards = eventMap.get(standard.eventId) || [];
+    eventMap.set(standard.eventId, [...eventStandards, standard]);
+    departmentMap.set(standard.department, eventMap);
+  });
+
+  return [...departmentMap.entries()].map(([department, eventMap]) => ({
+    department,
+    practicalWeightPercent: [...eventMap.values()][0]?.[0]?.practicalWeightPercent || 0,
+    events: [...eventMap.values()],
+  }));
+}
+
+function getStandardSexLabel(sex: VerifiedPracticalStandard["sex"]) {
+  if (sex === "male") return "남";
+  if (sex === "female") return "여";
+  return "공통";
+}
+
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.flatMap((track) =>
@@ -340,6 +368,21 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
   const isEarly = track.key === "early";
   const alternateTrack = peExamAdmissionTracks.find((item) => item.key !== track.key)!;
   const schoolName = getSchoolDisplayName(school);
+  const verifiedStandards = getVerifiedPracticalStandards(school.code, track.key);
+  const verifiedStandardGroups = groupVerifiedStandardsByDepartment(verifiedStandards);
+  const verifiedEventCount = new Set(verifiedStandards.map((standard) => standard.eventId)).size;
+  const verifiedSourceLinks = Array.from(
+    new Map(
+      verifiedStandards.map((standard) => [
+        standard.sourceUrl,
+        {
+          label: `${standard.admissionYear}학년도 대학 모집요강`,
+          href: standard.sourceUrl,
+          text: `${standard.sourceTitle} ${standard.sourcePage}쪽에서 만점 기록과 반영 비율을 확인합니다.`,
+        },
+      ]),
+    ).values(),
+  );
   const earlyAdmissions = school.earlyAdmissions;
   const regularAdmissions = school.regularAdmissions;
   const trackCount = isEarly ? earlyAdmissions.length : regularAdmissions.length;
@@ -366,13 +409,17 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
     : regularAdmissions.flatMap((admission) => makePracticalRecordRows(admission.practicalTasks, admission.practicalCriteriaItems));
   const resolvedPracticalRecordCount = practicalRecordRows.filter(hasResolvedPracticalStandard).length;
   const practicalCoverageTitle =
-    resolvedPracticalRecordCount > 0
+    verifiedEventCount > 0
+      ? `공식 만점 기준 ${verifiedEventCount}개 종목`
+      : resolvedPracticalRecordCount > 0
       ? `기록 기준 ${resolvedPracticalRecordCount}개 표시`
       : practicalTaskCount > 0
         ? `실기 종목 ${practicalTaskCount}개 확인`
         : "실기 반영 확인 필요";
   const practicalCoverageText =
-    resolvedPracticalRecordCount > 0
+    verifiedEventCount > 0
+      ? "대학 공식 모집요강에서 연도·전형·성별·측정 방식이 확인된 만점 기록을 표시합니다."
+      : resolvedPracticalRecordCount > 0
       ? "종목별 기록 기준 또는 실시 기준을 전형 카드 안에서 바로 확인합니다."
       : practicalTaskCount > 0
         ? "종목명은 연결되어 있으며, 세부 기록표는 공식 모집요강에서 최종 확인합니다."
@@ -411,6 +458,7 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
       : [];
   const schoolOfficialLinks = getSchoolOfficialLinks(school);
   const officialCheckLinks = uniqueOfficialLinks([
+    ...verifiedSourceLinks,
     ...schoolOfficialLinks,
     ...directSourceLinks.slice(0, 4),
     {
@@ -448,8 +496,10 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
     },
     {
       label: "실기 기준",
-      value: resolvedPracticalRecordCount > 0
-        ? `${resolvedPracticalRecordCount}개`
+      value: verifiedEventCount > 0
+        ? `${verifiedEventCount}개`
+        : resolvedPracticalRecordCount > 0
+          ? `${resolvedPracticalRecordCount}개`
         : practicalTaskCount > 0
           ? `${practicalTaskCount}개`
           : "확인",
@@ -587,6 +637,64 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
               <p>{sourceCoverageText}</p>
             </div>
           </section>
+
+          {verifiedStandardGroups.length ? (
+            <section className={styles.officialStandardPanel} aria-label={`${schoolName} 공식 실기 만점 기준`}>
+              <div className={styles.officialStandardHead}>
+                <div>
+                  <p className="eyebrow">VERIFIED MAX STANDARD</p>
+                  <h2>대학 공식 모집요강 만점 기준</h2>
+                  <p>
+                    종목명만 같은 기준은 합치지 않았습니다. 연도, 전형, 성별, 측정 거리와 장비가 모두 확인된 값만 표시합니다.
+                  </p>
+                </div>
+                <span>{verifiedStandards[0].admissionYear}학년도 · {track.label}</span>
+              </div>
+
+              <div className={styles.officialStandardGroups}>
+                {verifiedStandardGroups.map((group) => (
+                  <article key={group.department}>
+                    <header>
+                      <div>
+                        <span>모집단위</span>
+                        <strong>{group.department}</strong>
+                      </div>
+                      <div>
+                        <span>실기 반영</span>
+                        <strong>{group.practicalWeightPercent}%</strong>
+                      </div>
+                    </header>
+                    <dl>
+                      {group.events.map((eventStandards) => {
+                        const first = eventStandards[0];
+                        return (
+                          <div key={`${group.department}-${first.eventId}`}>
+                            <dt>
+                              <strong>{first.eventName}</strong>
+                              <span>{first.protocol}</span>
+                            </dt>
+                            <dd>
+                              {eventStandards.map((standard) => (
+                                <span key={standard.sex}>
+                                  <em>{getStandardSexLabel(standard.sex)}</em>
+                                  <strong>{formatVerifiedThreshold(standard)}</strong>
+                                  <small>만점 {standard.fullScorePoints}점{standard.equipment ? ` · ${standard.equipment}` : ""}</small>
+                                </span>
+                              ))}
+                            </dd>
+                          </div>
+                        );
+                      })}
+                    </dl>
+                  </article>
+                ))}
+              </div>
+
+              <a href={verifiedStandards[0].sourceUrl} rel="noopener noreferrer" target="_blank">
+                {verifiedStandards[0].sourceTitle} 원문 확인 · {verifiedStandards[0].sourcePage}쪽
+              </a>
+            </section>
+          ) : null}
 
           <section className={styles.officialCheckPanel} aria-label={`${schoolName} ${track.label} 공식 확인 순서`}>
             <div>

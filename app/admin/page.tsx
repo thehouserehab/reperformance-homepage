@@ -1,5 +1,7 @@
 import { PageShell } from "../_components/SiteChrome";
 import { site } from "../_components/siteData";
+import { getApplicationNotificationStatus } from "../../lib/rpApplicationNotification";
+import { isDatabaseConfigured } from "../../lib/rpDatabase";
 import { requireStaffPageSession } from "./_lib/requireStaffPageSession";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +102,9 @@ const flows = [
 
 export default async function AdminPage() {
   await requireStaffPageSession("/admin");
+  const databaseReady = isDatabaseConfigured();
+  const notificationStatus = getApplicationNotificationStatus();
+  const applicationOperationsReady = databaseReady && notificationStatus.configured;
 
   return (
     <PageShell>
@@ -118,6 +123,54 @@ export default async function AdminPage() {
             <form action="/api/admin/logout" method="post">
               <button className="button secondary" type="submit">로그아웃</button>
             </form>
+          </div>
+        </div>
+      </section>
+
+      <section className="section admin-readiness-section" aria-label="상담 신청 운영 준비 상태">
+        <div className="container">
+          <div className="admin-readiness-panel" data-ready={applicationOperationsReady}>
+            <div className="admin-readiness-head">
+              <div>
+                <p className="eyebrow">APPLICATION OPERATIONS</p>
+                <h2>{applicationOperationsReady ? "상담 신청 운영 준비 완료" : "상담 신청 운영 설정이 남아 있습니다."}</h2>
+                <p>
+                  홈페이지 화면 구현과 예약 규칙은 준비되어 있습니다. 실제 신청 저장, 중복 예약 방지, 대표자 알림은
+                  아래 운영 자원이 연결되어야 활성화됩니다.
+                </p>
+              </div>
+              <strong>{applicationOperationsReady ? "READY" : "SETUP REQUIRED"}</strong>
+            </div>
+
+            <div className="admin-readiness-grid">
+              <article data-ready={databaseReady}>
+                <span>01 · 신청 저장과 예약 잠금</span>
+                <strong>{databaseReady ? "PostgreSQL 연결됨" : "PostgreSQL 연결 필요"}</strong>
+                <p>
+                  {databaseReady
+                    ? "상담 신청 저장과 30분 예약 슬롯의 동시 선택 방지가 활성화됩니다."
+                    : "Vercel Production에 DATABASE_URL, POSTGRES_URL 또는 RP_DATABASE_URL을 등록하고 마이그레이션을 적용해야 합니다."}
+                </p>
+              </article>
+              <article data-ready={notificationStatus.configured}>
+                <span>02 · 신규 신청 알림</span>
+                <strong>{notificationStatus.configured ? "알림 Webhook 연결됨" : "알림 수신 주소 필요"}</strong>
+                <p>
+                  {notificationStatus.configured
+                    ? notificationStatus.signed
+                      ? "서명된 최소정보 알림이 신청 저장 후 전송됩니다."
+                      : "알림은 전송되지만 Webhook 서명 비밀키를 추가하는 것이 안전합니다."
+                    : "RP_APPLICATION_NOTIFICATION_WEBHOOK_URL과 서명 비밀키를 등록해야 대표자에게 신규 신청 알림이 전송됩니다."}
+                </p>
+              </article>
+            </div>
+
+            {!applicationOperationsReady ? (
+              <div className="admin-readiness-actions">
+                <a className="button secondary" href="/admin/availability">예약 시간 화면 확인</a>
+                <span>외부 DB나 알림 서비스는 비용·계정 권한이 필요하므로 홈페이지가 임의로 생성하지 않습니다.</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

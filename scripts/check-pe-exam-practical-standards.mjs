@@ -26,10 +26,11 @@ assert.ok(
 );
 assert.ok(detailSnapshot.includes('detailUrl'));
 
-assert.ok(homeSearch.includes('자동 합격 예측이 아니라'));
-assert.ok(homeSearch.includes('판정·추천 아님'));
+assert.ok(homeSearch.includes('합격 여부를 자동 판정하지 않습니다.'));
+assert.ok(homeSearch.includes('공식 만점표만 계산에 사용합니다.'));
 assert.ok(!homeSearch.includes('getGradeFilterFromText'));
 assert.ok(!homeSearch.includes('applyConditionSearch'));
+assert.ok(!homeSearch.includes('currentRecord'));
 assert.ok(homePage.includes('한국체육대학교: ["한체대", "한국체대", "KNSU"]'));
 assert.ok(homePage.includes('{ value: "제자리멀리뛰기", label: "제자리멀리뛰기" }'));
 

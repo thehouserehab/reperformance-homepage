@@ -5308,3 +5308,509 @@
     padding-top: 20px;
   }
 }
+
+.verifiedRecordBuilder {
+  display: grid;
+  gap: 22px;
+  margin-top: 24px;
+  padding: 26px;
+  border: 1px solid #202725;
+  border-radius: 6px;
+  background: #101916;
+  color: #fff;
+}
+
+.verifiedRecordBuilderHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  align-items: end;
+  gap: 28px;
+}
+
+.verifiedRecordBuilderHead > div {
+  display: grid;
+  gap: 7px;
+}
+
+.verifiedRecordBuilderHead > div > span {
+  color: #e4a65d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.verifiedRecordBuilderHead strong {
+  font-size: 25px;
+  line-height: 1.25;
+}
+
+.verifiedRecordBuilderHead p {
+  margin: 0;
+  color: #bdc7c2;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.verifiedRecordBuilderHead label,
+.verifiedRecordRow label {
+  display: grid;
+  gap: 8px;
+}
+
+.verifiedRecordBuilderHead label > span,
+.verifiedRecordRow label > span:first-child {
+  color: #bdc7c2;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.verifiedRecordBuilder select,
+.verifiedRecordBuilder input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #53605b;
+  border-radius: 3px;
+  background: #fff;
+  color: #111716;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.verifiedRecordBuilder select {
+  padding: 0 38px 0 13px;
+}
+
+.verifiedRecordBuilder input {
+  padding: 0 54px 0 13px;
+}
+
+.verifiedRecordBuilder select:focus-visible,
+.verifiedRecordBuilder input:focus-visible,
+.verifiedRecordBuilder button:focus-visible {
+  outline: 3px solid rgba(228, 166, 93, 0.42);
+  outline-offset: 2px;
+}
+
+.verifiedRecordRows {
+  display: grid;
+  gap: 10px;
+}
+
+.verifiedRecordRow {
+  display: grid;
+  grid-template-columns: 42px minmax(260px, 1.7fr) minmax(170px, 0.8fr) 42px;
+  align-items: end;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #34413c;
+  border-radius: 4px;
+  background: #17231f;
+}
+
+.verifiedRecordNumber {
+  align-self: center;
+  color: #e4a65d;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.verifiedRecordInputWrap {
+  position: relative;
+  display: block;
+}
+
+.verifiedRecordInputWrap em {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  color: #5c6662;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 850;
+  transform: translateY(-50%);
+}
+
+.verifiedRecordRow > button {
+  width: 42px;
+  height: 48px;
+  border: 1px solid #53605b;
+  border-radius: 3px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.verifiedRecordActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.verifiedRecordActions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #e4a65d;
+  border-radius: 3px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.verifiedRecordActions button:disabled {
+  border-color: #53605b;
+  color: #77827d;
+  cursor: not-allowed;
+}
+
+.verifiedRecordActions p {
+  margin: 0;
+  color: #98a49e;
+  font-size: 12px;
+  line-height: 1.55;
+  text-align: right;
+}
+
+.verifiedComparisonCard,
+.verifiedComparisonUnavailable {
+  margin-top: 18px;
+  border-radius: 4px;
+}
+
+.verifiedComparisonCard {
+  overflow: hidden;
+  border: 1px solid #bfd1c9;
+  background: #f1f7f4;
+}
+
+.verifiedComparisonHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 15px;
+  background: #143029;
+  color: #fff;
+}
+
+.verifiedComparisonHead span {
+  color: #c9d8d2;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.verifiedComparisonHead strong {
+  font-size: 14px;
+}
+
+.verifiedComparisonList {
+  display: grid;
+}
+
+.verifiedComparisonList > div {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.8fr) minmax(120px, 0.8fr) minmax(220px, 1.6fr);
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  border-bottom: 1px solid #d5e1dc;
+}
+
+.verifiedComparisonList span {
+  color: #466058;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.verifiedComparisonList strong {
+  color: #10241f;
+  font-size: 14px;
+}
+
+.verifiedComparisonList p {
+  margin: 0;
+  color: #58645f;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.verifiedComparisonCard small {
+  display: block;
+  padding: 10px 15px;
+  color: #62716a;
+  font-size: 11px;
+}
+
+.verifiedComparisonUnavailable {
+  display: grid;
+  gap: 5px;
+  padding: 15px;
+  border: 1px dashed #c7ceca;
+  background: #f6f7f6;
+}
+
+.verifiedComparisonUnavailable strong {
+  color: #303b37;
+  font-size: 14px;
+}
+
+.verifiedComparisonUnavailable span {
+  color: #68716d;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .verifiedRecordBuilderHead {
+    grid-template-columns: 1fr;
+  }
+
+  .verifiedRecordRow {
+    grid-template-columns: 36px minmax(0, 1fr) minmax(150px, 0.7fr) 42px;
+  }
+
+  .verifiedComparisonList > div {
+    grid-template-columns: minmax(100px, 0.8fr) minmax(110px, 0.8fr) minmax(180px, 1.4fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .verifiedRecordBuilder {
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .verifiedRecordBuilderHead strong {
+    font-size: 22px;
+  }
+
+  .verifiedRecordRow {
+    grid-template-columns: 32px minmax(0, 1fr) 38px;
+    gap: 10px;
+    padding: 13px 11px;
+  }
+
+  .verifiedRecordRow label:first-of-type,
+  .verifiedRecordRow label:nth-of-type(2) {
+    grid-column: 2;
+  }
+
+  .verifiedRecordNumber {
+    grid-row: 1 / span 2;
+  }
+
+  .verifiedRecordRow > button {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    width: 38px;
+    height: 48px;
+    align-self: center;
+  }
+
+  .verifiedRecordActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .verifiedRecordActions p {
+    text-align: left;
+  }
+
+  .verifiedComparisonHead {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .verifiedComparisonList > div {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+}
+
+.officialStandardPanel {
+  display: grid;
+  gap: 24px;
+  margin: 34px 0;
+  padding: 30px;
+  border: 1px solid #20302a;
+  border-radius: 6px;
+  background: #111b18;
+  color: #fff;
+}
+
+.officialStandardHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #3a4b44;
+}
+
+.officialStandardHead > div {
+  display: grid;
+  gap: 8px;
+  max-width: 760px;
+}
+
+.officialStandardHead h2,
+.officialStandardHead p {
+  margin: 0;
+}
+
+.officialStandardHead h2 {
+  font-size: clamp(25px, 3vw, 38px);
+  line-height: 1.2;
+}
+
+.officialStandardHead p:not(.eyebrow) {
+  color: #bac6c0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.officialStandardHead > span {
+  flex: 0 0 auto;
+  padding: 10px 13px;
+  border: 1px solid #5b6d65;
+  border-radius: 3px;
+  color: #e4a65d;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.officialStandardGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.officialStandardGroups article {
+  overflow: hidden;
+  border: 1px solid #405149;
+  border-radius: 4px;
+  background: #17231f;
+}
+
+.officialStandardGroups article > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 16px 18px;
+  background: #20302a;
+}
+
+.officialStandardGroups header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.officialStandardGroups header > div:last-child {
+  text-align: right;
+}
+
+.officialStandardGroups header span,
+.officialStandardGroups dt span {
+  color: #aab8b1;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.officialStandardGroups header strong {
+  font-size: 15px;
+}
+
+.officialStandardGroups article > dl,
+.officialStandardGroups article > dl > div {
+  margin: 0;
+}
+
+.officialStandardGroups article > dl > div {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.9fr) minmax(210px, 1.1fr);
+  gap: 14px;
+  padding: 15px 18px;
+  border-top: 1px solid #34443d;
+}
+
+.officialStandardGroups article > dl > div:first-child {
+  border-top: 0;
+}
+
+.officialStandardGroups dt,
+.officialStandardGroups dd {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.officialStandardGroups dt strong {
+  font-size: 14px;
+}
+
+.officialStandardGroups dd > span {
+  display: grid;
+  grid-template-columns: 28px minmax(80px, auto) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+}
+
+.officialStandardGroups dd em {
+  color: #e4a65d;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.officialStandardGroups dd strong {
+  font-size: 13px;
+}
+
+.officialStandardGroups dd small {
+  color: #aab8b1;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.officialStandardPanel > a {
+  justify-self: start;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #e4a65d;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+@media (max-width: 960px) {
+  .officialStandardGroups {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .officialStandardPanel {
+    padding: 20px 16px;
+  }
+
+  .officialStandardHead {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .officialStandardGroups article > dl > div {
+    grid-template-columns: 1fr;
+  }
+
+  .officialStandardGroups dd > span {
+    grid-template-columns: 28px minmax(84px, auto) minmax(0, 1fr);
+  }
+}

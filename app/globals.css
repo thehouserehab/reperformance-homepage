@@ -659,6 +659,118 @@ h1 {
   line-height: 1.6;
   font-size: 14px;
 }
+.admin-readiness-section {
+  padding-top: 34px;
+  padding-bottom: 34px;
+}
+.admin-readiness-panel {
+  display: grid;
+  gap: 24px;
+  padding: 30px;
+  border: 1px solid #d7b070;
+  border-radius: 6px;
+  background: #fff9ef;
+}
+.admin-readiness-panel[data-ready="true"] {
+  border-color: #9bbdb0;
+  background: #f2f8f5;
+}
+.admin-readiness-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+}
+.admin-readiness-head > div {
+  display: grid;
+  gap: 8px;
+  max-width: 820px;
+}
+.admin-readiness-head h2,
+.admin-readiness-head p {
+  margin: 0;
+}
+.admin-readiness-head h2 {
+  font-size: clamp(25px, 3vw, 36px);
+  line-height: 1.25;
+}
+.admin-readiness-head p:not(.eyebrow) {
+  color: #5c645f;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.admin-readiness-head > strong {
+  flex: 0 0 auto;
+  padding: 10px 13px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  color: #9a5a18;
+  font-size: 12px;
+}
+.admin-readiness-panel[data-ready="true"] .admin-readiness-head > strong {
+  color: #17614b;
+}
+.admin-readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.admin-readiness-grid article {
+  display: grid;
+  gap: 8px;
+  min-height: 164px;
+  padding: 20px;
+  border: 1px solid #e0c394;
+  border-radius: 4px;
+  background: #fff;
+}
+.admin-readiness-grid article[data-ready="true"] {
+  border-color: #b8d2c8;
+}
+.admin-readiness-grid article > span {
+  color: #9a5a18;
+  font-size: 12px;
+  font-weight: 900;
+}
+.admin-readiness-grid article[data-ready="true"] > span {
+  color: #17614b;
+}
+.admin-readiness-grid article > strong {
+  color: #151a18;
+  font-size: 19px;
+}
+.admin-readiness-grid article > p {
+  margin: 0;
+  color: #626a66;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.admin-readiness-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.admin-readiness-actions > span {
+  color: #6e6559;
+  font-size: 12px;
+  line-height: 1.5;
+}
+@media (max-width: 760px) {
+  .admin-readiness-panel {
+    padding: 22px 18px;
+  }
+  .admin-readiness-head,
+  .admin-readiness-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .admin-readiness-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-readiness-grid article {
+    min-height: 0;
+  }
+}
 .admin-link-card {
   min-height: 210px;
   padding: 28px;

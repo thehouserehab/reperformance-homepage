@@ -1417,7 +1417,23 @@ addCheck(
       "fetch-adiga-pe-exam-selection-data.mjs",
       "check-pe-exam-data-freshness.mjs",
       "audit-pe-exam-university-coverage.mjs",
+      "check-pe-exam-verified-standards.mjs",
       "--verify-only",
+    ]),
+);
+addCheck(
+  "pe-data",
+  "Verified PE exam standards are source-gated and wired into refresh verification",
+  Boolean(scripts["pe-exam:data:verified-standards"])
+    && scripts["pe-exam:data:verified-standards"].includes("scripts/check-pe-exam-verified-standards.mjs")
+    && fileExists("app/pe-exam/peExamVerifiedStandards.ts")
+    && fileExists("scripts/check-pe-exam-verified-standards.mjs")
+    && includesAll("scripts/check-pe-exam-verified-standards.mjs", [
+      "allowedOfficialHosts",
+      "www.knsu.ac.kr",
+      "ipsi.yongin.ac.kr",
+      "knsu-10m-shuttle-40m",
+      "yongin-10m-repeat-80m",
     ]),
 );
 addCheck(
