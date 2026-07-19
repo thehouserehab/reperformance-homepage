@@ -674,7 +674,7 @@ export default function PeExamPage() {
               <span>01</span><strong>FAQ 확인</strong><small>자주 묻는 질문만 짧게</small><em>→</em>
             </Link>
             <Link href="/pe-exam/ai-consult">
-              <span>02</span><strong>AI 상담 준비</strong><small>합격 예측이 아닌 질문·기록 정리</small><em>→</em>
+              <span>02</span><strong>AI 상담 준비</strong><small>합격 예측이 아니라 상담 준비</small><em>→</em>
             </Link>
             <Link href="/apply?service=pe-exam">
               <span>03</span><strong>코치 상담 신청</strong><small>현재 기록과 훈련 방향 연결</small><em>→</em>
