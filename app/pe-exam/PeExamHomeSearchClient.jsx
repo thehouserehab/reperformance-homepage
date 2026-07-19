@@ -273,7 +273,16 @@ export default function PeExamHomeSearchClient(props) {
     trackFilter,
   ]);
 
-  const visibleCards = filteredCards.slice(0, resultLimit);
+  const hasStartedSearch = searchMode === "school"
+    ? Boolean(query.trim() || dataFilter !== "all")
+    : Boolean(
+        regionFilter !== "all" ||
+        trackFilter !== "all" ||
+        gradeFilter !== "all" ||
+        includePractical !== "all" ||
+        enteredRecordCount,
+      );
+  const visibleCards = hasStartedSearch ? filteredCards.slice(0, resultLimit) : [];
   const verifiedComparisonCount = recordComparisonActive
     ? filteredCards.filter((card) => comparisonByCardKey.get(card.key)).length
     : 0;
@@ -313,18 +322,21 @@ export default function PeExamHomeSearchClient(props) {
             />
           </label>
 
-          <div className={styles.homeSearchFilterGroup} role="group" aria-label="대학 정보 자료 필터">
-            {dataFilters.map((item) => (
-              <button
-                aria-pressed={dataFilter === item.key}
-                key={item.key}
-                onClick={() => updateFilter(setDataFilter, item.key)}
-                type="button"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <details className={styles.homeSearchFilterDisclosure}>
+            <summary>세부 자료 필터 <span>선택</span></summary>
+            <div className={styles.homeSearchFilterGroup} role="group" aria-label="대학 정보 자료 필터">
+              {dataFilters.map((item) => (
+                <button
+                  aria-pressed={dataFilter === item.key}
+                  key={item.key}
+                  onClick={() => updateFilter(setDataFilter, item.key)}
+                  type="button"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </details>
         </div>
       ) : (
         <div className={styles.homeSearchAdvanced}>
@@ -376,6 +388,11 @@ export default function PeExamHomeSearchClient(props) {
             </label>
           </div>
 
+          <details className={styles.homeRecordDisclosure}>
+            <summary>
+              <span>실기 기록으로 비교</span>
+              <small>선택 입력 · 서버 저장 없음</small>
+            </summary>
           <section className={styles.verifiedRecordBuilder} aria-label="공식 만점 기준 기록 비교">
             <div className={styles.verifiedRecordBuilderHead}>
               <div>
@@ -435,25 +452,34 @@ export default function PeExamHomeSearchClient(props) {
               <p>입력 기록은 브라우저 안에서만 비교하며 서버에 전송하거나 저장하지 않습니다.</p>
             </div>
           </section>
+          </details>
         </div>
       )}
 
-      <div className={styles.homeSearchResultBar}>
-        <p className={styles.homeSearchMeta}>
-          {searchMode === "condition" ? "조건 일치 후보" : "검색 결과"} {filteredCards.length}개
-          {recordComparisonActive ? ` · 공식 기록 비교 가능 ${verifiedComparisonCount}개` : ` · 상세 페이지 연결 ${cards.length}개`}
-        </p>
-        {hasActiveFilters ? <button onClick={resetFilters} type="button">필터 초기화</button> : null}
-      </div>
+      {hasStartedSearch ? (
+        <div className={styles.homeSearchResultBar}>
+          <p className={styles.homeSearchMeta}>
+            {searchMode === "condition" ? "조건 일치 후보" : "검색 결과"} {filteredCards.length}개
+            {recordComparisonActive ? ` · 공식 기록 비교 가능 ${verifiedComparisonCount}개` : ""}
+          </p>
+          {hasActiveFilters ? <button onClick={resetFilters} type="button">필터 초기화</button> : null}
+        </div>
+      ) : (
+        <div className={styles.homeSearchEmpty}>
+          <span>START HERE</span>
+          <strong>{searchMode === "school" ? "학교명이나 줄임말을 입력하세요." : "지역·전형·실기 중 한 가지 조건부터 고르세요."}</strong>
+          <p>선택하기 전에는 긴 대학 목록을 보여주지 않습니다.</p>
+        </div>
+      )}
 
-      {gradeFilter !== "all" ? (
+      {hasStartedSearch && gradeFilter !== "all" ? (
         <p className={styles.searchSummaryNotice}>
           선택한 등급대가 공개 입결·등급 자료에서 확인되는 대학만 표시합니다. 이는 지원 가능성이나 합격을 예측한 결과가
           아니며, 모집연도와 전형별 공식 자료를 반드시 함께 확인해야 합니다.
         </p>
       ) : null}
 
-      {recordComparisonActive ? (
+      {hasStartedSearch && recordComparisonActive ? (
         <div className={styles.homeSearchRecordSummary}>
           <span>정렬 기준</span>
           <strong>공식 만점표가 연결된 대학을 먼저 표시합니다.</strong>

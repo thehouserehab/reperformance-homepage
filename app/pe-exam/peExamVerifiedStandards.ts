@@ -287,6 +287,31 @@ export const verifiedPracticalEventOptions = Array.from(
   ).values(),
 );
 
+export type VerifiedPracticalDepartmentGroup = {
+  readonly department: string;
+  readonly practicalWeightPercent: number;
+  readonly events: readonly (readonly VerifiedPracticalStandard[])[];
+};
+
+export function groupVerifiedStandardsByDepartment(
+  standards: readonly VerifiedPracticalStandard[],
+): readonly VerifiedPracticalDepartmentGroup[] {
+  const departmentMap = new Map<string, Map<string, VerifiedPracticalStandard[]>>();
+
+  standards.forEach((standard) => {
+    const eventMap = departmentMap.get(standard.department) || new Map<string, VerifiedPracticalStandard[]>();
+    const eventStandards = eventMap.get(standard.eventId) || [];
+    eventMap.set(standard.eventId, [...eventStandards, standard]);
+    departmentMap.set(standard.department, eventMap);
+  });
+
+  return [...departmentMap.entries()].map(([department, eventMap]) => ({
+    department,
+    practicalWeightPercent: [...eventMap.values()][0]?.[0]?.practicalWeightPercent || 0,
+    events: [...eventMap.values()],
+  }));
+}
+
 export function getVerifiedPracticalStandards(
   universityCode: string,
   track?: PeExamAdmissionTrack,

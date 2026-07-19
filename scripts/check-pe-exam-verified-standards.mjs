@@ -74,12 +74,23 @@ const detailSource = fs.readFileSync(
   path.join(root, 'app/pe-exam/universities/[region]/[track]/[school]/page.tsx'),
   'utf8',
 );
+const departmentSource = fs.readFileSync(
+  path.join(root, 'app/pe-exam/universities/[region]/[track]/[school]/departments/[department]/page.tsx'),
+  'utf8',
+);
+const departmentClientSource = fs.readFileSync(
+  path.join(root, 'app/pe-exam/PeExamDepartmentClient.jsx'),
+  'utf8',
+);
 assert.ok(clientSource.includes('성별과 측정 방식이 일치하는 공식 만점표만 계산에 사용합니다.'));
 assert.ok(clientSource.includes('getStandardComparison'));
 assert.ok(clientSource.includes('recordComparisonActive'));
 assert.ok(!clientSource.includes('currentRecord'));
 assert.ok(detailSource.includes('getVerifiedPracticalStandards'));
-assert.ok(detailSource.includes('대학 공식 모집요강 만점 기준'));
+assert.ok(detailSource.includes('모집단위를 선택해 필요한 정보만 확인하세요'));
+assert.ok(departmentSource.includes('getVerifiedPracticalStandards'));
+assert.ok(departmentClientSource.includes('공식 실기 만점 기준'));
+assert.ok(departmentClientSource.includes('이 수치는 합격 확률이나 합격 판정이 아닙니다.'));
 
 console.log(
   `RePERFORMANCE verified practical standards passed: ${verifiedPracticalStandards.length} rows, ${verifiedPracticalEventOptions.length} protocols.`,

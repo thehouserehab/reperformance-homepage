@@ -12,10 +12,13 @@ import {
   sourceLinks,
 } from "../../../../peExamData";
 import {
-  formatVerifiedThreshold,
   getVerifiedPracticalStandards,
-  type VerifiedPracticalStandard,
+  groupVerifiedStandardsByDepartment,
 } from "../../../../peExamVerifiedStandards";
+import {
+  getPeExamDepartmentHref,
+  getPeExamDepartmentProfileByName,
+} from "../../../../peExamDepartmentData";
 import styles from "../../../../PeExamHub.module.css";
 
 type SchoolPageProps = {
@@ -305,29 +308,6 @@ function getSchoolOfficialLinks(school: RegionSchool): readonly OfficialCheckLin
   return school.officialLinks;
 }
 
-function groupVerifiedStandardsByDepartment(standards: readonly VerifiedPracticalStandard[]) {
-  const departmentMap = new Map<string, Map<string, VerifiedPracticalStandard[]>>();
-
-  standards.forEach((standard) => {
-    const eventMap = departmentMap.get(standard.department) || new Map<string, VerifiedPracticalStandard[]>();
-    const eventStandards = eventMap.get(standard.eventId) || [];
-    eventMap.set(standard.eventId, [...eventStandards, standard]);
-    departmentMap.set(standard.department, eventMap);
-  });
-
-  return [...departmentMap.entries()].map(([department, eventMap]) => ({
-    department,
-    practicalWeightPercent: [...eventMap.values()][0]?.[0]?.practicalWeightPercent || 0,
-    events: [...eventMap.values()],
-  }));
-}
-
-function getStandardSexLabel(sex: VerifiedPracticalStandard["sex"]) {
-  if (sex === "male") return "남";
-  if (sex === "female") return "여";
-  return "공통";
-}
-
 export function generateStaticParams() {
   return peExamRegionDetails.flatMap((region) =>
     peExamAdmissionTracks.flatMap((track) =>
@@ -485,43 +465,6 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
         "실기 반영 여부, 종목별 기록표, 배점표 확인",
         "전년도 70% 평균백분위, 영어 등급, 환산점수와 공식 입결 표 확인",
       ];
-  const detailPriorityCards = [
-    {
-      label: "전형 구조",
-      value: `${trackCount}개`,
-      title: "모집단위와 반영 요소",
-      text: isEarly
-        ? "수시 전형명, 모집단위, 학생부·실기·수능최저 반영 여부를 먼저 분리합니다."
-        : "정시 모집군, 모집단위, 수능·실기 반영 비율을 먼저 분리합니다.",
-    },
-    {
-      label: "실기 기준",
-      value: verifiedEventCount > 0
-        ? `${verifiedEventCount}개`
-        : resolvedPracticalRecordCount > 0
-          ? `${resolvedPracticalRecordCount}개`
-        : practicalTaskCount > 0
-          ? `${practicalTaskCount}개`
-          : "확인",
-      title: "종목과 기록표",
-      text: "종목명만 보지 않고 배점표, 만점 기록, 결시·실격 기준까지 이어서 확인합니다.",
-    },
-    {
-      label: isEarly ? "등급 기준" : "입결 기준",
-      value: isEarly
-        ? gradeOrResultCount > 0
-          ? `${gradeOrResultCount}개`
-          : "확인"
-        : regularResultRows.length > 0
-          ? `${regularResultRows.length}건`
-          : "확인",
-      title: isEarly ? "학생부 산출 기준" : "70% 입결과 환산점수",
-      text: isEarly
-        ? "평균등급 숫자보다 학생부 반영 교과, 학년별 비율, 산출 방식을 우선 확인합니다."
-        : "전년도 평균백분위, 영어 등급, 환산점수는 지원 판단의 기준선으로만 사용합니다.",
-    },
-  ] as const;
-
   return (
     <PageShell>
       <nav className={styles.hubNav} aria-label={`${schoolName} ${track.label} 상세 메뉴`}>
@@ -577,36 +520,6 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
         </div>
       </section>
 
-      <section className={styles.detailDesignBand} aria-label={`${schoolName} ${track.label} 지원 전 확인 요약`}>
-        <div className={`container ${styles.detailDesignInner}`}>
-          <div className={styles.detailDesignHead}>
-            <span>DETAIL CHECKLIST</span>
-            <h2>지원 전, 이 3가지를 먼저 확인합니다.</h2>
-            <p>
-              대학 상세페이지는 정보를 길게 나열하기보다 전형 구조, 실기 기준, 등급·입결 기준을 먼저 잡고
-              공식 자료 확인으로 이어지도록 구성했습니다.
-            </p>
-          </div>
-
-          <div className={styles.detailPriorityGrid}>
-            {detailPriorityCards.map((card) => (
-              <article className={styles.detailPriorityCard} key={card.label}>
-                <span>{card.label}</span>
-                <div className={styles.detailPriorityRing}>
-                  <strong>{card.value}</strong>
-                </div>
-                <h3>{card.title}</h3>
-                <p>{card.text}</p>
-              </article>
-            ))}
-          </div>
-
-          <strong className={styles.detailConclusion}>
-            공개자료는 출발점이고, 최종 판단은 모집요강과 학생 기록을 함께 놓고 봅니다.
-          </strong>
-        </div>
-      </section>
-
       <section className={`section ${styles.regionDetailSection}`}>
         <div className="container">
           <div className={styles.trackSwitchBar} aria-label="대학 상세 전환">
@@ -620,6 +533,11 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
             </a>
           </div>
 
+          <details className={styles.schoolDataGuideDisclosure}>
+            <summary>
+              <span><small>DATA STATUS</small><strong>실기·등급·공식 자료 상태 요약</strong></span>
+              <em>펼쳐보기</em>
+            </summary>
           <section className={styles.schoolDataGuide} aria-label={`${schoolName} ${track.label} 자료 확인 요약`}>
             <div>
               <span>실기 기록 기준</span>
@@ -637,64 +555,72 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
               <p>{sourceCoverageText}</p>
             </div>
           </section>
+          </details>
 
           {verifiedStandardGroups.length ? (
             <section className={styles.officialStandardPanel} aria-label={`${schoolName} 공식 실기 만점 기준`}>
               <div className={styles.officialStandardHead}>
                 <div>
-                  <p className="eyebrow">VERIFIED MAX STANDARD</p>
-                  <h2>대학 공식 모집요강 만점 기준</h2>
+                  <p className="eyebrow">VERIFIED DEPARTMENT GUIDE</p>
+                  <h2>모집단위를 선택해 필요한 정보만 확인하세요.</h2>
                   <p>
-                    종목명만 같은 기준은 합치지 않았습니다. 연도, 전형, 성별, 측정 거리와 장비가 모두 확인된 값만 표시합니다.
+                    학과별 전형, 진로, 공식 실기 기준과 내 기록 비교를 별도 페이지에 짧게 정리했습니다.
                   </p>
                 </div>
                 <span>{verifiedStandards[0].admissionYear}학년도 · {track.label}</span>
               </div>
 
-              <div className={styles.officialStandardGroups}>
-                {verifiedStandardGroups.map((group) => (
-                  <article key={group.department}>
-                    <header>
+              <div className={styles.departmentSelectorGrid}>
+                {verifiedStandardGroups.map((group, index) => {
+                  const profile = getPeExamDepartmentProfileByName(school.code, group.department);
+                  if (!profile) return null;
+
+                  return (
+                    <Link
+                      className={styles.departmentSelectorCard}
+                      href={getPeExamDepartmentHref(region.slug, track.key, school.slug, profile.slug)}
+                      key={group.department}
+                    >
+                      <span className={styles.departmentSelectorIndex}>{String(index + 1).padStart(2, "0")}</span>
                       <div>
-                        <span>모집단위</span>
-                        <strong>{group.department}</strong>
+                        <small>모집단위</small>
+                        <h3>{group.department}</h3>
+                        <p>{profile.summary}</p>
                       </div>
-                      <div>
-                        <span>실기 반영</span>
-                        <strong>{group.practicalWeightPercent}%</strong>
-                      </div>
-                    </header>
-                    <dl>
-                      {group.events.map((eventStandards) => {
-                        const first = eventStandards[0];
-                        return (
-                          <div key={`${group.department}-${first.eventId}`}>
-                            <dt>
-                              <strong>{first.eventName}</strong>
-                              <span>{first.protocol}</span>
-                            </dt>
-                            <dd>
-                              {eventStandards.map((standard) => (
-                                <span key={standard.sex}>
-                                  <em>{getStandardSexLabel(standard.sex)}</em>
-                                  <strong>{formatVerifiedThreshold(standard)}</strong>
-                                  <small>만점 {standard.fullScorePoints}점{standard.equipment ? ` · ${standard.equipment}` : ""}</small>
-                                </span>
-                              ))}
-                            </dd>
-                          </div>
-                        );
-                      })}
-                    </dl>
-                  </article>
-                ))}
+                      <dl>
+                        <div>
+                          <dt>실기 반영</dt>
+                          <dd>{group.practicalWeightPercent}%</dd>
+                        </div>
+                        <div>
+                          <dt>공식 종목</dt>
+                          <dd>{group.events.length}개</dd>
+                        </div>
+                      </dl>
+                      <span className={styles.departmentSelectorArrow} aria-hidden="true">→</span>
+                    </Link>
+                  );
+                })}
               </div>
 
-              <a href={verifiedStandards[0].sourceUrl} rel="noopener noreferrer" target="_blank">
-                {verifiedStandards[0].sourceTitle} 원문 확인 · {verifiedStandards[0].sourcePage}쪽
-              </a>
+              <div className={styles.departmentSelectorFoot}>
+                <p>입력한 성적과 실기 기록은 브라우저 안에서만 비교하며 서버에 저장하지 않습니다.</p>
+                <a href={verifiedStandards[0].sourceUrl} rel="noopener noreferrer" target="_blank">
+                  {verifiedStandards[0].sourceTitle} 원문 · {verifiedStandards[0].sourcePage}쪽
+                </a>
+              </div>
             </section>
           ) : null}
+
+          <details className={styles.schoolEvidenceDisclosure}>
+            <summary>
+              <span>
+                <small>FULL ADMISSION EVIDENCE</small>
+                <strong>전체 전형·입결·공식 확인 자료 보기</strong>
+              </span>
+              <em>펼쳐보기</em>
+            </summary>
+            <div className={styles.schoolEvidenceBody}>
 
           <section className={styles.officialCheckPanel} aria-label={`${schoolName} ${track.label} 공식 확인 순서`}>
             <div>
@@ -914,6 +840,8 @@ export default async function PeExamSchoolTrackPage({ params }: SchoolPageProps)
               ) : null}
             </>
           )}
+            </div>
+          </details>
         </div>
       </section>
     </PageShell>

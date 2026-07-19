@@ -99,15 +99,26 @@ assert.ok(databaseSource.includes('rp_clients_active_consultation_slot_unique_id
 
 const notificationSource = read('lib/rpApplicationNotification.js');
 assert.ok(notificationSource.includes('RP_APPLICATION_NOTIFICATION_WEBHOOK_URL'));
+assert.ok(notificationSource.includes('RP_APPLICATION_NOTIFICATION_GOOGLE_SCRIPT_URL'));
+assert.ok(notificationSource.includes("action: 'sendApplicationNotification'"));
+assert.ok(notificationSource.includes('RP_API_SECRET'));
 assert.ok(notificationSource.includes('applicantNameMasked'));
 assert.ok(!notificationSource.includes('application.phone'));
 assert.ok(!notificationSource.includes('parqYesItems'));
 assert.ok(!notificationSource.includes('peExamMemo'));
 
+const appsScriptSource = read('integrations/google-apps-script/Code.gs');
+assert.ok(appsScriptSource.includes("action === 'sendApplicationNotification'"));
+assert.ok(appsScriptSource.includes("getProperty('RP_NOTIFICATION_EMAIL')"));
+assert.ok(appsScriptSource.includes('MailApp.sendEmail'));
+assert.ok(appsScriptSource.includes('request body omitted'));
+assert.ok(!appsScriptSource.includes("logApi_('POST', 'ERROR', err.message, e && e.postData"));
+
 for (const source of [
   read('app/api/rp/consultation-slots/route.js'),
   read('lib/rpConsultationAvailability.js'),
   notificationSource,
+  appsScriptSource,
   migration,
 ]) {
   assert.ok(!/nore.*(?:api|webhook|fetch)|(?:api|webhook|fetch).*nore/i.test(source), 'booking must not integrate with NORE');

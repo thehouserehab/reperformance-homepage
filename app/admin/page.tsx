@@ -154,13 +154,21 @@ export default async function AdminPage() {
               </article>
               <article data-ready={notificationStatus.configured}>
                 <span>02 · 신규 신청 알림</span>
-                <strong>{notificationStatus.configured ? "알림 Webhook 연결됨" : "알림 수신 주소 필요"}</strong>
+                <strong>
+                  {notificationStatus.configured
+                    ? notificationStatus.provider === "google-apps-script"
+                      ? "Gmail 알림 연결됨"
+                      : "알림 Webhook 연결됨"
+                    : "알림 수신 설정 필요"}
+                </strong>
                 <p>
                   {notificationStatus.configured
-                    ? notificationStatus.signed
-                      ? "서명된 최소정보 알림이 신청 저장 후 전송됩니다."
-                      : "알림은 전송되지만 Webhook 서명 비밀키를 추가하는 것이 안전합니다."
-                    : "RP_APPLICATION_NOTIFICATION_WEBHOOK_URL과 서명 비밀키를 등록해야 대표자에게 신규 신청 알림이 전송됩니다."}
+                    ? notificationStatus.provider === "google-apps-script"
+                      ? "신청 저장 후 개인정보를 제외한 최소정보가 Gmail로 전송됩니다."
+                      : notificationStatus.signed
+                        ? "서명된 최소정보 알림이 신청 저장 후 전송됩니다."
+                        : "알림은 전송되지만 Webhook 서명 비밀키를 추가하는 것이 안전합니다."
+                    : "Google Apps Script URL과 RP_API_SECRET을 등록하고 비공개 Script Property에 수신 Gmail을 설정해야 합니다."}
                 </p>
               </article>
             </div>

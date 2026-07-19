@@ -434,10 +434,14 @@ function buildHighTrafficReadiness({
     addReadinessIssue(
       warnings,
       'application_notification_not_configured',
-      'Configure the new-application notification webhook so staff can respond without relying only on manual admin checks.',
+      'Configure Google Apps Script Gmail delivery or a signed webhook so staff can respond without relying only on manual admin checks.',
     );
   }
-  if (applicationNotification.configured && !applicationNotification.signed) {
+  if (
+    applicationNotification.configured
+    && applicationNotification.provider === 'webhook'
+    && !applicationNotification.signed
+  ) {
     addReadinessIssue(
       warnings,
       'application_notification_not_signed',

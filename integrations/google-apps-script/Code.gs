@@ -3,7 +3,7 @@
  * Install:
  * 1) Copy this file into Apps Script and set SPREADSHEET_ID.
  * 2) Replace DEFAULT_SECRET with a newly generated secret.
- * 3) Run setupRPV2() and setRpApiSecretOnce() once.
+ * 3) Run setupRPV2(), setRpApiSecretOnce(), and setRpNotificationEmail('owner@example.com') once.
  * 4) Deploy as Web App: Execute as Me / Access: Anyone with link.
  */
 
@@ -81,6 +81,15 @@ function setRpApiSecretOnce() {
   return 'RP_API_SECRET saved. Also add the same value to Vercel env RP_API_SECRET.';
 }
 
+function setRpNotificationEmail(email) {
+  var normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    throw new Error('Enter a valid notification email address.');
+  }
+  PropertiesService.getScriptProperties().setProperty('RP_NOTIFICATION_EMAIL', normalizedEmail);
+  return 'RP_NOTIFICATION_EMAIL saved in private Script Properties.';
+}
+
 function doGet(e) {
   try {
     const params = e && e.parameter ? e.parameter : {};
@@ -100,10 +109,11 @@ function doGet(e) {
 }
 
 function doPost(e) {
+  var action = 'POST';
   try {
     const body = e && e.postData && e.postData.contents ? JSON.parse(e.postData.contents) : {};
     assertAuthorized_(body.token);
-    const action = body.action;
+    action = body.action || 'POST';
     const payload = body.payload || {};
 
     if (action === 'setup') return json_(setupRPV2());
@@ -113,12 +123,61 @@ function doPost(e) {
     if (action === 'saveAssessment') return json_({ ok: true, result: appendRecord_(RP_CONFIG.SHEETS.assessments, RP_HEADERS.assessments, payload, '평가ID', 'ASM') });
     if (action === 'saveProgram') return json_({ ok: true, result: appendRecord_(RP_CONFIG.SHEETS.programs, RP_HEADERS.programs, payload, '프로그램ID', 'PRG') });
     if (action === 'saveSession') return json_({ ok: true, result: appendRecord_(RP_CONFIG.SHEETS.sessions, RP_HEADERS.sessions, payload, '세션ID', 'SES') });
+    if (action === 'sendApplicationNotification') return json_({ ok: true, result: sendApplicationNotification_(payload) });
 
     return json_({ ok: false, error: 'Unknown POST action: ' + action });
   } catch (err) {
-    logApi_('POST', 'ERROR', err.message, e && e.postData ? e.postData.contents : '');
+    // Never write request bodies here: they can contain API tokens or personal data.
+    logApi_(action, 'ERROR', err.message, 'request body omitted');
     return json_({ ok: false, error: err.message });
   }
+}
+
+function cleanNotificationText_(value, maxLength) {
+  return String(value || '')
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength || 200);
+}
+
+function sendApplicationNotification_(payload) {
+  if (!payload || payload.event !== 'service_application.created') {
+    throw new Error('Unsupported application notification event.');
+  }
+
+  var recipient = PropertiesService.getScriptProperties().getProperty('RP_NOTIFICATION_EMAIL');
+  if (!recipient) {
+    throw new Error("RP_NOTIFICATION_EMAIL is not configured. Run setRpNotificationEmail('owner@example.com').");
+  }
+
+  var application = payload.application || {};
+  var serviceLabel = cleanNotificationText_(application.serviceLabel, 80) || '서비스 확인 필요';
+  var applicantName = cleanNotificationText_(application.applicantNameMasked, 30) || '신청자';
+  var visitLabel = cleanNotificationText_(application.visitLabel, 80) || '일정 협의 요청';
+  var adminUrl = cleanNotificationText_(payload.adminUrl, 300);
+  var subject = '[RePERFORMANCE] ' + serviceLabel + ' 신규 상담 신청';
+  var body = [
+    'RePERFORMANCE 홈페이지에 신규 상담 신청이 저장되었습니다.',
+    '',
+    '서비스: ' + serviceLabel,
+    '신청자: ' + applicantName,
+    '희망 시간: ' + visitLabel,
+    '',
+    '관리자 화면에서 연락처와 신청 내용을 확인하세요.',
+    adminUrl,
+    '',
+    '보안을 위해 이 메일에는 전화번호, 건강정보, 성적, 실기 기록을 포함하지 않습니다.'
+  ].join('\n');
+
+  MailApp.sendEmail({
+    to: recipient,
+    subject: subject,
+    body: body,
+    name: 'RePERFORMANCE 홈페이지'
+  });
+  logApi_('sendApplicationNotification', 'OK', cleanNotificationText_(application.id, 80), 'masked summary only');
+  return { delivered: true, channel: 'gmail' };
 }
 
 function v_(row, keys, fallback) {

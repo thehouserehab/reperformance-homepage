@@ -6,7 +6,6 @@ import {
   adigaRegularAdmissionMeta,
   adigaRegularSelectionMeta,
   catalogMeta,
-  faqItems,
   getPeExamSchoolTrackHref,
   kusfAdmissionDetailMeta,
   kusfAdmissionMeta,
@@ -28,10 +27,8 @@ export const metadata: Metadata = {
 
 const hubLinks = [
   { href: "#university-search", label: "대학 찾기" },
-  { href: "#universities", label: "지역별 대학" },
   { href: "#training-management", label: "실기 관리" },
-  { href: "#timeline", label: "2026 흐름" },
-  { href: "#ai-consult", label: "상담 준비" },
+  { href: "#guide-index", label: "일정·지역" },
   { href: "/pe-exam/faq", label: "FAQ" },
 ] as const;
 
@@ -73,49 +70,6 @@ const universityScopeCards = [
   },
 ] as const;
 
-const aiFields = [
-  "내신·수능 성적",
-  "실기 종목별 현재 기록",
-  "희망 대학·학과",
-  "운동 가능 시간",
-  "부상·컨디션 메모",
-  "상담에서 정리한 목표",
-] as const;
-
-const roadmapSteps = [
-  ["01", "모집요강 확인", "대학별 모집단위, 전형명, 반영 비율, 실기 종목을 먼저 봅니다."],
-  ["02", "현재 위치 정리", "성적, 실기 기록, 가능한 운동 시간, 몸 상태를 한 번에 정리합니다."],
-  ["03", "수시·정시 분리", "수시와 정시는 확인해야 할 기준이 달라 준비 경로를 따로 봅니다."],
-  ["04", "상담으로 연결", "공개 자료만으로 부족한 부분은 상담에서 개인별 방향으로 정리합니다."],
-] as const;
-
-const startFlowItems = [
-  {
-    number: "01",
-    title: "대학 정보 확인",
-    text: "지역, 전형, 실기 종목, 공식 확인 링크를 먼저 봅니다.",
-    href: "#university-search",
-  },
-  {
-    number: "02",
-    title: "현재 상태 정리",
-    text: "성적, 실기 기록, 남은 기간, 운동 가능 시간을 정리합니다.",
-    href: "#start-guide",
-  },
-  {
-    number: "03",
-    title: "실기 능력 향상",
-    text: "종목별 기록 변화와 약점 종목을 훈련 계획에 반영합니다.",
-    href: "#training-management",
-  },
-  {
-    number: "04",
-    title: "상담·관리 연결",
-    text: "공개 자료에서 끝내지 않고 상담 후 필요한 관리 흐름으로 이어갑니다.",
-    href: "/apply?service=pe-exam",
-  },
-] as const;
-
 const trainingPreviewCards = [
   {
     title: "실기 기록 추적",
@@ -132,36 +86,6 @@ const trainingPreviewCards = [
   {
     title: "상담 후 관리",
     text: "공개 홈페이지가 아닌 상담 이후 흐름에서 학생별 기록과 훈련 방향을 관리합니다.",
-  },
-] as const;
-
-const trainingPreviewRows = [
-  ["제자리멀리뛰기", "현재 기록", "목표 기록", "동작 피드백"],
-  ["10m 왕복달리기", "출발 반응", "전환 속도", "주차별 변화"],
-  ["윗몸일으키기", "반복 횟수", "감점 요인", "보완 루틴"],
-] as const;
-
-const aiGuardrails = [
-  "합격 여부를 판정하지 않습니다.",
-  "공식 입시 결과를 예측하지 않습니다.",
-  "상담 전 질문과 확인 순서를 정리합니다.",
-] as const;
-
-const starterGuideCards = [
-  {
-    label: "STEP 1",
-    title: "조건을 먼저 좁히기",
-    text: "지역, 수시·정시, 등급대, 포함·제외할 실기 종목을 고르면 긴 목록을 훨씬 짧게 볼 수 있습니다.",
-  },
-  {
-    label: "STEP 2",
-    title: "대학 상세로 이동",
-    text: "검색 결과 카드는 요약만 보여주고, 실제 전형·입결·실기 기준은 대학별 하위 페이지에서 확인합니다.",
-  },
-  {
-    label: "STEP 3",
-    title: "공식 자료로 최종 확인",
-    text: "기록 기준과 등급 숫자는 대학별 공식 모집요강과 입시 결과표가 최종 기준입니다.",
   },
 ] as const;
 
@@ -403,8 +327,6 @@ const practicalSearchOptions = [
 ] as const;
 
 export default function PeExamPage() {
-  const faqPreview = faqItems.slice(0, 4);
-
   return (
     <PageShell>
       <nav className={styles.hubNav} aria-label="체대입시 정보 메뉴">
@@ -422,11 +344,11 @@ export default function PeExamPage() {
       <section className={styles.hero}>
         <div className={`container ${styles.heroInner}`}>
           <div className={styles.heroCopy}>
-            <p className="eyebrow light-text">PE EXAM SERVICE FLOW</p>
-            <h1>대학 정보 확인에서 실기 향상 관리까지 이어집니다.</h1>
+            <p className="eyebrow light-text">PE EXAM, MADE CLEAR</p>
+            <h1>찾고, 비교하고,<br />기록을 올립니다.</h1>
             <p>
-              전국 체육 관련 학과 대학 정보를 먼저 확인하고, 현재 성적과 실기 기록을 정리한 뒤
-              상담과 훈련 관리로 연결하는 체대입시 준비 흐름입니다.
+              대학 정보 확인에서 실기 향상 관리까지. 필요한 정보부터 짧게 보고
+              현재 기록을 실제 훈련 계획으로 연결합니다.
             </p>
             <div className={styles.heroActions}>
               <Link className="button primary" href="#university-search">
@@ -438,58 +360,21 @@ export default function PeExamPage() {
                 <span aria-hidden="true">→</span>
               </Link>
             </div>
-            <dl className={styles.heroStats} aria-label="체대입시 허브 주요 데이터">
-              <div>
-                <dt>전국 목록</dt>
-                <dd>{catalogMeta.count}개</dd>
-              </div>
-              <div>
-                <dt>수시 전형</dt>
-                <dd>{kusfAdmissionMeta.admissionCount}개</dd>
-              </div>
-              <div>
-                <dt>정시 전형</dt>
-                <dd>{adigaRegularAdmissionMeta.admissionCount}개</dd>
-              </div>
-            </dl>
           </div>
 
-          <aside className={styles.heroPanel} aria-label="체대입시 준비 흐름">
-            {startFlowItems.map((item) => (
-              <article key={item.number}>
-                <Link href={item.href}>
-                  <strong>{item.number}</strong>
-                  <div>
-                    <h2>{item.title}</h2>
-                    <p>{item.text}</p>
-                  </div>
-                  <span aria-hidden="true">→</span>
-                </Link>
-              </article>
-            ))}
+          <aside className={styles.heroDecision} aria-label="체대입시 시작 선택">
+            <span>START WITH ONE</span>
+            <Link href="#university-search">
+              <strong>학교를 알고 있어요.</strong>
+              <small>대학명 검색으로 바로 시작</small>
+              <em aria-hidden="true">→</em>
+            </Link>
+            <Link href="#university-search">
+              <strong>조건부터 정리할게요.</strong>
+              <small>지역·전형·실기 기준으로 탐색</small>
+              <em aria-hidden="true">→</em>
+            </Link>
           </aside>
-        </div>
-      </section>
-
-      <section className={styles.starterGuideSection} id="start-guide" aria-label="체대입시 첫 방문자 가이드">
-        <div className={`container ${styles.starterGuideInner}`}>
-          <div className={styles.starterGuideLead}>
-            <p className="eyebrow">START GUIDE</p>
-            <h2>처음 왔다면 세 가지만 먼저 고르세요.</h2>
-            <p>
-              모든 자료를 한 번에 읽으려 하지 않아도 됩니다. 목표 지역, 수시·정시,
-              현재 실기 종목을 기준으로 후보를 줄이면 다음 행동이 명확해집니다.
-            </p>
-          </div>
-          <div className={styles.starterGuideCards}>
-            {starterGuideCards.map((card) => (
-              <article key={card.label}>
-                <span>{card.label}</span>
-                <strong>{card.title}</strong>
-                <p>{card.text}</p>
-              </article>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -515,47 +400,27 @@ export default function PeExamPage() {
       </section>
 
       <section className={`section ${styles.trainingManagementSection}`} id="training-management">
-        <div className={`container ${styles.trainingManagementLayout}`}>
+        <div className={`container ${styles.trainingCompactLayout}`}>
           <div className={styles.trainingManagementLead}>
             <p className="eyebrow">TRAINING MANAGEMENT</p>
-            <h2>대학을 찾았다면, 이제 실기 기록을 올릴 차례입니다.</h2>
+            <h2>정보를 찾았다면,<br />기록을 올릴 차례입니다.</h2>
             <p>
-              대학 정보는 출발점입니다. 현재 기록을 정확히 보고 종목별 약점을 훈련으로 바꾸며,
-              코치 피드백과 기록 변화를 쌓는 과정이 RePERFORMANCE의 핵심입니다.
+              실기 기록 추적, 종목별 우선순위, 코치 피드백을 한 흐름으로 연결합니다.
             </p>
             <Link className="button dark" href="/apply?service=pe-exam">
               기록 상담 신청하기
             </Link>
           </div>
 
-          <div className={styles.trainingPreviewPanel} aria-label="실기 관리 프리뷰">
-            <div className={styles.trainingPreviewHeader}>
-              <span>관리 개념 미리보기</span>
-              <strong>현재 기록에서 다음 목표까지.</strong>
-            </div>
-            <div className={styles.trainingPreviewRows}>
-              {trainingPreviewRows.map(([event, current, goal, feedback]) => (
-                <div key={event}>
-                  <strong>{event}</strong>
-                  <span>{current}</span>
-                  <span>{goal}</span>
-                  <span>{feedback}</span>
-                </div>
-              ))}
-            </div>
-            <p>
-              학생별 실제 기록, 수업 피드백, 세부 훈련 메모는 공개하지 않으며 상담 이후 필요한 경우에만 별도 관리합니다.
-            </p>
+          <div className={styles.trainingCompactSteps} aria-label="실기 관리 흐름">
+            {trainingPreviewCards.slice(0, 3).map((card, index) => (
+              <article key={card.title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{card.title}</strong>
+                <p>{card.text}</p>
+              </article>
+            ))}
           </div>
-        </div>
-
-        <div className={`container ${styles.trainingCardGrid}`}>
-          {trainingPreviewCards.map((card) => (
-            <article key={card.title}>
-              <strong>{card.title}</strong>
-              <p>{card.text}</p>
-            </article>
-          ))}
         </div>
       </section>
 
@@ -586,7 +451,11 @@ export default function PeExamPage() {
         </div>
       </section>
 
-      <section className={`section ${styles.timelineSection}`} id="timeline">
+      <details className={`${styles.guideDisclosure} ${styles.timelineSection}`} id="guide-index">
+        <summary>
+          <span><small>2026 ADMISSION FLOW</small><strong>2026 일정과 공식 확인 경로</strong></span>
+          <em>필요할 때 펼쳐보기</em>
+        </summary>
         <div className={`container ${styles.timelineLayout}`}>
           <div className={styles.timelineIntro}>
             <p className="eyebrow light-text">2026 ADMISSION FLOW</p>
@@ -622,9 +491,13 @@ export default function PeExamPage() {
             </div>
           </div>
         </div>
-      </section>
+      </details>
 
-      <section className={`section ${styles.universitySection}`} id="universities">
+      <details className={`${styles.guideDisclosure} ${styles.universitySection}`} id="universities">
+        <summary>
+          <span><small>REGIONAL UNIVERSITY GUIDE</small><strong>지역별 대학과 공식 자료 범위</strong></span>
+          <em>권역을 고를 때 펼쳐보기</em>
+        </summary>
         <div className="container">
           <div className={styles.sectionHead}>
             <p className="eyebrow">UNIVERSITY GUIDE</p>
@@ -788,83 +661,28 @@ export default function PeExamPage() {
             <p>{catalogMeta.note}</p>
           </div>
         </div>
-      </section>
+      </details>
 
-      <section className={`section ${styles.roadmapSection}`} id="roadmap">
+      <section className={styles.peActionIndex} aria-label="체대입시 다음 경로">
         <div className="container">
-          <div className={styles.sectionHead}>
-            <p className="eyebrow">PREPARATION ROADMAP</p>
-            <h2>자료 확인 뒤에는 개인별 준비 방향을 분리합니다.</h2>
-            <p>
-              공개 자료는 출발점입니다. 실제 준비 방향은 현재 기록, 학업 상황, 남은 기간,
-              희망 대학을 놓고 상담에서 정리합니다.
-            </p>
-          </div>
-
-          <ol className={styles.roadmapList}>
-            {roadmapSteps.map(([number, title, text]) => (
-              <li key={number}>
-                <strong>{number}</strong>
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className={`section ${styles.faqPreviewSection}`}>
-        <div className={`container ${styles.faqPreviewLayout}`}>
           <div>
-            <p className="eyebrow">FAQ</p>
-            <h2>자주 묻는 질문은 전용 페이지에서 이어집니다.</h2>
-            <p>
-              기존 FAQ는 유지하되, 질문을 더 남기고 싶은 회원은 로그인 후 FAQ 페이지에서
-              직접 질문을 보낼 수 있습니다.
-            </p>
-            <Link className="button secondary" href="/pe-exam/faq">
-              FAQ 전체 보기
+            <p className="eyebrow">CHOOSE THE NEXT STEP</p>
+            <h2>더 읽기보다, 다음 행동을 고르세요.</h2>
+          </div>
+          <nav>
+            <Link href="/pe-exam/faq">
+              <span>01</span><strong>FAQ 확인</strong><small>자주 묻는 질문만 짧게</small><em>→</em>
             </Link>
-          </div>
-
-          <div className={styles.faqList}>
-            {faqPreview.map(([question, answer]) => (
-              <details key={question}>
-                <summary>{question}</summary>
-                <p>{answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className={`section ${styles.aiSection}`} id="ai-consult">
-        <div className={`container ${styles.aiLayout}`}>
-          <div>
-            <p className="eyebrow light-text">CONSULTATION PREP</p>
-            <h2>AI 입시 상담은 합격 예측이 아니라 상담 준비를 돕는 기능입니다.</h2>
-            <p>
-              도입 예정인 AI 기능은 목표 대학, 현재 기록, 질문 목록, 확인해야 할 자료를 정리하는 보조 도구입니다.
-              합격 여부를 판정하거나 공식 입시 결과를 대신 예측하는 방식으로 운영하지 않습니다.
-            </p>
-          </div>
-
-          <aside className={styles.aiPanel} aria-label="AI 입시 상담 예정 입력 항목">
-            <strong>도입 예정 입력 항목</strong>
-            <div>
-              {aiFields.map((field) => (
-                <span key={field}>{field}</span>
-              ))}
-            </div>
-            <ul className={styles.aiGuardrailList}>
-              {aiGuardrails.map((guardrail) => (
-                <li key={guardrail}>{guardrail}</li>
-              ))}
-            </ul>
-            <Link className="button primary" href="/pe-exam/ai-consult">
-              AI 상담 방향 가이드
+            <Link href="/pe-exam/ai-consult">
+              <span>02</span><strong>AI 상담 준비</strong><small>합격 예측이 아닌 질문·기록 정리</small><em>→</em>
             </Link>
-          </aside>
+            <Link href="/apply?service=pe-exam">
+              <span>03</span><strong>코치 상담 신청</strong><small>현재 기록과 훈련 방향 연결</small><em>→</em>
+            </Link>
+          </nav>
+          <p className={styles.peActionGuardrail}>
+            AI는 합격 여부를 판정하거나 공식 입시 결과를 예측하지 않으며 실제 코치 상담을 준비하는 보조 자료로만 사용합니다.
+          </p>
         </div>
       </section>
 
