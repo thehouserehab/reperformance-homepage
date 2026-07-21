@@ -38,14 +38,6 @@ const trackOptions = [
   { value: "regular", label: "정시만" },
 ];
 
-const gradeOptions = [
-  { value: "all", label: "등급대 전체" },
-  { value: "grade-1-2", label: "1~2등급대" },
-  { value: "grade-3", label: "3등급대" },
-  { value: "grade-4", label: "4등급대" },
-  { value: "grade-5-plus", label: "5등급 이하" },
-];
-
 const sexOptions = [
   { value: "", label: "성별 선택" },
   { value: "male", label: "남자 기준" },
@@ -146,6 +138,67 @@ function formatRecordGap(comparison) {
   return `${formattedDifference}${unitLabels[standard.unit]} 단축 필요`;
 }
 
+function parseNumericInput(value, min, max) {
+  if (String(value || "").trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
+}
+
+function getAcademicComparison(card, averagePercentile, englishGrade, trackFilter) {
+  if (trackFilter === "early") return null;
+  const percentile = parseNumericInput(averagePercentile, 0, 100);
+  const english = parseNumericInput(englishGrade, 1, 9);
+  if (percentile === null && english === null) return null;
+
+  const comparisons = (card.regularResultReferences || [])
+    .map((reference) => {
+      const percentileGap = percentile !== null && reference.percentile70 !== null
+        ? percentile - reference.percentile70
+        : null;
+      const englishGap = english !== null && reference.englishGrade70 !== null
+        ? reference.englishGrade70 - english
+        : null;
+      const distances = [
+        percentileGap === null ? null : Math.abs(percentileGap) / 10,
+        englishGap === null ? null : Math.abs(englishGap),
+      ].filter((value) => value !== null);
+
+      if (!distances.length) return null;
+      return {
+        reference,
+        percentileGap,
+        englishGap,
+        coveredCount: distances.length,
+        distance: distances.reduce((sum, value) => sum + value, 0) / distances.length,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.coveredCount - a.coveredCount || a.distance - b.distance);
+
+  return comparisons[0] || null;
+}
+
+function getAcademicComparisonLabel(comparison) {
+  const margins = [
+    comparison.percentileGap === null ? null : comparison.percentileGap / 5,
+    comparison.englishGap === null ? null : comparison.englishGap,
+  ].filter((value) => value !== null);
+
+  if (margins.every((value) => value >= 0) && margins.some((value) => value > 0)) {
+    return "공개 70% 참고값 상회";
+  }
+  if (margins.every((value) => value >= -1)) return "공개 70% 참고값 근접";
+  return "공개 70% 참고값과 차이 있음";
+}
+
+function formatSignedGap(value, unit) {
+  if (value === null) return "입력 없음";
+  if (value === 0) return "참고값과 동일";
+  const absolute = Math.abs(value).toFixed(unit === "백분위" ? 1 : 0).replace(/\.0$/, "");
+  if (unit === "등급") return `${absolute}${unit} ${value > 0 ? "유리" : "불리"}`;
+  return `${absolute}${unit} ${value > 0 ? "높음" : "낮음"}`;
+}
+
 export default function PeExamHomeSearchClient(props) {
   const { cards = [], practicalOptions = [], recordOptions = [], regionOptions = [] } = props;
   const [searchMode, setSearchMode] = useState("school");
@@ -153,8 +206,9 @@ export default function PeExamHomeSearchClient(props) {
   const [dataFilter, setDataFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
   const [trackFilter, setTrackFilter] = useState("all");
-  const [gradeFilter, setGradeFilter] = useState("all");
   const [includePractical, setIncludePractical] = useState("all");
+  const [averagePercentile, setAveragePercentile] = useState("");
+  const [englishGrade, setEnglishGrade] = useState("");
   const [applicantSex, setApplicantSex] = useState("");
   const [records, setRecords] = useState([{ id: 1, eventId: "standing-long-jump", value: "" }]);
   const [resultLimit, setResultLimit] = useState(INITIAL_RESULT_LIMIT);
@@ -162,6 +216,10 @@ export default function PeExamHomeSearchClient(props) {
   const includePracticalKey = includePractical === "all" ? "" : normalizePracticalKey(includePractical);
   const enteredRecordCount = records.filter((record) => Number(record.value) > 0).length;
   const recordComparisonActive = Boolean(applicantSex && enteredRecordCount);
+  const academicProfileActive = Boolean(
+    parseNumericInput(averagePercentile, 0, 100) !== null
+    || parseNumericInput(englishGrade, 1, 9) !== null,
+  );
 
   function resetRecords() {
     setApplicantSex("");
@@ -173,8 +231,9 @@ export default function PeExamHomeSearchClient(props) {
     setDataFilter("all");
     setRegionFilter("all");
     setTrackFilter("all");
-    setGradeFilter("all");
     setIncludePractical("all");
+    setAveragePercentile("");
+    setEnglishGrade("");
     resetRecords();
     setResultLimit(INITIAL_RESULT_LIMIT);
   }
@@ -219,8 +278,9 @@ export default function PeExamHomeSearchClient(props) {
     if (nextMode === "school") {
       setRegionFilter("all");
       setTrackFilter("all");
-      setGradeFilter("all");
       setIncludePractical("all");
+      setAveragePercentile("");
+      setEnglishGrade("");
       resetRecords();
       return;
     }
@@ -235,6 +295,15 @@ export default function PeExamHomeSearchClient(props) {
     );
   }, [applicantSex, cards, records, trackFilter]);
 
+  const academicComparisonByCardKey = useMemo(() => {
+    return new Map(
+      cards.map((card) => [
+        card.key,
+        getAcademicComparison(card, averagePercentile, englishGrade, trackFilter),
+      ]),
+    );
+  }, [averagePercentile, cards, englishGrade, trackFilter]);
+
   const filteredCards = useMemo(() => {
     const matches = cards.filter((card) => {
       const cardPracticalKeys = getCardPracticalKeys(card);
@@ -242,19 +311,23 @@ export default function PeExamHomeSearchClient(props) {
       const matchesData = dataFilter === "all" || Boolean(card.flags?.[dataFilter]);
       const matchesRegion = regionFilter === "all" || card.regionSlug === regionFilter;
       const matchesTrack = trackFilter === "all" || Boolean(card.flags?.[trackFilter]);
-      const matchesGrade = gradeFilter === "all" || (card.gradeBands || []).includes(gradeFilter);
       const matchesIncludedPractical =
         !includePracticalKey ||
         cardPracticalKeys.some((key) => key.includes(includePracticalKey) || includePracticalKey.includes(key));
-      return matchesQuery && matchesData && matchesRegion && matchesTrack && matchesGrade && matchesIncludedPractical;
+      return matchesQuery && matchesData && matchesRegion && matchesTrack && matchesIncludedPractical;
     });
 
-    if (!recordComparisonActive) return matches;
+    if (!recordComparisonActive && !academicProfileActive) return matches;
 
     return [...matches].sort((a, b) => {
+      const aAcademic = academicComparisonByCardKey.get(a.key);
+      const bAcademic = academicComparisonByCardKey.get(b.key);
       const aComparison = comparisonByCardKey.get(a.key);
       const bComparison = comparisonByCardKey.get(b.key);
       return (
+        Number(Boolean(bAcademic)) - Number(Boolean(aAcademic)) ||
+        (bAcademic?.coveredCount || 0) - (aAcademic?.coveredCount || 0) ||
+        (aAcademic?.distance ?? Number.POSITIVE_INFINITY) - (bAcademic?.distance ?? Number.POSITIVE_INFINITY) ||
         Number(Boolean(bComparison)) - Number(Boolean(aComparison)) ||
         (bComparison?.coveredCount || 0) - (aComparison?.coveredCount || 0) ||
         (bComparison?.metCount || 0) - (aComparison?.metCount || 0) ||
@@ -262,10 +335,11 @@ export default function PeExamHomeSearchClient(props) {
       );
     });
   }, [
+    academicComparisonByCardKey,
+    academicProfileActive,
     cards,
     comparisonByCardKey,
     dataFilter,
-    gradeFilter,
     includePracticalKey,
     normalizedQuery,
     recordComparisonActive,
@@ -278,21 +352,25 @@ export default function PeExamHomeSearchClient(props) {
     : Boolean(
         regionFilter !== "all" ||
         trackFilter !== "all" ||
-        gradeFilter !== "all" ||
         includePractical !== "all" ||
+        academicProfileActive ||
         enteredRecordCount,
       );
   const visibleCards = hasStartedSearch ? filteredCards.slice(0, resultLimit) : [];
   const verifiedComparisonCount = recordComparisonActive
     ? filteredCards.filter((card) => comparisonByCardKey.get(card.key)).length
     : 0;
+  const academicComparisonCount = academicProfileActive && trackFilter !== "early"
+    ? filteredCards.filter((card) => academicComparisonByCardKey.get(card.key)).length
+    : 0;
   const hasActiveFilters =
     query ||
     dataFilter !== "all" ||
     regionFilter !== "all" ||
     trackFilter !== "all" ||
-    gradeFilter !== "all" ||
     includePractical !== "all" ||
+    averagePercentile ||
+    englishGrade ||
     applicantSex ||
     enteredRecordCount;
 
@@ -369,15 +447,6 @@ export default function PeExamHomeSearchClient(props) {
             </label>
 
             <label className={styles.homeSearchSelectLabel}>
-              <span>공개 자료에서 확인할 등급대</span>
-              <select value={gradeFilter} onChange={(event) => updateFilter(setGradeFilter, event.target.value)}>
-                {gradeOptions.map((grade) => (
-                  <option key={grade.value} value={grade.value}>{grade.label}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className={styles.homeSearchSelectLabel}>
               <span>포함 실기</span>
               <select value={includePractical} onChange={(event) => updateFilter(setIncludePractical, event.target.value)}>
                 <option value="all">전체 종목</option>
@@ -386,6 +455,36 @@ export default function PeExamHomeSearchClient(props) {
                 ))}
               </select>
             </label>
+
+            <div className={styles.homeSearchAcademicGroup}>
+              <label className={styles.homeSearchSelectLabel}>
+                <span>내 수능 평균 백분위</span>
+                <input
+                  inputMode="decimal"
+                  max="100"
+                  min="0"
+                  onChange={(event) => updateFilter(setAveragePercentile, event.target.value)}
+                  placeholder="예: 72.5"
+                  step="0.1"
+                  type="number"
+                  value={averagePercentile}
+                />
+              </label>
+              <label className={styles.homeSearchSelectLabel}>
+                <span>내 영어 등급</span>
+                <input
+                  inputMode="numeric"
+                  max="9"
+                  min="1"
+                  onChange={(event) => updateFilter(setEnglishGrade, event.target.value)}
+                  placeholder="1~9"
+                  step="1"
+                  type="number"
+                  value={englishGrade}
+                />
+              </label>
+              <p>입력값은 카드에 표시된 공식 결과연도의 모집단위별 70% 참고값과만 대조합니다.</p>
+            </div>
           </div>
 
           <details className={styles.homeRecordDisclosure}>
@@ -460,6 +559,7 @@ export default function PeExamHomeSearchClient(props) {
         <div className={styles.homeSearchResultBar}>
           <p className={styles.homeSearchMeta}>
             {searchMode === "condition" ? "조건 일치 후보" : "검색 결과"} {filteredCards.length}개
+            {academicProfileActive ? ` · 공식 입결 비교 가능 ${academicComparisonCount}개` : ""}
             {recordComparisonActive ? ` · 공식 기록 비교 가능 ${verifiedComparisonCount}개` : ""}
           </p>
           {hasActiveFilters ? <button onClick={resetFilters} type="button">필터 초기화</button> : null}
@@ -472,10 +572,11 @@ export default function PeExamHomeSearchClient(props) {
         </div>
       )}
 
-      {hasStartedSearch && gradeFilter !== "all" ? (
+      {hasStartedSearch && academicProfileActive ? (
         <p className={styles.searchSummaryNotice}>
-          선택한 등급대가 공개 입결·등급 자료에서 확인되는 대학만 표시합니다. 이는 지원 가능성이나 합격을 예측한 결과가
-          아니며, 모집연도와 전형별 공식 자료를 반드시 함께 확인해야 합니다.
+          {trackFilter === "early"
+            ? "현재 수시 공식 결과값은 동일한 기준으로 비교할 수 없어 성적 대조에 사용하지 않습니다. 정시 또는 전체 전형을 선택해 주세요."
+            : "ADIGA 정시 결과표의 모집단위별 70% 평균 백분위·영어등급과 가까운 대학을 먼저 표시합니다. 70% 값은 합격선이나 합격 확률이 아니며 모집연도·환산식·실기 결과에 따라 달라집니다."}
         </p>
       ) : null}
 
@@ -492,6 +593,7 @@ export default function PeExamHomeSearchClient(props) {
           <div className={styles.homeSearchGrid}>
             {visibleCards.map((card) => {
               const comparison = comparisonByCardKey.get(card.key);
+              const academicComparison = academicComparisonByCardKey.get(card.key);
               return (
                 <article className={styles.homeSearchCard} key={card.key}>
                   <div className={styles.homeSearchCardHead}>
@@ -507,6 +609,45 @@ export default function PeExamHomeSearchClient(props) {
                   </dl>
 
                   {card.preview ? <p className={styles.homeSearchPreview}>{card.preview}</p> : null}
+
+                  {academicProfileActive && trackFilter !== "early" ? (
+                    academicComparison ? (
+                      <div className={styles.academicComparisonCard}>
+                        <div>
+                          <span>정시 공식 입결 대조</span>
+                          <strong>{getAcademicComparisonLabel(academicComparison)}</strong>
+                        </div>
+                        <h4>{academicComparison.reference.unit}</h4>
+                        <dl>
+                          {academicComparison.reference.percentile70 !== null ? (
+                            <div>
+                              <dt>평균 백분위 70%</dt>
+                              <dd>{academicComparison.reference.percentile70}</dd>
+                              <small>{formatSignedGap(academicComparison.percentileGap, "백분위")}</small>
+                            </div>
+                          ) : null}
+                          {academicComparison.reference.englishGrade70 !== null ? (
+                            <div>
+                              <dt>영어 70%</dt>
+                              <dd>{academicComparison.reference.englishGrade70}등급</dd>
+                              <small>{formatSignedGap(academicComparison.englishGap, "등급")}</small>
+                            </div>
+                          ) : null}
+                        </dl>
+                        <p>
+                          {academicComparison.reference.resultYear}학년도 {academicComparison.reference.group}
+                          {academicComparison.reference.competitionRate
+                            ? ` · 경쟁률 ${academicComparison.reference.competitionRate}:1`
+                            : ""}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className={styles.verifiedComparisonUnavailable}>
+                        <strong>비교 가능한 정시 70% 결과 없음</strong>
+                        <span>정시 상세의 공식 자료 링크에서 대학별 환산 방식과 입시결과를 확인해 주세요.</span>
+                      </div>
+                    )
+                  ) : null}
 
                   {recordComparisonActive ? (
                     comparison ? (

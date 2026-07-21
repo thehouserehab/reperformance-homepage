@@ -89,13 +89,6 @@ const trainingPreviewCards = [
   },
 ] as const;
 
-const gradeBandLabels = {
-  "grade-1-2": "1~2등급대",
-  "grade-3": "3등급대",
-  "grade-4": "4등급대",
-  "grade-5-plus": "5등급 이하",
-} as const;
-
 function getSchoolDisplayName(school: (typeof peExamRegionDetails)[number]["universities"][number]) {
   return `${school.name}${school.campus ? ` ${school.campus}` : ""}`;
 }
@@ -112,24 +105,10 @@ function compactPracticalItem(item: string) {
     .trim();
 }
 
-function getGradeBand(value: number) {
-  if (value <= 2.49) return "grade-1-2";
-  if (value <= 3.49) return "grade-3";
-  if (value <= 4.49) return "grade-4";
-  return "grade-5-plus";
-}
-
-function extractGradeBands(texts: string[]) {
-  const bands = new Set<string>();
-
-  for (const text of texts) {
-    for (const match of text.matchAll(/(\d+(?:\.\d+)?)\s*등급/g)) {
-      const value = Number(match[1]);
-      if (Number.isFinite(value) && value >= 1 && value <= 9) bands.add(getGradeBand(value));
-    }
-  }
-
-  return [...bands];
+function parseOfficialNumber(value: string | number | undefined, min: number, max: number) {
+  if (String(value ?? "").trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : null;
 }
 
 const commonUniversityAliases: Record<string, string[]> = {
@@ -219,27 +198,20 @@ const universitySearchCards = peExamRegionDetails
       ).slice(0, 12);
       const practicalPreview = uniqueItems([...earlyPracticalItems, ...regularPracticalItems]).slice(0, 3);
       const earlyGradeCount = school.earlyAdmissions.filter((admission) => admission.hasGradeDetail).length;
-      const regularResultCount = school.regularSelectionDetail?.resultRows.length || 0;
-      const gradeTexts = [
-        ...school.earlyAdmissions.flatMap((admission) => [
-          admission.gradeSummary,
-          admission.minimumCriteriaSummary,
-          admission.elementSummary,
-        ]),
-        ...school.regularAdmissions.flatMap((admission) => [
-          admission.gradeSummary,
-          admission.method,
-          admission.unitSummary,
-        ]),
-        ...(school.regularSelectionDetail?.resultRows || []).flatMap((row) => [
-          row.note,
-          row.englishGrade70 ? `${row.englishGrade70}등급` : "",
-        ]),
-        ...(school.regularSelectionDetail?.resultHighlights || []),
-      ];
-      const gradeBands = extractGradeBands(gradeTexts);
-      const gradePreview = gradeBands.length
-        ? gradeBands.map((band) => gradeBandLabels[band as keyof typeof gradeBandLabels]).join(" · ")
+      const regularResultReferences = (school.regularSelectionDetail?.resultRows || [])
+        .map((row) => ({
+          unit: row.unit,
+          group: row.group,
+          title: row.title,
+          percentile70: parseOfficialNumber(row.percentileAverage70, 0, 100),
+          englishGrade70: parseOfficialNumber(row.englishGrade70, 1, 9),
+          competitionRate: row.competitionRate,
+          resultYear: adigaRegularSelectionMeta.resultYear,
+        }))
+        .filter((row) => row.percentile70 !== null || row.englishGrade70 !== null);
+      const regularResultCount = regularResultReferences.length;
+      const resultPreview = regularResultCount
+        ? `${adigaRegularSelectionMeta.resultYear} 결과 ${regularResultCount}개`
         : "공식 확인";
       const practicalCount = school.earlyAdmissions.filter(
         (admission) =>
@@ -267,10 +239,10 @@ const universitySearchCards = peExamRegionDetails
           { label: "수시", value: `${school.earlyAdmissions.length}개` },
           { label: "정시", value: `${school.regularAdmissions.length}개` },
           { label: "실기", value: practicalCount ? `${practicalCount}개` : "확인" },
-          { label: "등급·입결", value: gradePreview },
+          { label: "공식 입결", value: resultPreview },
         ],
         practicalItems: practicalFilterItems,
-        gradeBands,
+        regularResultReferences,
         searchText: [
           name,
           school.name,
@@ -281,7 +253,10 @@ const universitySearchCards = peExamRegionDetails
           searchKeywords.join(" "),
           practicalPreview.join(" "),
           practicalFilterItems.join(" "),
-          gradePreview,
+          resultPreview,
+          regularResultReferences
+            .map((row) => `${row.unit} ${row.percentile70 ?? ""} ${row.englishGrade70 ?? ""}`)
+            .join(" "),
         ].join(" "),
         aliases: searchKeywords,
         verifiedStandards: getVerifiedPracticalStandards(school.code),

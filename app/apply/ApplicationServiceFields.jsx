@@ -83,11 +83,7 @@ export default function ApplicationServiceFields({
             />
           </label>
         </div>
-      ) : (
-        <p className={styles.serviceSpecificNotice} aria-live="polite">
-          선택한 서비스에는 체대입시 정보가 필요하지 않습니다. 기본 상담 정보만 입력하면 됩니다.
-        </p>
-      )}
+      ) : null}
     </section>
   );
 }

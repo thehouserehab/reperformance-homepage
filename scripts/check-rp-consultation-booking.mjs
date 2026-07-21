@@ -73,6 +73,7 @@ const serviceFields = read('app/apply/ApplicationServiceFields.jsx');
 assert.ok(serviceFields.includes("selectedService === 'pe-exam'"));
 assert.ok(serviceFields.includes('name="peExamTargetUniversities"'));
 assert.ok(serviceFields.includes('모두 선택 입력'));
+assert.ok(!serviceFields.includes('체대입시 정보가 필요하지 않습니다'));
 
 const parqFields = read('app/apply/ParqSafetyScreening.jsx');
 assert.ok(parqFields.includes('name="parqScreening"'));

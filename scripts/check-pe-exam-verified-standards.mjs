@@ -70,6 +70,7 @@ assert.ok(knsuStandards.some((item) => item.eventId === 'standing-long-jump'));
 assert.ok(yonginStandards.some((item) => item.eventId === 'standing-long-jump'));
 
 const clientSource = fs.readFileSync(path.join(root, 'app/pe-exam/PeExamHomeSearchClient.jsx'), 'utf8');
+const hubSource = fs.readFileSync(path.join(root, 'app/pe-exam/page.tsx'), 'utf8');
 const detailSource = fs.readFileSync(
   path.join(root, 'app/pe-exam/universities/[region]/[track]/[school]/page.tsx'),
   'utf8',
@@ -85,7 +86,15 @@ const departmentClientSource = fs.readFileSync(
 assert.ok(clientSource.includes('성별과 측정 방식이 일치하는 공식 만점표만 계산에 사용합니다.'));
 assert.ok(clientSource.includes('getStandardComparison'));
 assert.ok(clientSource.includes('recordComparisonActive'));
+assert.ok(clientSource.includes('getAcademicComparison'));
+assert.ok(clientSource.includes('내 수능 평균 백분위'));
+assert.ok(clientSource.includes('내 영어 등급'));
+assert.ok(clientSource.includes('70% 값은 합격선이나 합격 확률이 아니며'));
+assert.ok(!clientSource.includes('gradeOptions'));
 assert.ok(!clientSource.includes('currentRecord'));
+assert.ok(hubSource.includes('regularResultReferences'));
+assert.ok(hubSource.includes('percentileAverage70'));
+assert.ok(hubSource.includes('englishGrade70'));
 assert.ok(detailSource.includes('getVerifiedPracticalStandards'));
 assert.ok(detailSource.includes('모집단위를 선택해 필요한 정보만 확인하세요'));
 assert.ok(departmentSource.includes('getVerifiedPracticalStandards'));

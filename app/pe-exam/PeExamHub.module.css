@@ -6459,6 +6459,119 @@
   color: #fff;
 }
 
+.homeSearchAcademicGroup {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+  border-left: 4px solid #0d7464;
+  background: #f0f5f2;
+}
+
+.homeSearchAcademicGroup .homeSearchSelectLabel input {
+  border-radius: 3px;
+  background: #fff;
+}
+
+.homeSearchAcademicGroup > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #5d6862;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.academicComparisonCard {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 15px 16px;
+  border-top: 1px solid #bfcfc8;
+  border-bottom: 1px solid #bfcfc8;
+  background: #eef5f1;
+}
+
+.academicComparisonCard > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.academicComparisonCard > div:first-child span {
+  color: #0d7464;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.academicComparisonCard > div:first-child strong {
+  color: #10241f;
+  font-size: 13px;
+}
+
+.academicComparisonCard h4,
+.academicComparisonCard p {
+  margin: 0;
+}
+
+.academicComparisonCard h4 {
+  overflow-wrap: anywhere;
+  color: #07110e;
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.academicComparisonCard dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: #cbd8d2;
+}
+
+.academicComparisonCard dl > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 11px 12px;
+  background: #fff;
+}
+
+.academicComparisonCard dt {
+  color: #617069;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.academicComparisonCard dd {
+  margin: 0;
+  color: #0d1d19;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.academicComparisonCard small,
+.academicComparisonCard p {
+  color: #68736d;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+@media (max-width: 620px) {
+  .homeSearchAcademicGroup,
+  .academicComparisonCard dl {
+    grid-template-columns: 1fr;
+  }
+
+  .homeSearchAcademicGroup > p {
+    grid-column: 1;
+  }
+}
+
 .officialStandardHead {
   display: flex;
   align-items: flex-end;
