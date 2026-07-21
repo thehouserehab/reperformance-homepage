@@ -112,8 +112,17 @@ const appsScriptSource = read('integrations/google-apps-script/Code.gs');
 assert.ok(appsScriptSource.includes("action === 'sendApplicationNotification'"));
 assert.ok(appsScriptSource.includes("getProperty('RP_NOTIFICATION_EMAIL')"));
 assert.ok(appsScriptSource.includes('MailApp.sendEmail'));
+assert.ok(appsScriptSource.includes('verifyRpNotificationSetup'));
+assert.ok(appsScriptSource.includes('sendRpNotificationTest'));
 assert.ok(appsScriptSource.includes('request body omitted'));
+assert.ok(!appsScriptSource.includes('DEFAULT_SECRET'));
 assert.ok(!appsScriptSource.includes("logApi_('POST', 'ERROR', err.message, e && e.postData"));
+
+const notificationCheckSource = read('scripts/check-rp-application-notification.mjs');
+assert.ok(notificationCheckSource.includes('RP_APPLICATION_NOTIFICATION_TEST_CONFIRM'));
+assert.ok(notificationCheckSource.includes('SEND_ONE_MASKED_TEST'));
+assert.ok(!notificationCheckSource.includes('phone'));
+assert.ok(!notificationCheckSource.includes('parq'));
 
 for (const source of [
   read('app/api/rp/consultation-slots/route.js'),

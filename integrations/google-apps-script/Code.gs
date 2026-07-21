@@ -1,15 +1,15 @@
 /**
- * RePERFORMANCE Owner Workspace V2 - Google Sheets Bridge
- * Install:
- * 1) Copy this file into Apps Script and set SPREADSHEET_ID.
- * 2) Replace DEFAULT_SECRET with a newly generated secret.
- * 3) Run setupRPV2(), setRpApiSecretOnce(), and setRpNotificationEmail('owner@example.com') once.
+ * RePERFORMANCE Owner Workspace V2 - Google Sheets and Gmail Bridge
+ * Gmail notification only:
+ * 1) Copy this file into Apps Script.
+ * 2) In Project Settings > Script Properties, add RP_API_SECRET and RP_NOTIFICATION_EMAIL.
+ * 3) Run verifyRpNotificationSetup(), then optionally sendRpNotificationTest().
  * 4) Deploy as Web App: Execute as Me / Access: Anyone with link.
+ * Google Sheets backup is separate and additionally requires SPREADSHEET_ID and setupRPV2().
  */
 
 const RP_CONFIG = {
   SPREADSHEET_ID: 'CHANGE_THIS_TO_SPREADSHEET_ID',
-  DEFAULT_SECRET: 'CHANGE_THIS_TO_A_LONG_RANDOM_SECRET',
   SHEETS: {
     dashboard: 'Dashboard',
     leads: 'Leads_상담',
@@ -76,18 +76,35 @@ function setupRPV2() {
   return { ok: true, message: 'RP V2 setup complete' };
 }
 
-function setRpApiSecretOnce() {
-  PropertiesService.getScriptProperties().setProperty('RP_API_SECRET', RP_CONFIG.DEFAULT_SECRET);
-  return 'RP_API_SECRET saved. Also add the same value to Vercel env RP_API_SECRET.';
+function verifyRpNotificationSetup() {
+  var properties = PropertiesService.getScriptProperties();
+  var secret = String(properties.getProperty('RP_API_SECRET') || '').trim();
+  var recipient = String(properties.getProperty('RP_NOTIFICATION_EMAIL') || '').trim().toLowerCase();
+  if (secret.length < 32) {
+    throw new Error('RP_API_SECRET must be set in Script Properties with at least 32 characters.');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
+    throw new Error('RP_NOTIFICATION_EMAIL must be set to a valid address in Script Properties.');
+  }
+  return {
+    ok: true,
+    secretConfigured: true,
+    recipientMasked: recipient.replace(/^(.{1,2}).*(@.*)$/, '$1***$2')
+  };
 }
 
-function setRpNotificationEmail(email) {
-  var normalizedEmail = String(email || '').trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-    throw new Error('Enter a valid notification email address.');
-  }
-  PropertiesService.getScriptProperties().setProperty('RP_NOTIFICATION_EMAIL', normalizedEmail);
-  return 'RP_NOTIFICATION_EMAIL saved in private Script Properties.';
+function sendRpNotificationTest() {
+  verifyRpNotificationSetup();
+  return sendApplicationNotification_({
+    event: 'service_application.created',
+    adminUrl: 'https://reperformance.the-house-exercise.com/admin/clients',
+    application: {
+      id: 'notification-test-' + new Date().getTime(),
+      serviceLabel: 'Gmail 알림 연동 테스트',
+      applicantNameMasked: '테**',
+      visitLabel: '테스트 일정 · 실제 상담 신청 아님'
+    }
+  });
 }
 
 function doGet(e) {
@@ -423,9 +440,9 @@ function yesNo_(v) {
 }
 
 function assertAuthorized_(token) {
-  const secret = PropertiesService.getScriptProperties().getProperty('RP_API_SECRET');
-  if (!secret || secret === 'CHANGE_THIS_TO_A_LONG_RANDOM_SECRET') {
-    throw new Error('RP_API_SECRET is not configured in Apps Script Properties. Run setRpApiSecretOnce() after changing DEFAULT_SECRET.');
+  const secret = String(PropertiesService.getScriptProperties().getProperty('RP_API_SECRET') || '').trim();
+  if (secret.length < 32) {
+    throw new Error('RP_API_SECRET is not configured in Apps Script Properties with at least 32 characters.');
   }
   if (!token || token !== secret) throw new Error('Unauthorized');
 }
