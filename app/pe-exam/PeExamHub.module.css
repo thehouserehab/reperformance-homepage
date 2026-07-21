@@ -6493,6 +6493,165 @@
   background: #eef5f1;
 }
 
+.applicantComparisonSummary {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 12px 16px;
+  align-items: center;
+  min-width: 0;
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid #bfcfc8;
+  background: #f4f7f5;
+}
+
+.applicantComparisonScore {
+  display: grid;
+  place-content: center;
+  min-height: 78px;
+  padding: 8px;
+  background: #0d1d19;
+  color: #fff;
+  text-align: center;
+}
+
+.applicantComparisonScore span {
+  color: #b9c9c2;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.applicantComparisonScore strong {
+  font-size: 31px;
+  line-height: 1.1;
+}
+
+.applicantComparisonScore small {
+  color: #b9c9c2;
+  font-size: 11px;
+}
+
+.applicantComparisonMeaning {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.applicantComparisonMeaning strong {
+  overflow-wrap: anywhere;
+  color: #10241f;
+  font-size: 16px;
+}
+
+.applicantComparisonMeaning span {
+  overflow-wrap: anywhere;
+  color: #66736d;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.applicantComparisonSummary dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  min-width: 0;
+  margin: 0;
+  background: #cbd8d2;
+}
+
+.applicantComparisonSummary dl > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 11px;
+  background: #fff;
+}
+
+.applicantComparisonSummary dt {
+  color: #68736d;
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.applicantComparisonSummary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #0d1d19;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.applicantComparisonSummary dl small {
+  color: #68736d;
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.applicantComparisonSummary > p {
+  grid-column: 2 / -1;
+  margin: -4px 0 0;
+  color: #68736d;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.comparisonEvidenceDetails {
+  margin-top: 10px;
+  border-top: 1px solid #d7ded9;
+  border-bottom: 1px solid #d7ded9;
+}
+
+.comparisonEvidenceDetails summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  padding: 10px 2px;
+  color: #263630;
+  cursor: pointer;
+  list-style: none;
+}
+
+.comparisonEvidenceDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.comparisonEvidenceDetails summary span {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.comparisonEvidenceDetails summary strong {
+  color: #0d7464;
+  font-size: 11px;
+}
+
+.comparisonEvidenceDetails summary::after {
+  content: "+";
+  color: #0d1d19;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.comparisonEvidenceDetails[open] summary::after {
+  content: "−";
+}
+
+.comparisonEvidenceBody {
+  display: grid;
+  gap: 10px;
+  padding: 0 0 12px;
+}
+
+.comparisonEvidenceBody > .academicComparisonCard,
+.comparisonEvidenceBody > .verifiedComparisonCard,
+.comparisonEvidenceBody > .verifiedComparisonUnavailable {
+  margin-top: 0;
+}
+
 .academicComparisonCard > div:first-child {
   display: flex;
   flex-wrap: wrap;
@@ -6569,6 +6728,24 @@
 
   .homeSearchAcademicGroup > p {
     grid-column: 1;
+  }
+
+  .applicantComparisonSummary {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px 12px;
+  }
+
+  .applicantComparisonScore {
+    min-height: 72px;
+  }
+
+  .applicantComparisonSummary dl,
+  .applicantComparisonSummary > p {
+    grid-column: 1 / -1;
+  }
+
+  .applicantComparisonSummary > p {
+    margin-top: 0;
   }
 }
 

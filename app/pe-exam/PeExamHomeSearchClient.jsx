@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import styles from "./PeExamHub.module.css";
+import { createApplicantComparison, getCardPracticalComparison } from "./peExamComparison.mjs";
 
 function normalizeSearch(value) {
   return String(value || "")
@@ -61,63 +62,6 @@ function getCardPracticalKeys(card) {
 
 function getRecordUnit(recordOptions, eventId) {
   return recordOptions.find((option) => option.value === eventId)?.unit || "";
-}
-
-function isFullScoreMet(standard, value) {
-  if (standard.operator === "gte") return value >= standard.fullScoreThreshold;
-  if (standard.operator === "lte") return value <= standard.fullScoreThreshold;
-  return value < standard.fullScoreThreshold;
-}
-
-function getAttainment(standard, value) {
-  if (!Number.isFinite(value) || value <= 0) return 0;
-  if (standard.operator === "gte") return value / standard.fullScoreThreshold;
-  return standard.fullScoreThreshold / value;
-}
-
-function getStandardComparison(card, record, applicantSex, trackFilter) {
-  const value = Number(record.value);
-  if (!applicantSex || !record.eventId || !Number.isFinite(value) || value <= 0) return null;
-
-  const standards = (card.verifiedStandards || [])
-    .filter((standard) => standard.eventId === record.eventId)
-    .filter((standard) => standard.sex === applicantSex || standard.sex === "all")
-    .filter((standard) => trackFilter === "all" || standard.track === trackFilter)
-    .map((standard) => ({
-      standard,
-      value,
-      met: isFullScoreMet(standard, value),
-      attainment: getAttainment(standard, value),
-    }))
-    .sort((a, b) => Number(b.met) - Number(a.met) || b.attainment - a.attainment);
-
-  return standards[0] || null;
-}
-
-function getCardComparison(card, records, applicantSex, trackFilter) {
-  const enteredRecords = records.filter((record) => Number(record.value) > 0);
-  if (!applicantSex || !enteredRecords.length) return null;
-
-  const matches = enteredRecords
-    .map((record) => ({
-      record,
-      comparison: getStandardComparison(card, record, applicantSex, trackFilter),
-    }))
-    .filter((item) => item.comparison);
-
-  if (!matches.length) return null;
-
-  const metCount = matches.filter((item) => item.comparison.met).length;
-  const averageAttainment =
-    matches.reduce((sum, item) => sum + Math.min(item.comparison.attainment, 1.25), 0) / matches.length;
-
-  return {
-    enteredCount: enteredRecords.length,
-    coveredCount: matches.length,
-    metCount,
-    averageAttainment,
-    matches,
-  };
 }
 
 function formatThreshold(standard) {
@@ -291,7 +235,7 @@ export default function PeExamHomeSearchClient(props) {
 
   const comparisonByCardKey = useMemo(() => {
     return new Map(
-      cards.map((card) => [card.key, getCardComparison(card, records, applicantSex, trackFilter)]),
+      cards.map((card) => [card.key, getCardPracticalComparison(card, records, applicantSex, trackFilter)]),
     );
   }, [applicantSex, cards, records, trackFilter]);
 
@@ -303,6 +247,28 @@ export default function PeExamHomeSearchClient(props) {
       ]),
     );
   }, [averagePercentile, cards, englishGrade, trackFilter]);
+
+  const applicantComparisonByCardKey = useMemo(() => {
+    const academicRequested = academicProfileActive && trackFilter !== "early";
+    return new Map(
+      cards.map((card) => [
+        card.key,
+        createApplicantComparison({
+          academicComparison: academicComparisonByCardKey.get(card.key),
+          practicalComparison: comparisonByCardKey.get(card.key),
+          academicRequested,
+          practicalRequested: recordComparisonActive,
+        }),
+      ]),
+    );
+  }, [
+    academicComparisonByCardKey,
+    academicProfileActive,
+    cards,
+    comparisonByCardKey,
+    recordComparisonActive,
+    trackFilter,
+  ]);
 
   const filteredCards = useMemo(() => {
     const matches = cards.filter((card) => {
@@ -320,23 +286,26 @@ export default function PeExamHomeSearchClient(props) {
     if (!recordComparisonActive && !academicProfileActive) return matches;
 
     return [...matches].sort((a, b) => {
+      const aApplicant = applicantComparisonByCardKey.get(a.key);
+      const bApplicant = applicantComparisonByCardKey.get(b.key);
       const aAcademic = academicComparisonByCardKey.get(a.key);
       const bAcademic = academicComparisonByCardKey.get(b.key);
       const aComparison = comparisonByCardKey.get(a.key);
       const bComparison = comparisonByCardKey.get(b.key);
       return (
-        Number(Boolean(bAcademic)) - Number(Boolean(aAcademic)) ||
+        Number(Boolean(bApplicant)) - Number(Boolean(aApplicant)) ||
+        (bApplicant?.availableCount || 0) - (aApplicant?.availableCount || 0) ||
+        (bApplicant?.rankScore || 0) - (aApplicant?.rankScore || 0) ||
         (bAcademic?.coveredCount || 0) - (aAcademic?.coveredCount || 0) ||
-        (aAcademic?.distance ?? Number.POSITIVE_INFINITY) - (bAcademic?.distance ?? Number.POSITIVE_INFINITY) ||
-        Number(Boolean(bComparison)) - Number(Boolean(aComparison)) ||
-        (bComparison?.coveredCount || 0) - (aComparison?.coveredCount || 0) ||
         (bComparison?.metCount || 0) - (aComparison?.metCount || 0) ||
-        (bComparison?.averageAttainment || 0) - (aComparison?.averageAttainment || 0)
+        (bComparison?.averageAttainment || 0) - (aComparison?.averageAttainment || 0) ||
+        (aAcademic?.distance ?? Number.POSITIVE_INFINITY) - (bAcademic?.distance ?? Number.POSITIVE_INFINITY)
       );
     });
   }, [
     academicComparisonByCardKey,
     academicProfileActive,
+    applicantComparisonByCardKey,
     cards,
     comparisonByCardKey,
     dataFilter,
@@ -576,14 +545,16 @@ export default function PeExamHomeSearchClient(props) {
         <p className={styles.searchSummaryNotice}>
           {trackFilter === "early"
             ? "현재 수시 공식 결과값은 동일한 기준으로 비교할 수 없어 성적 대조에 사용하지 않습니다. 정시 또는 전체 전형을 선택해 주세요."
-            : "ADIGA 정시 결과표의 모집단위별 70% 평균 백분위·영어등급과 가까운 대학을 먼저 표시합니다. 70% 값은 합격선이나 합격 확률이 아니며 모집연도·환산식·실기 결과에 따라 달라집니다."}
+            : recordComparisonActive
+              ? "공식 정시 70% 입결과 공식 실기 만점 기준을 함께 비교해 상담 비교 지수가 높은 대학부터 표시합니다. 이 지수는 합격 확률이 아닙니다."
+              : "ADIGA 정시 결과표의 모집단위별 70% 평균 백분위·영어등급과 가까운 대학을 먼저 표시합니다. 70% 값은 합격선이나 합격 확률이 아니며 모집연도·환산식·실기 결과에 따라 달라집니다."}
         </p>
       ) : null}
 
-      {hasStartedSearch && recordComparisonActive ? (
+      {hasStartedSearch && recordComparisonActive && (!academicProfileActive || trackFilter === "early") ? (
         <div className={styles.homeSearchRecordSummary}>
           <span>정렬 기준</span>
-          <strong>공식 만점표가 연결된 대학을 먼저 표시합니다.</strong>
+          <strong>입력 기록과 공식 만점 기준을 비교해 가까운 대학부터 표시합니다.</strong>
           <p>같은 종목명이라도 거리·장비·측정 방식이 다르면 별도 종목으로 처리합니다. 결과는 훈련 목표 비교이며 합격 판정이 아닙니다.</p>
         </div>
       ) : null}
@@ -594,6 +565,7 @@ export default function PeExamHomeSearchClient(props) {
             {visibleCards.map((card) => {
               const comparison = comparisonByCardKey.get(card.key);
               const academicComparison = academicComparisonByCardKey.get(card.key);
+              const applicantComparison = applicantComparisonByCardKey.get(card.key);
               return (
                 <article className={styles.homeSearchCard} key={card.key}>
                   <div className={styles.homeSearchCardHead}>
@@ -610,6 +582,43 @@ export default function PeExamHomeSearchClient(props) {
 
                   {card.preview ? <p className={styles.homeSearchPreview}>{card.preview}</p> : null}
 
+                  {applicantComparison ? (
+                    <section className={styles.applicantComparisonSummary} aria-label="입력 자료 상담 비교 결과">
+                      <div className={styles.applicantComparisonScore}>
+                        <span>상담 비교 지수</span>
+                        <strong>{applicantComparison.index}<small>/100</small></strong>
+                      </div>
+                      <div className={styles.applicantComparisonMeaning}>
+                        <strong>{applicantComparison.label}</strong>
+                        <span>
+                          입력 근거 {applicantComparison.availableCount}/{applicantComparison.requestedCount}
+                          {comparison?.department ? ` · ${comparison.department}` : ""}
+                        </span>
+                      </div>
+                      <dl>
+                        <div>
+                          <dt>성적 근접도</dt>
+                          <dd>{applicantComparison.academicIndex === null ? "자료 없음" : `${applicantComparison.academicIndex}`}</dd>
+                        </div>
+                        <div>
+                          <dt>만점 기준 도달도</dt>
+                          <dd>{applicantComparison.practicalIndex === null ? "자료 없음" : `${applicantComparison.practicalIndex}`}</dd>
+                          {applicantComparison.academicIndex !== null && applicantComparison.practicalIndex !== null ? (
+                            <small>공식 실기 반영 {applicantComparison.practicalWeightPercent}% 적용</small>
+                          ) : null}
+                        </div>
+                      </dl>
+                      <p>합격 확률이 아니라 공개 입결·실기 기준을 상담 전에 비교하기 위한 지수입니다.</p>
+                    </section>
+                  ) : null}
+
+                  {(academicProfileActive && trackFilter !== "early") || recordComparisonActive ? (
+                    <details className={styles.comparisonEvidenceDetails}>
+                      <summary>
+                        <span>공식 비교 근거 보기</span>
+                        <strong>입결·실기 상세</strong>
+                      </summary>
+                      <div className={styles.comparisonEvidenceBody}>
                   {academicProfileActive && trackFilter !== "early" ? (
                     academicComparison ? (
                       <div className={styles.academicComparisonCard}>
@@ -675,6 +684,9 @@ export default function PeExamHomeSearchClient(props) {
                         <span>대학 상세에서 종목과 공식 모집요강 확인 링크를 볼 수 있습니다.</span>
                       </div>
                     )
+                  ) : null}
+                      </div>
+                    </details>
                   ) : null}
 
                   <div className={styles.homeSearchActions}>

@@ -30,6 +30,7 @@
     "ops:vercel:check": "node scripts/check-rp-vercel-production.mjs",
     "pe-exam:data:automation-policy": "node scripts/check-pe-exam-data-automation-policy.mjs",
     "pe-exam:data:audit": "node scripts/audit-pe-exam-university-coverage.mjs",
+    "pe-exam:data:comparison-check": "node scripts/check-pe-exam-comparison-ranking.mjs",
     "pe-exam:data:freshness": "node scripts/check-pe-exam-data-freshness.mjs",
     "pe-exam:data:readiness": "node scripts/report-pe-exam-data-readiness.mjs",
     "pe-exam:data:standards": "node scripts/check-pe-exam-practical-standards.mjs",
