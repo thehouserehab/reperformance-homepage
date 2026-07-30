@@ -15,6 +15,7 @@
     "ops:audit": "node scripts/audit-rp-operational-readiness.mjs",
     "ops:auth:session-policy": "node scripts/check-rp-auth-session-policy.mjs",
     "ops:data:pagination-policy": "node scripts/check-rp-client-pagination-policy.mjs",
+    "ops:database:ssl-policy": "node scripts/check-rp-database-ssl-policy.mjs",
     "ops:campaign:check": "node scripts/check-rp-campaign-readiness.mjs",
     "ops:conversion:check": "node scripts/check-rp-conversion-foundation.mjs",
     "ops:booking:check": "node scripts/check-rp-consultation-booking.mjs",

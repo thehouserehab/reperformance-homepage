@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { getPostgresConnectionOptions } from "../lib/rpPostgresSsl.js";
 
 const CONFIRM_TOKEN = "APPLY_RP_DB_MIGRATION";
 const MIGRATION_DIR = "database/migrations";
@@ -24,16 +25,6 @@ function hasArg(name) {
 
 function getDatabaseUrl() {
   return cleanValue(process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.RP_DATABASE_URL);
-}
-
-function getSslConfig(databaseUrl) {
-  const sslMode = cleanValue(process.env.RP_DATABASE_SSL).toLowerCase();
-  const lowerUrl = String(databaseUrl || "").toLowerCase();
-
-  if (sslMode === "false") return false;
-  if (lowerUrl.includes("sslmode=disable")) return false;
-  if (lowerUrl.includes("localhost") || lowerUrl.includes("127.0.0.1")) return false;
-  return { rejectUnauthorized: false };
 }
 
 function getMigrations() {
@@ -100,12 +91,13 @@ function assertApplyAllowed() {
 async function applyMigrations(migrations, databaseUrl) {
   const pg = await import("pg");
   const Pool = pg.Pool || pg.default?.Pool;
+  const connectionOptions = getPostgresConnectionOptions(databaseUrl, process.env.RP_DATABASE_SSL);
   const pool = new Pool({
-    connectionString: databaseUrl,
+    connectionString: connectionOptions.connectionString,
     max: 1,
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 10000,
-    ssl: getSslConfig(databaseUrl),
+    ssl: connectionOptions.ssl,
   });
 
   const client = await pool.connect();

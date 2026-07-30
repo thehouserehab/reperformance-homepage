@@ -1,3 +1,5 @@
+import { getPostgresConnectionOptions } from "../lib/rpPostgresSsl.js";
+
 function cleanValue(value) {
   return String(value || "").trim();
 }
@@ -8,16 +10,6 @@ function hasArg(name) {
 
 function getDatabaseUrl() {
   return cleanValue(process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.RP_DATABASE_URL);
-}
-
-function getSslConfig(databaseUrl) {
-  const sslMode = cleanValue(process.env.RP_DATABASE_SSL).toLowerCase();
-  const lowerUrl = String(databaseUrl || "").toLowerCase();
-
-  if (sslMode === "false") return false;
-  if (lowerUrl.includes("sslmode=disable")) return false;
-  if (lowerUrl.includes("localhost") || lowerUrl.includes("127.0.0.1")) return false;
-  return { rejectUnauthorized: false };
 }
 
 const requiredTables = [
@@ -238,12 +230,13 @@ async function getPool() {
 
   const pg = await import("pg");
   const Pool = pg.Pool || pg.default?.Pool;
+  const connectionOptions = getPostgresConnectionOptions(databaseUrl, process.env.RP_DATABASE_SSL);
   return new Pool({
-    connectionString: databaseUrl,
+    connectionString: connectionOptions.connectionString,
     max: 1,
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 10000,
-    ssl: getSslConfig(databaseUrl),
+    ssl: connectionOptions.ssl,
   });
 }
 
