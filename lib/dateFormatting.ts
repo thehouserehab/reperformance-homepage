@@ -25,3 +25,18 @@ export function formatKoreanScheduleTime(iso: string) {
   const hour = value.hour % 12 || 12;
   return `${period} ${hour}:${String(value.minute).padStart(2, "0")}`;
 }
+
+export function formatKoreanMessageTime(iso: string) {
+  const timestamp = Date.parse(iso);
+  if (Number.isNaN(timestamp)) return "시간 확인 필요";
+
+  const koreanTime = new Date(timestamp + 9 * 60 * 60 * 1000);
+  const month = koreanTime.getUTCMonth() + 1;
+  const day = koreanTime.getUTCDate();
+  const hour24 = koreanTime.getUTCHours();
+  const minute = koreanTime.getUTCMinutes();
+  const period = hour24 < 12 ? "오전" : "오후";
+  const hour = hour24 % 12 || 12;
+
+  return `${month}월 ${day}일 ${period} ${hour}:${String(minute).padStart(2, "0")}`;
+}

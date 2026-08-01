@@ -74,4 +74,20 @@ export const defaultAppState: AppState = {
       status: "received",
     },
   ],
+  coachConversation: [
+    {
+      id: "coach-conversation-1",
+      sender: "coach",
+      body: "도윤 학생, 오늘 제자리멀리뛰기는 기록보다 착지 균형을 먼저 확인하겠습니다.",
+      sentAt: "2026-08-01T10:10:00+09:00",
+      aiAssisted: false,
+    },
+    {
+      id: "coach-conversation-2",
+      sender: "student",
+      body: "네, 오른쪽 무릎이 조금 뻐근한데 워밍업 후 상태도 같이 말씀드릴게요.",
+      sentAt: "2026-08-01T10:14:00+09:00",
+      aiAssisted: false,
+    },
+  ],
 };

@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Clock3,
   Home,
+  MessageCircle,
   MessageCircleQuestion,
   ShieldCheck,
   UsersRound,
@@ -34,6 +35,7 @@ const roleLinks: Record<AppRole, { href: string; label: string }[]> = {
 const studentNavigation = [
   { href: "/student", label: "오늘", icon: Home },
   { href: "/calendar", label: "캘린더", icon: CalendarDays },
+  { href: "/student/messages", label: "코치 대화", icon: MessageCircle },
   { href: "/student#study-timer", label: "타이머", icon: Clock3 },
   { href: "/student/privacy", label: "공개 설정", icon: ShieldCheck },
 ];
@@ -42,6 +44,7 @@ const roleNavigation = {
   guardian: [{ href: "/guardian", label: "문의", icon: MessageCircleQuestion }],
   coach: [
     { href: "/coach", label: "학생", icon: UsersRound },
+    { href: "/coach/messages", label: "대화", icon: MessageCircle },
     { href: "/calendar", label: "일정", icon: CalendarDays },
   ],
 };
@@ -59,6 +62,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const navigation = role === "student" ? studentNavigation : roleNavigation[role];
+  const exactOnlyPaths = ["/student", "/coach", "/guardian"];
 
   return (
     <div className="app-shell">
@@ -97,9 +101,15 @@ export function AppShell({
           const Icon = item.icon;
           const active = item.href.includes("#")
             ? false
-            : pathname === item.href || (item.href !== "/student" && pathname.startsWith(item.href));
+            : pathname === item.href ||
+              (!exactOnlyPaths.includes(item.href) && pathname.startsWith(item.href));
           return (
-            <Link key={item.href} href={item.href} className={active ? "active" : undefined}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={active ? "active" : undefined}
+              aria-current={active ? "page" : undefined}
+            >
               <Icon aria-hidden="true" size={21} strokeWidth={1.9} />
               <span>{item.label}</span>
             </Link>

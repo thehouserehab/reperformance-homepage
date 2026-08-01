@@ -5,13 +5,35 @@ import { defaultAppState } from "@/lib/demoData";
 import type {
   AppState,
   CalendarEvent,
+  CoachConversationMessage,
   ConditionCheck,
+  ConversationParticipant,
   GuardianMessage,
   GuardianPermissionKey,
   StudySession,
 } from "@/lib/types";
 
 const STORAGE_KEY = "rp-app-prototype-state-v1";
+
+function restoreState(saved: string): AppState {
+  const parsed = JSON.parse(saved) as Partial<AppState>;
+
+  return {
+    ...defaultAppState,
+    ...parsed,
+    guardianPermissions: {
+      ...defaultAppState.guardianPermissions,
+      ...parsed.guardianPermissions,
+    },
+    tasks: Array.isArray(parsed.tasks) ? parsed.tasks : defaultAppState.tasks,
+    studySessions: Array.isArray(parsed.studySessions) ? parsed.studySessions : defaultAppState.studySessions,
+    calendarEvents: Array.isArray(parsed.calendarEvents) ? parsed.calendarEvents : defaultAppState.calendarEvents,
+    guardianMessages: Array.isArray(parsed.guardianMessages) ? parsed.guardianMessages : defaultAppState.guardianMessages,
+    coachConversation: Array.isArray(parsed.coachConversation)
+      ? parsed.coachConversation
+      : defaultAppState.coachConversation,
+  };
+}
 
 type AppStateContextValue = {
   state: AppState;
@@ -22,6 +44,11 @@ type AppStateContextValue = {
   addStudySession: (session: StudySession) => void;
   addCalendarEvent: (event: CalendarEvent) => void;
   sendGuardianMessage: (body: string) => void;
+  sendCoachConversationMessage: (
+    sender: ConversationParticipant,
+    body: string,
+    aiAssisted: boolean
+  ) => void;
   resetPrototype: () => void;
 };
 
@@ -34,7 +61,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) setState(JSON.parse(saved) as AppState);
+      if (saved) setState(restoreState(saved));
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
     } finally {
@@ -95,6 +122,24 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const sendCoachConversationMessage = useCallback(
+    (sender: ConversationParticipant, body: string, aiAssisted: boolean) => {
+      const message: CoachConversationMessage = {
+        id: crypto.randomUUID(),
+        sender,
+        body,
+        sentAt: new Date().toISOString(),
+        aiAssisted,
+      };
+
+      setState((current) => ({
+        ...current,
+        coachConversation: [...current.coachConversation, message],
+      }));
+    },
+    []
+  );
+
   const resetPrototype = useCallback(() => {
     setState(defaultAppState);
     window.localStorage.removeItem(STORAGE_KEY);
@@ -110,6 +155,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       addStudySession,
       addCalendarEvent,
       sendGuardianMessage,
+      sendCoachConversationMessage,
       resetPrototype,
     }),
     [
@@ -121,6 +167,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       addStudySession,
       addCalendarEvent,
       sendGuardianMessage,
+      sendCoachConversationMessage,
       resetPrototype,
     ]
   );

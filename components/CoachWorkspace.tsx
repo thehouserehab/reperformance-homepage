@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Activity, CalendarClock, ChevronRight, MessageSquareText, ShieldCheck } from "lucide-react";
 import { useAppState } from "./AppStateProvider";
 
@@ -8,12 +9,14 @@ export function CoachWorkspace() {
   const completedTasks = state.tasks.filter((task) => task.completed).length;
   const sharedCount = Object.values(state.guardianPermissions).filter(Boolean).length;
   const latestMessage = [...state.guardianMessages].reverse().find((message) => message.status === "sent");
+  const latestConversationMessage = state.coachConversation[state.coachConversation.length - 1];
+  const studentReplyPending = latestConversationMessage?.sender === "student";
 
   return (
     <>
       <section className="coach-priority-band">
         <div><span>오늘 확인할 학생</span><strong>1</strong></div>
-        <div><span>답장 대기</span><strong>{latestMessage ? 1 : 0}</strong></div>
+        <div><span>답장 대기</span><strong>{latestMessage || studentReplyPending ? 1 : 0}</strong></div>
         <div><span>컨디션 확인</span><strong>{state.condition.checkedAt ? 0 : 1}</strong></div>
       </section>
 
@@ -35,6 +38,7 @@ export function CoachWorkspace() {
             <span><Activity aria-hidden="true" size={17} /> 기록 확인</span>
             <span><ShieldCheck aria-hidden="true" size={17} /> 학부모 공개 {sharedCount}/4</span>
             {latestMessage && <span><MessageSquareText aria-hidden="true" size={17} /> 문의 답장 대기</span>}
+            {studentReplyPending && <span><MessageSquareText aria-hidden="true" size={17} /> 학생 대화 확인</span>}
           </div>
           <button type="button" className="icon-button secondary" aria-label="학생 상세 열기" title="학생 상세 열기">
             <ChevronRight aria-hidden="true" size={21} />
@@ -48,7 +52,7 @@ export function CoachWorkspace() {
           <p className="section-kicker">NEXT ACTION</p>
           <h2>수업 전 컨디션과 제멀 과제를 확인합니다.</h2>
         </div>
-        <button type="button">피드백 작성</button>
+        <Link href="/coach/messages">대화 열기</Link>
       </section>
     </>
   );

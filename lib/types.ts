@@ -52,6 +52,16 @@ export type GuardianMessage = {
   status: "received" | "sent";
 };
 
+export type ConversationParticipant = "student" | "coach";
+
+export type CoachConversationMessage = {
+  id: string;
+  sender: ConversationParticipant;
+  body: string;
+  sentAt: string;
+  aiAssisted: boolean;
+};
+
 export type AppState = {
   studentName: string;
   guardianPermissions: GuardianPermissions;
@@ -60,4 +70,5 @@ export type AppState = {
   calendarEvents: CalendarEvent[];
   condition: ConditionCheck;
   guardianMessages: GuardianMessage[];
+  coachConversation: CoachConversationMessage[];
 };
