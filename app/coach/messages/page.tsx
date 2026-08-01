@@ -3,7 +3,12 @@ import { CoachConversation } from "@/components/CoachConversation";
 
 export default function CoachMessagesPage() {
   return (
-    <AppShell role="coach" eyebrow="COACH · STUDENT" title="기록을 보고, 필요한 말만 정확히 전합니다.">
+    <AppShell
+      role="coach"
+      eyebrow="COACH · STUDENT"
+      title="학생과 대화"
+      layout="conversation"
+    >
       <CoachConversation role="coach" />
     </AppShell>
   );

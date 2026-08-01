@@ -37,18 +37,20 @@ export function AppShell({
   role,
   title,
   eyebrow,
+  layout = "default",
   children,
 }: {
   role: AppRole;
   title: string;
   eyebrow: string;
+  layout?: "default" | "conversation";
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const roleDefinition = appRoleDefinitions[role];
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${layout === "conversation" ? " conversation-app-shell" : ""}`}>
       <header className="app-header">
         <Link className="brand-lockup" href={roleDefinition.homeHref} aria-label={`RP APP ${roleDefinition.label} 홈`}>
           <span className="brand-mark">RP</span>
@@ -78,8 +80,8 @@ export function AppShell({
         </details>
       </header>
 
-      <main className="app-main">
-        <section className="page-heading">
+      <main className={`app-main${layout === "conversation" ? " conversation-app-main" : ""}`}>
+        <section className={layout === "conversation" ? "sr-only" : "page-heading"}>
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
         </section>

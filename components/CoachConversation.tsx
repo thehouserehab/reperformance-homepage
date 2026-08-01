@@ -1,8 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { Bot, Check, MessageCircle, Send, Sparkles, UserRound } from "lucide-react";
-import { formatKoreanMessageTime } from "@/lib/dateFormatting";
+import { FormEvent, Fragment, useEffect, useRef, useState } from "react";
+import { Bot, Check, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import {
+  formatKoreanMessageClock,
+  formatKoreanMessageDate,
+  getKoreanMessageDateKey,
+} from "@/lib/dateFormatting";
 import type { ConversationParticipant } from "@/lib/types";
 import { useAppState } from "./AppStateProvider";
 
@@ -16,13 +20,20 @@ export function CoachConversation({ role }: { role: ConversationParticipant }) {
   const [assistantText, setAssistantText] = useState("");
   const [draftWasAssisted, setDraftWasAssisted] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
-  const conversationTitle =
-    role === "student" ? "담당 코치와 대화" : `${state.studentName} 학생과 대화`;
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const counterpartName = role === "student" ? "담당 코치" : `${state.studentName} 학생`;
 
   useEffect(() => {
     const timeline = timelineRef.current;
     if (timeline) timeline.scrollTop = timeline.scrollHeight;
   }, [state.coachConversation.length]);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
+  }, [message]);
 
   const changeMode = (nextMode: ComposeMode) => {
     setMode(nextMode);
@@ -48,7 +59,7 @@ export function CoachConversation({ role }: { role: ConversationParticipant }) {
       }
       setMessage(result.draft);
       setDraftWasAssisted(true);
-      setAssistantText("초안을 정리했습니다. 내용을 확인한 뒤 직접 보내세요.");
+      setAssistantText("초안을 정리했습니다. 확인 후 보내주세요.");
     } catch (error) {
       setAssistantText(error instanceof Error ? error.message : "초안을 만들지 못했습니다.");
     } finally {
@@ -66,20 +77,21 @@ export function CoachConversation({ role }: { role: ConversationParticipant }) {
     setDraftWasAssisted(false);
   };
 
+  let previousDateKey = "";
+
   return (
     <section className="conversation-workspace" aria-labelledby="conversation-title">
       <header className="conversation-header">
-        <div className="conversation-counterpart-icon">
-          {role === "student" ? (
-            <MessageCircle aria-hidden="true" size={23} />
-          ) : (
-            <UserRound aria-hidden="true" size={23} />
-          )}
+        <div className="conversation-counterpart-icon" aria-hidden="true">
+          <UserRound size={22} />
         </div>
-        <div>
-          <p className="section-kicker">PRIVATE COACHING</p>
-          <h2 id="conversation-title">{conversationTitle}</h2>
-          <span>학생과 코치만 확인 · 학부모에게 자동 공개되지 않음</span>
+        <div className="conversation-counterpart-copy">
+          <h2 id="conversation-title">{counterpartName}</h2>
+          <span><i aria-hidden="true" /> 1:1 코칭 대화</span>
+        </div>
+        <div className="conversation-privacy" title="학생과 담당 코치만 확인할 수 있습니다.">
+          <ShieldCheck aria-hidden="true" size={16} />
+          <span>학생·코치만</span>
         </div>
       </header>
 
@@ -87,19 +99,41 @@ export function CoachConversation({ role }: { role: ConversationParticipant }) {
         {state.coachConversation.map((item) => {
           const mine = item.sender === role;
           const senderLabel = item.sender === "student" ? state.studentName : "담당 코치";
+          const dateKey = getKoreanMessageDateKey(item.sentAt);
+          const showDate = dateKey !== previousDateKey;
+          previousDateKey = dateKey;
+
           return (
-            <article key={item.id} className={`conversation-message ${mine ? "mine" : "theirs"}`}>
-              <div className="message-meta">
-                <strong>{mine ? "나" : senderLabel}</strong>
-                <time dateTime={item.sentAt}>{formatKoreanMessageTime(item.sentAt)}</time>
-              </div>
-              <p>{item.body}</p>
-              {item.aiAssisted && (
-                <span className="assisted-label">
-                  <Sparkles aria-hidden="true" size={12} /> AI 도움으로 정리
-                </span>
+            <Fragment key={item.id}>
+              {showDate && (
+                <div className="conversation-date-divider">
+                  <span>{formatKoreanMessageDate(item.sentAt)}</span>
+                </div>
               )}
-            </article>
+              <article className={`conversation-message-row ${mine ? "mine" : "theirs"}`}>
+                {!mine && (
+                  <span className="message-avatar" aria-hidden="true">
+                    <UserRound size={16} />
+                  </span>
+                )}
+                <div className="message-bundle">
+                  {!mine && <strong className="message-sender">{senderLabel}</strong>}
+                  <div className="message-bubble-line">
+                    <div className="conversation-message">
+                      <p>{item.body}</p>
+                      {item.aiAssisted && (
+                        <span className="assisted-label">
+                          <Sparkles aria-hidden="true" size={11} /> AI로 문장 정리
+                        </span>
+                      )}
+                    </div>
+                    <time className="message-time" dateTime={item.sentAt}>
+                      {formatKoreanMessageClock(item.sentAt)}
+                    </time>
+                  </div>
+                </div>
+              </article>
+            </Fragment>
           );
         })}
       </div>
@@ -110,74 +144,75 @@ export function CoachConversation({ role }: { role: ConversationParticipant }) {
             <button
               type="button"
               className={mode === "direct" ? "active" : undefined}
+              aria-pressed={mode === "direct"}
               onClick={() => changeMode("direct")}
             >
-              <Send aria-hidden="true" size={15} /> 직접 작성
+              직접 입력
             </button>
             <button
               type="button"
               className={mode === "assistant" ? "active" : undefined}
+              aria-pressed={mode === "assistant"}
               onClick={() => changeMode("assistant")}
             >
-              <Bot aria-hidden="true" size={16} /> AI 도움
+              <Bot aria-hidden="true" size={14} /> AI 문장 정리
             </button>
           </div>
           <span>{message.length}/600</span>
         </div>
 
         {mode === "assistant" && (
-          <div className="assistant-compose-note">
-            <Bot aria-hidden="true" size={18} />
-            <p>
-              <strong>메모를 문장으로 정리합니다.</strong> 현재 프로토타입은 외부 AI에 내용을 보내지 않으며,
-              자동 발송하지 않습니다.
-            </p>
+          <div className="assistant-compose-status">
+            <ShieldCheck aria-hidden="true" size={14} /> 외부 전송 없이 초안만 정리합니다.
           </div>
         )}
 
-        <label className="conversation-input">
-          <span className="sr-only">메시지 내용</span>
-          <textarea
-            value={message}
-            onChange={(event) => {
-              setMessage(event.target.value);
-              setDraftWasAssisted(false);
-              setAssistantText("");
-            }}
-            rows={4}
-            maxLength={600}
-            placeholder={
-              role === "student"
-                ? "오늘 컨디션, 실기 질문, 일정 문의를 남겨보세요."
-                : "훈련 피드백이나 다음 과제를 전달하세요."
-            }
-          />
-        </label>
+        <div className="message-entry">
+          <label className="conversation-input">
+            <span className="sr-only">메시지 내용</span>
+            <textarea
+              ref={inputRef}
+              value={message}
+              onChange={(event) => {
+                setMessage(event.target.value);
+                setDraftWasAssisted(false);
+                setAssistantText("");
+              }}
+              rows={1}
+              maxLength={600}
+              placeholder={role === "student" ? "코치에게 메시지 보내기" : "학생에게 메시지 보내기"}
+            />
+          </label>
 
-        <div className="composer-actions">
-          <p role="status">{assistantText}</p>
           {mode === "assistant" && (
             <button
               type="button"
               className="draft-message-button"
+              title="작성한 메모를 문장으로 정리"
+              aria-label="작성한 메모를 문장으로 정리"
               onClick={requestDraft}
               disabled={pending || message.trim().length < 2}
             >
-              <Sparkles aria-hidden="true" size={17} /> {pending ? "정리 중" : "초안 정리"}
+              {pending ? <span className="button-spinner" aria-hidden="true" /> : <Sparkles aria-hidden="true" size={18} />}
             </button>
           )}
-          <button type="submit" className="send-message-button" disabled={!message.trim()}>
-            {mode === "assistant" ? (
-              <>
-                <Check aria-hidden="true" size={18} /> 확인하고 보내기
-              </>
+
+          <button
+            type="submit"
+            className="send-message-button"
+            title={mode === "assistant" ? "확인하고 보내기" : "메시지 보내기"}
+            aria-label={mode === "assistant" ? "확인하고 보내기" : "메시지 보내기"}
+            disabled={!message.trim()}
+          >
+            {mode === "assistant" && draftWasAssisted ? (
+              <Check aria-hidden="true" size={19} />
             ) : (
-              <>
-                <Send aria-hidden="true" size={18} /> 메시지 보내기
-              </>
+              <Send aria-hidden="true" size={19} />
             )}
           </button>
         </div>
+
+        <p className="composer-feedback" role="status">{assistantText}</p>
       </form>
     </section>
   );

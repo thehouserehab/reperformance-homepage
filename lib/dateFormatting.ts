@@ -40,3 +40,35 @@ export function formatKoreanMessageTime(iso: string) {
 
   return `${month}월 ${day}일 ${period} ${hour}:${String(minute).padStart(2, "0")}`;
 }
+
+export function getKoreanMessageDateKey(iso: string) {
+  const timestamp = Date.parse(iso);
+  if (Number.isNaN(timestamp)) return iso;
+
+  const koreanTime = new Date(timestamp + 9 * 60 * 60 * 1000);
+  return [
+    koreanTime.getUTCFullYear(),
+    String(koreanTime.getUTCMonth() + 1).padStart(2, "0"),
+    String(koreanTime.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+export function formatKoreanMessageDate(iso: string) {
+  const timestamp = Date.parse(iso);
+  if (Number.isNaN(timestamp)) return "날짜 확인 필요";
+
+  const koreanTime = new Date(timestamp + 9 * 60 * 60 * 1000);
+  const weekdays = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+  return `${koreanTime.getUTCMonth() + 1}월 ${koreanTime.getUTCDate()}일 ${weekdays[koreanTime.getUTCDay()]}`;
+}
+
+export function formatKoreanMessageClock(iso: string) {
+  const timestamp = Date.parse(iso);
+  if (Number.isNaN(timestamp)) return "시간 확인 필요";
+
+  const koreanTime = new Date(timestamp + 9 * 60 * 60 * 1000);
+  const hour24 = koreanTime.getUTCHours();
+  const period = hour24 < 12 ? "오전" : "오후";
+  const hour = hour24 % 12 || 12;
+  return `${period} ${hour}:${String(koreanTime.getUTCMinutes()).padStart(2, "0")}`;
+}
