@@ -174,7 +174,7 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
         <div className="calendar-section-heading">
           <div>
             <p className="section-kicker">TODAY PLAN</p>
-            <h2 id="calendar-today-title">{role === "student" ? "오늘의 할 일" : "오늘 학생 할 일"}</h2>
+            <h2 id="calendar-today-title">오늘 할 일</h2>
           </div>
           <strong>{completedTasks}/{state.tasks.length}</strong>
         </div>
