@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { defaultAppState } from "@/lib/demoData";
 import type {
   AppState,
+  AppTask,
   CalendarEvent,
   CoachConversationMessage,
   ConditionCheck,
@@ -17,15 +18,28 @@ const STORAGE_KEY = "rp-app-prototype-state-v1";
 
 function restoreState(saved: string): AppState {
   const parsed = JSON.parse(saved) as Partial<AppState>;
+  const restoredTasks = Array.isArray(parsed.tasks)
+    ? parsed.tasks.map((task) => ({
+        ...task,
+        scheduledDate:
+          typeof task.scheduledDate === "string" && task.scheduledDate.length > 0
+            ? task.scheduledDate
+            : defaultAppState.scheduleDate,
+      }))
+    : defaultAppState.tasks;
 
   return {
     ...defaultAppState,
     ...parsed,
+    scheduleDate:
+      typeof parsed.scheduleDate === "string" && parsed.scheduleDate.length > 0
+        ? parsed.scheduleDate
+        : defaultAppState.scheduleDate,
     guardianPermissions: {
       ...defaultAppState.guardianPermissions,
       ...parsed.guardianPermissions,
     },
-    tasks: Array.isArray(parsed.tasks) ? parsed.tasks : defaultAppState.tasks,
+    tasks: restoredTasks,
     studySessions: Array.isArray(parsed.studySessions) ? parsed.studySessions : defaultAppState.studySessions,
     calendarEvents: Array.isArray(parsed.calendarEvents) ? parsed.calendarEvents : defaultAppState.calendarEvents,
     guardianMessages: Array.isArray(parsed.guardianMessages) ? parsed.guardianMessages : defaultAppState.guardianMessages,
@@ -39,6 +53,8 @@ type AppStateContextValue = {
   state: AppState;
   hydrated: boolean;
   toggleTask: (taskId: string) => void;
+  addTask: (task: Omit<AppTask, "id" | "completed">) => void;
+  deleteTask: (taskId: string) => void;
   updateCondition: (condition: Omit<ConditionCheck, "checkedAt">) => void;
   setGuardianPermission: (key: GuardianPermissionKey, value: boolean) => void;
   addStudySession: (session: StudySession) => void;
@@ -79,6 +95,25 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       tasks: current.tasks.map((task) =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
       ),
+    }));
+  }, []);
+
+  const addTask = useCallback((task: Omit<AppTask, "id" | "completed">) => {
+    const nextTask: AppTask = {
+      ...task,
+      id: crypto.randomUUID(),
+      completed: false,
+    };
+    setState((current) => ({
+      ...current,
+      tasks: [...current.tasks, nextTask],
+    }));
+  }, []);
+
+  const deleteTask = useCallback((taskId: string) => {
+    setState((current) => ({
+      ...current,
+      tasks: current.tasks.filter((task) => task.id !== taskId),
     }));
   }, []);
 
@@ -150,6 +185,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       state,
       hydrated,
       toggleTask,
+      addTask,
+      deleteTask,
       updateCondition,
       setGuardianPermission,
       addStudySession,
@@ -162,6 +199,8 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       state,
       hydrated,
       toggleTask,
+      addTask,
+      deleteTask,
       updateCondition,
       setGuardianPermission,
       addStudySession,

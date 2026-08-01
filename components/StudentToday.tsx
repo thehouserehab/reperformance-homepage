@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CalendarDays, Check, ChevronRight, Dumbbell, GraduationCap, HeartPulse } from "lucide-react";
 import { useState } from "react";
 import { formatKoreanScheduleDateTime } from "@/lib/dateFormatting";
+import { getTasksForDate } from "@/lib/taskScheduling";
 import { useAppState } from "./AppStateProvider";
 import { StudyTimer } from "./StudyTimer";
 
@@ -24,7 +25,8 @@ export function StudentToday() {
   const [energy, setEnergy] = useState(state.condition.energy);
   const [focus, setFocus] = useState(state.condition.focus);
   const [soreness, setSoreness] = useState(state.condition.soreness);
-  const completed = state.tasks.filter((task) => task.completed).length;
+  const todayTasks = getTasksForDate(state.tasks, state.scheduleDate);
+  const completed = todayTasks.filter((task) => task.completed).length;
   const nextEvent = state.calendarEvents.find((event) => new Date(event.endsAt).getTime() > Date.now()) ?? state.calendarEvents[0];
 
   return (
@@ -32,7 +34,7 @@ export function StudentToday() {
       <section className="today-status-band">
         <div>
           <span>오늘의 흐름</span>
-          <strong>{completed}/{state.tasks.length}</strong>
+          <strong>{completed}/{todayTasks.length}</strong>
           <small>필수 과제 완료</small>
         </div>
         <div className="condition-controls">
@@ -62,7 +64,7 @@ export function StudentToday() {
         </div>
 
         <div className="task-list">
-          {state.tasks.map((task) => {
+          {todayTasks.map((task) => {
             const Icon = taskIcons[task.kind];
             return (
               <article key={task.id} className={task.completed ? "task-row completed" : "task-row"}>

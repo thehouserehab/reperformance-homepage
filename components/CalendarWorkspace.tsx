@@ -9,15 +9,29 @@ import {
   ChevronLeft,
   ChevronRight,
   Circle,
+  Dumbbell,
+  GraduationCap,
+  HeartPulse,
+  Plus,
   Sparkles,
+  Trash2,
+  X,
 } from "lucide-react";
 import type { CalendarAssistantResult, CalendarDraft } from "@/lib/calendarAssistant";
 import { formatKoreanScheduleDateTime, formatKoreanScheduleTime } from "@/lib/dateFormatting";
-import type { CalendarCategory, TaskKind } from "@/lib/types";
+import {
+  formatShortTaskDate,
+  getTasksForDate,
+  getUpcomingTasks,
+  sortTasks,
+  toDateKey,
+} from "@/lib/taskScheduling";
+import type { AppTask, CalendarCategory, TaskKind } from "@/lib/types";
 import { useAppState } from "./AppStateProvider";
 
 type CalendarView = "week" | "month";
 type CalendarRole = "student" | "coach";
+type TaskScope = "today" | "week";
 
 const categoryLabels: Record<CalendarCategory, string> = {
   study: "학업",
@@ -28,20 +42,37 @@ const categoryLabels: Record<CalendarCategory, string> = {
 };
 
 const taskKindLabels: Record<TaskKind, string> = {
-  study: "학업",
-  training: "실기",
+  study: "공부",
+  training: "운동",
   recovery: "회복",
 };
 
-const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+const taskKindIcons = {
+  study: GraduationCap,
+  training: Dumbbell,
+  recovery: HeartPulse,
+};
 
-function dateKey(date: Date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
+const taskKinds: TaskKind[] = ["study", "training", "recovery"];
+const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
 function dateFromKey(key: string) {
   const [year, month, day] = key.split("-").map(Number);
   return new Date(year, month - 1, day);
+}
+
+function offsetDateKey(key: string, days: number) {
+  const date = dateFromKey(key);
+  date.setDate(date.getDate() + days);
+  return toDateKey(date);
+}
+
+function formatTaskBoardDate(key: string) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  }).format(dateFromKey(key));
 }
 
 function getMonthCells(month: Date) {
@@ -83,20 +114,269 @@ function formatWeekTitle(cells: Array<{ date: Date }>) {
   return `${start.getFullYear()}년 ${start.getMonth() + 1}월 ${start.getDate()}일 - ${end.getDate()}일`;
 }
 
+function TaskComposer({
+  scope,
+  defaultDate,
+  onAdd,
+  onClose,
+}: {
+  scope: TaskScope;
+  defaultDate: string;
+  onAdd: (task: Omit<AppTask, "id" | "completed">) => void;
+  onClose: () => void;
+}) {
+  const [kind, setKind] = useState<TaskKind>("study");
+  const [title, setTitle] = useState("");
+  const [detail, setDetail] = useState("");
+  const [scheduledDate, setScheduledDate] = useState(
+    scope === "today" ? defaultDate : offsetDateKey(defaultDate, 1)
+  );
+  const [scheduledTime, setScheduledTime] = useState("18:00");
+  const [durationMinutes, setDurationMinutes] = useState(40);
+
+  const submitTask = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) return;
+
+    onAdd({
+      title: trimmedTitle,
+      detail: detail.trim(),
+      kind,
+      scheduledDate: scope === "today" ? defaultDate : scheduledDate,
+      scheduledTime,
+      durationMinutes: Math.min(240, Math.max(5, durationMinutes)),
+      assignedBy: "student",
+    });
+    onClose();
+  };
+
+  return (
+    <form className="task-composer" onSubmit={submitTask}>
+      <div className="task-composer-fields">
+        <label>
+          <span>구분</span>
+          <select value={kind} onChange={(event) => setKind(event.target.value as TaskKind)}>
+            {taskKinds.map((item) => <option key={item} value={item}>{taskKindLabels[item]}</option>)}
+          </select>
+        </label>
+        {scope === "week" && (
+          <label>
+            <span>날짜</span>
+            <input
+              type="date"
+              value={scheduledDate}
+              min={offsetDateKey(defaultDate, 1)}
+              max={offsetDateKey(defaultDate, 7)}
+              onChange={(event) => setScheduledDate(event.target.value)}
+              required
+            />
+          </label>
+        )}
+        <label>
+          <span>시간</span>
+          <input type="time" value={scheduledTime} onChange={(event) => setScheduledTime(event.target.value)} required />
+        </label>
+        <label>
+          <span>분</span>
+          <input
+            type="number"
+            min="5"
+            max="240"
+            step="5"
+            value={durationMinutes}
+            onChange={(event) => setDurationMinutes(Number(event.target.value))}
+            required
+          />
+        </label>
+      </div>
+      <label className="task-composer-title">
+        <span>할 일</span>
+        <input
+          value={title}
+          maxLength={60}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="예: 영어 오답 2문제 정리"
+          autoFocus
+          required
+        />
+      </label>
+      <label className="task-composer-detail">
+        <span>메모</span>
+        <input
+          value={detail}
+          maxLength={100}
+          onChange={(event) => setDetail(event.target.value)}
+          placeholder="선택 사항"
+        />
+      </label>
+      <div className="task-composer-actions">
+        <button type="button" className="icon-button secondary" onClick={onClose} aria-label="할 일 추가 취소" title="취소">
+          <X aria-hidden="true" size={18} />
+        </button>
+        <button type="submit" className="task-composer-submit">
+          <Plus aria-hidden="true" size={17} /> 추가
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function TaskOverviewPanel({
+  scope,
+  date,
+  tasks,
+  role,
+  onToggle,
+  onDelete,
+  onAdd,
+}: {
+  scope: TaskScope;
+  date: string;
+  tasks: AppTask[];
+  role: CalendarRole;
+  onToggle: (taskId: string) => void;
+  onDelete: (taskId: string) => void;
+  onAdd: (task: Omit<AppTask, "id" | "completed">) => void;
+}) {
+  const [composerOpen, setComposerOpen] = useState(false);
+  const completedCount = tasks.filter((task) => task.completed).length;
+  const isToday = scope === "today";
+
+  return (
+    <section className={`task-overview-panel ${scope}`} aria-labelledby={`${scope}-task-title`}>
+      <header className="task-overview-heading">
+        <div>
+          <p className="section-kicker">{isToday ? "TODAY" : "THIS WEEK"}</p>
+          <h2 id={`${scope}-task-title`}>{isToday ? "오늘의 할 일" : "금주의 할 일"}</h2>
+          <span>
+            {isToday
+              ? formatTaskBoardDate(date)
+              : `${formatShortTaskDate(offsetDateKey(date, 1))} - ${formatShortTaskDate(offsetDateKey(date, 7))}`}
+          </span>
+        </div>
+        <div className="task-overview-actions">
+          <strong aria-label={`${tasks.length}개 중 ${completedCount}개 완료`}>{completedCount}/{tasks.length}</strong>
+          {role === "student" && (
+            <button
+              type="button"
+              className="task-add-button"
+              onClick={() => setComposerOpen((open) => !open)}
+              aria-expanded={composerOpen}
+            >
+              {composerOpen ? <X aria-hidden="true" size={17} /> : <Plus aria-hidden="true" size={17} />}
+              {composerOpen ? "닫기" : "추가"}
+            </button>
+          )}
+        </div>
+      </header>
+
+      {composerOpen && (
+        <TaskComposer
+          scope={scope}
+          defaultDate={date}
+          onAdd={onAdd}
+          onClose={() => setComposerOpen(false)}
+        />
+      )}
+
+      <div className="task-category-list">
+        {taskKinds.map((kind) => {
+          const Icon = taskKindIcons[kind];
+          const categoryTasks = sortTasks(tasks.filter((task) => task.kind === kind));
+          return (
+            <section className={`task-category ${kind}`} key={kind} aria-label={taskKindLabels[kind]}>
+              <div className="task-category-heading">
+                <Icon aria-hidden="true" size={18} />
+                <strong>{taskKindLabels[kind]}</strong>
+                <span>{categoryTasks.length}</span>
+              </div>
+              <div className="task-category-items">
+                {categoryTasks.length ? categoryTasks.map((task) => (
+                  <article className={task.completed ? "overview-task completed" : "overview-task"} key={task.id}>
+                    {role === "student" ? (
+                      <button
+                        type="button"
+                        className="overview-task-check"
+                        onClick={() => onToggle(task.id)}
+                        aria-label={`${task.title} ${task.completed ? "완료 취소" : "완료"}`}
+                        aria-pressed={task.completed}
+                      >
+                        {task.completed ? <CheckCircle2 aria-hidden="true" size={20} /> : <Circle aria-hidden="true" size={20} />}
+                      </button>
+                    ) : (
+                      <span className="overview-task-check" aria-hidden="true">
+                        {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                      </span>
+                    )}
+                    <div className="overview-task-copy">
+                      <small>
+                        {!isToday && `${formatShortTaskDate(task.scheduledDate)} · `}
+                        {task.scheduledTime} · {task.durationMinutes}분 · {task.assignedBy === "coach" ? "코치" : "직접"}
+                      </small>
+                      <strong>{task.title}</strong>
+                      {task.detail && <p>{task.detail}</p>}
+                    </div>
+                    {role === "student" && (
+                      <button
+                        type="button"
+                        className="overview-task-delete"
+                        onClick={() => onDelete(task.id)}
+                        aria-label={`${task.title} 삭제`}
+                        title="할 일 삭제"
+                      >
+                        <Trash2 aria-hidden="true" size={17} />
+                      </button>
+                    )}
+                  </article>
+                )) : (
+                  <p className="task-category-empty">등록된 할 일이 없습니다.</p>
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function CalendarWorkspace({ role }: { role: CalendarRole }) {
-  const { state, addCalendarEvent, toggleTask } = useAppState();
-  const [visibleMonth, setVisibleMonth] = useState(new Date(2026, 7, 1));
-  const [selectedDate, setSelectedDate] = useState("2026-08-01");
+  const { state, hydrated, addCalendarEvent, addTask, deleteTask, toggleTask } = useAppState();
+  const initialDate = dateFromKey(state.scheduleDate);
+  const [visibleMonth, setVisibleMonth] = useState(new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(state.scheduleDate);
   const [calendarView, setCalendarView] = useState<CalendarView>("month");
+  const [calendarInitialized, setCalendarInitialized] = useState(false);
   const [message, setMessage] = useState("내일 오후 6시에 수학 오답 정리 50분 등록해줘");
   const [draft, setDraft] = useState<CalendarDraft | null>(null);
   const [assistantText, setAssistantText] = useState("");
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
+    if (!hydrated || calendarInitialized) return;
+    const date = dateFromKey(state.scheduleDate);
+    setSelectedDate(state.scheduleDate);
+    setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
     if (window.matchMedia("(max-width: 640px)").matches) setCalendarView("week");
-  }, []);
+    setCalendarInitialized(true);
+  }, [calendarInitialized, hydrated, state.scheduleDate]);
 
+  const todayTasks = useMemo(
+    () => getTasksForDate(state.tasks, state.scheduleDate),
+    [state.scheduleDate, state.tasks]
+  );
+  const upcomingTasks = useMemo(
+    () => getUpcomingTasks(state.tasks, state.scheduleDate),
+    [state.scheduleDate, state.tasks]
+  );
+  const tasksByDate = useMemo(() => {
+    const grouped = new Map<string, AppTask[]>();
+    for (const task of state.tasks) {
+      grouped.set(task.scheduledDate, [...(grouped.get(task.scheduledDate) ?? []), task]);
+    }
+    return grouped;
+  }, [state.tasks]);
   const eventsByDate = useMemo(() => {
     const grouped = new Map<string, typeof state.calendarEvents>();
     for (const event of state.calendarEvents) {
@@ -110,7 +390,7 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
   const weekCells = useMemo(() => getWeekCells(dateFromKey(selectedDate)), [selectedDate]);
   const displayCells = calendarView === "month" ? monthCells : weekCells;
   const selectedEvents = eventsByDate.get(selectedDate) ?? [];
-  const completedTasks = state.tasks.filter((task) => task.completed).length;
+  const selectedTasks = sortTasks(tasksByDate.get(selectedDate) ?? []);
   const calendarTitle = calendarView === "month"
     ? `${visibleMonth.getFullYear()}년 ${visibleMonth.getMonth() + 1}월`
     : formatWeekTitle(weekCells);
@@ -119,18 +399,18 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
     if (calendarView === "month") {
       const next = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + direction, 1);
       setVisibleMonth(next);
-      setSelectedDate(dateKey(next));
+      setSelectedDate(toDateKey(next));
       return;
     }
 
     const selected = dateFromKey(selectedDate);
     const next = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate() + direction * 7);
-    setSelectedDate(dateKey(next));
+    setSelectedDate(toDateKey(next));
     setVisibleMonth(new Date(next.getFullYear(), next.getMonth(), 1));
   };
 
   const selectCalendarDate = (date: Date, current: boolean) => {
-    setSelectedDate(dateKey(date));
+    setSelectedDate(toDateKey(date));
     if (calendarView === "month" && !current) {
       setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
     }
@@ -170,49 +450,26 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
 
   return (
     <div className="calendar-layout">
-      <section className="calendar-today-panel" aria-labelledby="calendar-today-title">
-        <div className="calendar-section-heading">
-          <div>
-            <p className="section-kicker">TODAY PLAN</p>
-            <h2 id="calendar-today-title">오늘 할 일</h2>
-          </div>
-          <strong>{completedTasks}/{state.tasks.length}</strong>
-        </div>
-        <div className="calendar-task-list">
-          {state.tasks.map((task) => {
-            const content = (
-              <>
-                <span className="calendar-task-check" aria-hidden="true">
-                  {task.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                </span>
-                <span className="calendar-task-copy">
-                  <small>{task.scheduledTime} · {taskKindLabels[task.kind]} · {task.assignedBy === "coach" ? "코치" : "직접"}</small>
-                  <strong>{task.title}</strong>
-                  <span>{task.detail}</span>
-                </span>
-                <b>{task.durationMinutes}분</b>
-              </>
-            );
-
-            return role === "student" ? (
-              <button
-                type="button"
-                key={task.id}
-                className={task.completed ? "completed" : undefined}
-                onClick={() => toggleTask(task.id)}
-                aria-pressed={task.completed}
-                aria-label={`${task.title}, ${task.completed ? "완료 취소" : "완료 처리"}`}
-              >
-                {content}
-              </button>
-            ) : (
-              <article key={task.id} className={task.completed ? "completed" : undefined}>
-                {content}
-              </article>
-            );
-          })}
-        </div>
-      </section>
+      <div className="task-overview-grid">
+        <TaskOverviewPanel
+          scope="today"
+          date={state.scheduleDate}
+          tasks={todayTasks}
+          role={role}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
+          onAdd={addTask}
+        />
+        <TaskOverviewPanel
+          scope="week"
+          date={state.scheduleDate}
+          tasks={upcomingTasks}
+          role={role}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
+          onAdd={addTask}
+        />
+      </div>
 
       <section className="assistant-panel" aria-labelledby="assistant-title">
         <div className="assistant-heading">
@@ -222,14 +479,16 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
             <h2 id="assistant-title">일정 도우미</h2>
           </div>
         </div>
-        <label className="assistant-input">
-          <span>등록할 일정</span>
-          <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={240} rows={2} />
-        </label>
-        <button type="button" className="assistant-action" onClick={requestDraft} disabled={pending || message.trim().length < 2}>
-          <Sparkles aria-hidden="true" size={18} />
-          {pending ? "정리 중" : "일정 초안 만들기"}
-        </button>
+        <div className="assistant-compose">
+          <label className="assistant-input">
+            <span>말로 일정 추가</span>
+            <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={240} rows={2} />
+          </label>
+          <button type="button" className="assistant-action" onClick={requestDraft} disabled={pending || message.trim().length < 2}>
+            <Sparkles aria-hidden="true" size={18} />
+            {pending ? "정리 중" : "초안 만들기"}
+          </button>
+        </div>
 
         {assistantText && (
           <div className="assistant-result" aria-live="polite">
@@ -249,85 +508,127 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
 
         <div className="assistant-boundary">
           <CalendarPlus aria-hidden="true" size={20} />
-          <p>일정은 학생이 확인한 뒤 등록됩니다. 성적·건강·상담 원문은 일정 요청에 넣지 않습니다.</p>
+          <p>학생이 초안을 확인한 뒤 캘린더에 등록합니다. 성적·건강·상담 원문은 요청에 넣지 않습니다.</p>
         </div>
       </section>
 
       <section className="calendar-panel" aria-labelledby="calendar-title">
-        <div className="calendar-view-switcher" role="group" aria-label="캘린더 보기 방식">
-          <button
-            type="button"
-            className={calendarView === "week" ? "active" : undefined}
-            aria-pressed={calendarView === "week"}
-            onClick={() => setCalendarView("week")}
-          >
-            주간
-          </button>
-          <button
-            type="button"
-            className={calendarView === "month" ? "active" : undefined}
-            aria-pressed={calendarView === "month"}
-            onClick={() => setCalendarView("month")}
-          >
-            월간
-          </button>
-        </div>
-
-        <div className="calendar-toolbar">
-          <div>
-            <p className="section-kicker">MY CALENDAR</p>
-            <h2 id="calendar-title">{calendarTitle}</h2>
-          </div>
-          <div>
-            <button type="button" className="icon-button secondary" onClick={() => moveCalendar(-1)} aria-label={`이전 ${calendarView === "month" ? "달" : "주"}`} title={`이전 ${calendarView === "month" ? "달" : "주"}`}>
-              <ChevronLeft aria-hidden="true" size={20} />
-            </button>
-            <button type="button" className="icon-button secondary" onClick={() => moveCalendar(1)} aria-label={`다음 ${calendarView === "month" ? "달" : "주"}`} title={`다음 ${calendarView === "month" ? "달" : "주"}`}>
-              <ChevronRight aria-hidden="true" size={20} />
-            </button>
-          </div>
-        </div>
-
-        <div className="calendar-weekdays" aria-hidden="true">
-          {weekdays.map((day) => <span key={day}>{day}</span>)}
-        </div>
-        <div className={`calendar-grid ${calendarView}`}>
-          {displayCells.map(({ date, current }) => {
-            const key = dateKey(date);
-            const eventCategories = Array.from(new Set((eventsByDate.get(key) ?? []).map((event) => event.category)));
-            return (
-              <button
-                type="button"
-                key={key}
-                className={`${current ? "" : "outside"} ${selectedDate === key ? "selected" : ""}`}
-                onClick={() => selectCalendarDate(date, current)}
-                aria-pressed={selectedDate === key}
-                aria-label={`${date.getMonth() + 1}월 ${date.getDate()}일${eventCategories.length ? `, 일정 ${eventCategories.length}종류` : ""}`}
-              >
-                <span>{date.getDate()}</span>
-                <i>
-                  {eventCategories.slice(0, 3).map((category) => <b key={category} className={category} />)}
-                </i>
+        <div className="calendar-panel-header">
+          <div className="calendar-toolbar">
+            <div>
+              <p className="section-kicker">MY CALENDAR</p>
+              <h2 id="calendar-title">{calendarTitle}</h2>
+            </div>
+            <div>
+              <button type="button" className="icon-button secondary" onClick={() => moveCalendar(-1)} aria-label={`이전 ${calendarView === "month" ? "달" : "주"}`} title={`이전 ${calendarView === "month" ? "달" : "주"}`}>
+                <ChevronLeft aria-hidden="true" size={20} />
               </button>
-            );
-          })}
+              <button type="button" className="icon-button secondary" onClick={() => moveCalendar(1)} aria-label={`다음 ${calendarView === "month" ? "달" : "주"}`} title={`다음 ${calendarView === "month" ? "달" : "주"}`}>
+                <ChevronRight aria-hidden="true" size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="calendar-view-switcher" role="group" aria-label="캘린더 보기 방식">
+            <button
+              type="button"
+              className={calendarView === "week" ? "active" : undefined}
+              aria-pressed={calendarView === "week"}
+              onClick={() => setCalendarView("week")}
+            >
+              주간
+            </button>
+            <button
+              type="button"
+              className={calendarView === "month" ? "active" : undefined}
+              aria-pressed={calendarView === "month"}
+              onClick={() => setCalendarView("month")}
+            >
+              월간
+            </button>
+          </div>
         </div>
 
-        <div className="day-agenda">
-          <div className="section-heading-row compact">
-            <h3>{Number(selectedDate.slice(5, 7))}월 {Number(selectedDate.slice(8, 10))}일</h3>
-            <span>{selectedEvents.length}개 일정</span>
+        <div className="calendar-board">
+          <div className="calendar-date-grid">
+            <div className="calendar-weekdays" aria-hidden="true">
+              {weekdays.map((day) => <span key={day}>{day}</span>)}
+            </div>
+            <div className={`calendar-grid ${calendarView}`}>
+              {displayCells.map(({ date, current }) => {
+                const key = toDateKey(date);
+                const eventCategories = (eventsByDate.get(key) ?? []).map((event) => event.category);
+                const taskCategories = (tasksByDate.get(key) ?? []).map((task) => task.kind);
+                const scheduleCategories = Array.from(new Set([...eventCategories, ...taskCategories]));
+                const scheduleCount = eventCategories.length + taskCategories.length;
+                return (
+                  <button
+                    type="button"
+                    key={key}
+                    className={`${current ? "" : "outside"} ${selectedDate === key ? "selected" : ""} ${state.scheduleDate === key ? "today" : ""}`}
+                    onClick={() => selectCalendarDate(date, current)}
+                    aria-pressed={selectedDate === key}
+                    aria-label={`${date.getMonth() + 1}월 ${date.getDate()}일${scheduleCount ? `, 할 일과 일정 ${scheduleCount}개` : ""}`}
+                  >
+                    <span>{date.getDate()}</span>
+                    <i>
+                      {scheduleCategories.slice(0, 3).map((category) => <b key={category} className={category} />)}
+                    </i>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          {selectedEvents.length ? selectedEvents.map((event) => (
-            <article key={event.id} className={`agenda-row ${event.category}`}>
-              <time>{formatKoreanScheduleTime(event.startsAt)}</time>
+
+          <aside className="day-agenda" aria-label="선택한 날짜 일정">
+            <div className="section-heading-row compact">
               <div>
-                <span>{categoryLabels[event.category]} · {event.source === "assistant" ? "일정 도우미" : event.source === "coach" ? "코치" : "직접 등록"}</span>
-                <strong>{event.title}</strong>
-                {event.note && <p>{event.note}</p>}
+                <p className="section-kicker">SELECTED DAY</p>
+                <h3>{Number(selectedDate.slice(5, 7))}월 {Number(selectedDate.slice(8, 10))}일</h3>
               </div>
-            </article>
-          )) : <p className="empty-state">등록된 일정이 없습니다.</p>}
+              <span>{selectedTasks.length + selectedEvents.length}개</span>
+            </div>
+
+            <div className="agenda-list">
+              {selectedTasks.map((task) => (
+                <article key={`task-${task.id}`} className={`agenda-row task ${task.kind} ${task.completed ? "completed" : ""}`}>
+                  {role === "student" ? (
+                    <button
+                      type="button"
+                      className="agenda-task-check"
+                      onClick={() => toggleTask(task.id)}
+                      aria-label={`${task.title} ${task.completed ? "완료 취소" : "완료"}`}
+                      aria-pressed={task.completed}
+                    >
+                      {task.completed ? <CheckCircle2 aria-hidden="true" size={19} /> : <Circle aria-hidden="true" size={19} />}
+                    </button>
+                  ) : (
+                    <span className="agenda-task-check" aria-hidden="true">
+                      {task.completed ? <CheckCircle2 size={19} /> : <Circle size={19} />}
+                    </span>
+                  )}
+                  <div>
+                    <span>{taskKindLabels[task.kind]} · {task.assignedBy === "coach" ? "코치" : "직접"}</span>
+                    <strong>{task.title}</strong>
+                    {task.detail && <p>{task.detail}</p>}
+                  </div>
+                  <time>{task.scheduledTime}</time>
+                </article>
+              ))}
+              {selectedEvents.map((event) => (
+                <article key={`event-${event.id}`} className={`agenda-row event ${event.category}`}>
+                  <time>{formatKoreanScheduleTime(event.startsAt)}</time>
+                  <div>
+                    <span>{categoryLabels[event.category]} · {event.source === "assistant" ? "일정 도우미" : event.source === "coach" ? "코치" : "직접 등록"}</span>
+                    <strong>{event.title}</strong>
+                    {event.note && <p>{event.note}</p>}
+                  </div>
+                </article>
+              ))}
+              {!selectedTasks.length && !selectedEvents.length && (
+                <p className="empty-state">등록된 할 일이나 일정이 없습니다.</p>
+              )}
+            </div>
+          </aside>
         </div>
       </section>
     </div>

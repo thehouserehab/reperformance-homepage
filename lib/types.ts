@@ -11,6 +11,7 @@ export type AppTask = {
   title: string;
   detail: string;
   kind: TaskKind;
+  scheduledDate: string;
   scheduledTime: string;
   durationMinutes: number;
   completed: boolean;
@@ -64,6 +65,7 @@ export type CoachConversationMessage = {
 
 export type AppState = {
   studentName: string;
+  scheduleDate: string;
   guardianPermissions: GuardianPermissions;
   tasks: AppTask[];
   studySessions: StudySession[];

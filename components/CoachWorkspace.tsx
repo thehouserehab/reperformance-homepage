@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { Activity, CalendarClock, ChevronRight, MessageSquareText, ShieldCheck } from "lucide-react";
 import { useAppState } from "./AppStateProvider";
+import { getTasksForDate } from "@/lib/taskScheduling";
 
 export function CoachWorkspace() {
   const { state } = useAppState();
-  const completedTasks = state.tasks.filter((task) => task.completed).length;
+  const todayTasks = getTasksForDate(state.tasks, state.scheduleDate);
+  const completedTasks = todayTasks.filter((task) => task.completed).length;
   const sharedCount = Object.values(state.guardianPermissions).filter(Boolean).length;
   const latestMessage = [...state.guardianMessages].reverse().find((message) => message.status === "sent");
   const latestConversationMessage = state.coachConversation[state.coachConversation.length - 1];
@@ -32,7 +34,7 @@ export function CoachWorkspace() {
           <div className="student-summary">
             <span>고3 · 정시 준비</span>
             <h3>{state.studentName}</h3>
-            <p>오늘 과제 {completedTasks}/{state.tasks.length} · 에너지 {state.condition.energy}/5 · 뻐근함 {state.condition.soreness}/5</p>
+            <p>오늘 과제 {completedTasks}/{todayTasks.length} · 에너지 {state.condition.energy}/5 · 뻐근함 {state.condition.soreness}/5</p>
           </div>
           <div className="coach-signals">
             <span><Activity aria-hidden="true" size={17} /> 기록 확인</span>

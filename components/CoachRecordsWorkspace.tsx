@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { Activity, ArrowRight, BookOpenCheck, MessageSquareText, Trophy } from "lucide-react";
 import { useAppState } from "./AppStateProvider";
+import { getTasksForDate } from "@/lib/taskScheduling";
 
 export function CoachRecordsWorkspace() {
   const { state } = useAppState();
-  const completedTasks = state.tasks.filter((task) => task.completed).length;
+  const todayTasks = getTasksForDate(state.tasks, state.scheduleDate);
+  const completedTasks = todayTasks.filter((task) => task.completed).length;
   const focusedMinutes = state.studySessions.reduce((total, session) => total + session.focusedMinutes, 0);
 
   return (
@@ -27,7 +29,7 @@ export function CoachRecordsWorkspace() {
 
         <article>
           <BookOpenCheck aria-hidden="true" size={23} />
-          <div><span>학업</span><h3>집중 {focusedMinutes}분 · 오늘 과제 {completedTasks}/{state.tasks.length}</h3></div>
+          <div><span>학업</span><h3>집중 {focusedMinutes}분 · 오늘 과제 {completedTasks}/{todayTasks.length}</h3></div>
           <strong>흐름 확인</strong>
         </article>
         <article>
