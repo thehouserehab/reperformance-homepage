@@ -43,7 +43,7 @@ export function AppShell({
   role: AppRole;
   title: string;
   eyebrow: string;
-  layout?: "default" | "conversation";
+  layout?: "default" | "conversation" | "schedule";
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -81,7 +81,9 @@ export function AppShell({
       </header>
 
       <main className={`app-main${layout === "conversation" ? " conversation-app-main" : ""}`}>
-        <section className={layout === "conversation" ? "sr-only" : "page-heading"}>
+        <section
+          className={layout === "conversation" ? "sr-only" : `page-heading${layout === "schedule" ? " schedule-page-heading" : ""}`}
+        >
           <p className="eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
         </section>

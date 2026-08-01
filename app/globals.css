@@ -1,19 +1,19 @@
 :root {
-  --ink: #253029;
-  --muted: #706e65;
-  --line: #ded8cd;
-  --surface: #fffdfa;
-  --surface-soft: #faf8f3;
-  --canvas: #f6f2ea;
-  --green-black: #263c32;
-  --green: #3f765b;
-  --mint: #e4efe7;
-  --orange: #e8a25d;
-  --orange-soft: #fff1df;
-  --blue: #4b7089;
-  --red: #b85d51;
-  --on-dark-muted: #d5d2c7;
-  --shadow: 0 18px 45px rgba(38, 60, 50, 0.1);
+  --ink: #332f29;
+  --muted: #746f65;
+  --line: #ddd6c8;
+  --surface: #fffdf8;
+  --surface-soft: #faf6ee;
+  --canvas: #f3eee4;
+  --green-black: #344335;
+  --green: #5f7750;
+  --mint: #e8ecde;
+  --orange: #d9924b;
+  --orange-soft: #faead7;
+  --blue: #647985;
+  --red: #b56557;
+  --on-dark-muted: #ddd8ca;
+  --shadow: 0 18px 45px rgba(52, 67, 53, 0.12);
 }
 
 * {
@@ -79,7 +79,7 @@ summary:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgba(232, 162, 93, 0.45);
+  outline: 3px solid rgba(217, 146, 75, 0.46);
   outline-offset: 3px;
 }
 
@@ -97,8 +97,8 @@ textarea:focus-visible {
   justify-content: space-between;
   min-height: 72px;
   padding: 10px max(20px, calc((100vw - 1180px) / 2));
-  border-bottom: 1px solid rgba(38, 60, 50, 0.1);
-  background: rgba(246, 242, 234, 0.94);
+  border-bottom: 1px solid rgba(52, 67, 53, 0.11);
+  background: rgba(243, 238, 228, 0.94);
   backdrop-filter: blur(18px);
 }
 
@@ -293,7 +293,7 @@ textarea:focus-visible {
 .condition-controls label span {
   display: flex;
   justify-content: space-between;
-  color: #e6e1d5;
+  color: #e8e1d5;
   font-size: 12px;
   font-weight: 700;
 }
@@ -482,7 +482,7 @@ input[type="range"] {
   padding: 10px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 6px;
-  color: #e7e2d7;
+  color: #ebe4d8;
   background: transparent;
 }
 
@@ -750,7 +750,7 @@ input[type="range"] {
 }
 
 .toggle-control input:focus-visible + span {
-  outline: 3px solid rgba(236, 159, 79, 0.45);
+  outline: 3px solid rgba(217, 146, 75, 0.46);
   outline-offset: 3px;
 }
 
@@ -782,11 +782,15 @@ input[type="range"] {
 .calendar-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.8fr);
+  grid-template-areas:
+    "today today"
+    "calendar assistant";
   gap: 24px;
   align-items: start;
   margin-bottom: 30px;
 }
 
+.calendar-today-panel,
 .calendar-panel,
 .assistant-panel,
 .guardian-message-panel {
@@ -795,8 +799,134 @@ input[type="range"] {
   box-shadow: var(--shadow);
 }
 
+.calendar-today-panel {
+  grid-area: today;
+  overflow: hidden;
+}
+
 .calendar-panel {
+  grid-area: calendar;
   padding: 30px;
+}
+
+.calendar-section-heading {
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 24px;
+  color: white;
+  background: var(--green-black);
+}
+
+.calendar-section-heading h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.calendar-section-heading strong {
+  color: var(--orange);
+  font-size: 28px;
+}
+
+.calendar-task-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.calendar-task-list > button,
+.calendar-task-list > article {
+  display: grid;
+  min-width: 0;
+  min-height: 108px;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+}
+
+.calendar-task-list > :last-child {
+  border-right: 0;
+}
+
+.calendar-task-list > button:hover {
+  background: var(--surface-soft);
+}
+
+.calendar-task-list > button.completed,
+.calendar-task-list > article.completed {
+  color: var(--muted);
+  background: var(--surface-soft);
+}
+
+.calendar-task-check {
+  display: grid;
+  color: var(--green);
+}
+
+.calendar-task-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.calendar-task-copy small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.calendar-task-copy strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.calendar-task-copy > span {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.calendar-task-list > button > b,
+.calendar-task-list > article > b {
+  color: var(--green);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.calendar-task-list > .completed .calendar-task-copy strong {
+  text-decoration: line-through;
+}
+
+.calendar-view-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 22px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-soft);
+}
+
+.calendar-view-switcher button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.calendar-view-switcher button.active {
+  color: white;
+  background: var(--green);
 }
 
 .calendar-toolbar {
@@ -828,6 +958,10 @@ input[type="range"] {
 .calendar-grid {
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
+}
+
+.calendar-grid.week button {
+  aspect-ratio: 1.35;
 }
 
 .calendar-grid button {
@@ -939,6 +1073,7 @@ input[type="range"] {
 }
 
 .assistant-panel {
+  grid-area: assistant;
   position: sticky;
   top: 96px;
   padding: 28px;
@@ -994,7 +1129,7 @@ button:disabled {
 
 .assistant-result > p {
   margin: 0;
-  color: #e0dbcf;
+  color: #e5ded1;
   font-size: 13px;
   line-height: 1.55;
 }
@@ -1022,7 +1157,7 @@ button:disabled {
 
 .assistant-boundary {
   margin: 22px 0 0;
-  border-left-color: rgba(232, 162, 93, 0.7);
+  border-left-color: rgba(217, 146, 75, 0.72);
   color: var(--on-dark-muted);
   background: rgba(255, 255, 255, 0.06);
 }
@@ -1048,7 +1183,7 @@ button:disabled {
 
 .form-success {
   margin: 12px 0 0;
-  color: #d8eadb;
+  color: #e7e9db;
   font-size: 12px;
 }
 
@@ -1293,8 +1428,8 @@ button:disabled {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #82c58d;
-  box-shadow: 0 0 0 3px rgba(130, 197, 141, 0.14);
+  background: #9fba80;
+  box-shadow: 0 0 0 3px rgba(159, 186, 128, 0.16);
 }
 
 .conversation-privacy {
@@ -1317,7 +1452,7 @@ button:disabled {
   gap: 12px;
   overflow-y: auto;
   padding: 20px 22px 28px;
-  background: #f1eee6;
+  background: #f1ece2;
   scrollbar-color: #aaa498 transparent;
 }
 
@@ -1330,7 +1465,7 @@ button:disabled {
 
 .conversation-date-divider span {
   padding: 5px 9px;
-  border: 1px solid rgba(38, 60, 50, 0.08);
+  border: 1px solid rgba(52, 67, 53, 0.08);
   border-radius: 8px;
   color: var(--muted);
   background: rgba(255, 253, 250, 0.82);
@@ -1355,7 +1490,7 @@ button:disabled {
   height: 30px;
   flex: 0 0 30px;
   place-items: center;
-  border: 1px solid rgba(38, 60, 50, 0.12);
+  border: 1px solid rgba(52, 67, 53, 0.12);
   border-radius: 50%;
   color: var(--green);
   background: var(--surface);
@@ -1385,10 +1520,10 @@ button:disabled {
 .conversation-message {
   min-width: 54px;
   padding: 10px 13px;
-  border: 1px solid rgba(38, 60, 50, 0.11);
+  border: 1px solid rgba(52, 67, 53, 0.11);
   border-radius: 4px 12px 12px;
   background: var(--surface);
-  box-shadow: 0 3px 10px rgba(38, 60, 50, 0.045);
+  box-shadow: 0 3px 10px rgba(52, 67, 53, 0.055);
 }
 
 .conversation-message-row.mine .conversation-message {
@@ -1545,14 +1680,14 @@ button:disabled {
 .send-message-button:disabled {
   border-color: #e1ddd4;
   color: #aaa59c;
-  background: #f1eee7;
+  background: #f1ece3;
   cursor: not-allowed;
 }
 
 .button-spinner {
   width: 15px;
   height: 15px;
-  border: 2px solid rgba(63, 118, 91, 0.22);
+  border: 2px solid rgba(95, 119, 80, 0.24);
   border-top-color: var(--green);
   border-radius: 50%;
   animation: message-spinner 700ms linear infinite;
@@ -1930,8 +2065,8 @@ button:disabled {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   color: #d5d2c7;
-  background: rgba(38, 60, 50, 0.97);
-  box-shadow: 0 18px 38px rgba(38, 60, 50, 0.25);
+  background: rgba(52, 67, 53, 0.97);
+  box-shadow: 0 18px 38px rgba(52, 67, 53, 0.25);
   transform: translateX(50%);
   backdrop-filter: blur(16px);
 }
@@ -1962,6 +2097,27 @@ button:disabled {
   .guardian-message-panel,
   .calendar-layout {
     grid-template-columns: 1fr;
+  }
+
+  .calendar-layout {
+    grid-template-areas:
+      "today"
+      "assistant"
+      "calendar";
+  }
+
+  .calendar-task-list {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-task-list > button,
+  .calendar-task-list > article {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .calendar-task-list > :last-child {
+    border-bottom: 0;
   }
 
   .today-status-band > div:first-child {
@@ -2095,6 +2251,16 @@ button:disabled {
 
   .page-heading h1 {
     font-size: 29px;
+  }
+
+  .schedule-page-heading {
+    min-height: auto;
+    padding: 28px 0 20px;
+  }
+
+  .schedule-page-heading h1 {
+    font-size: 25px;
+    line-height: 1.3;
   }
 
   .section-heading-row {
@@ -2341,9 +2507,72 @@ button:disabled {
     padding: 22px 18px;
   }
 
+  .calendar-layout {
+    gap: 18px;
+    padding-bottom: 8px;
+  }
+
+  .calendar-section-heading {
+    min-height: 72px;
+    padding: 15px 18px;
+  }
+
+  .calendar-section-heading h2 {
+    font-size: 18px;
+  }
+
+  .calendar-section-heading strong {
+    font-size: 22px;
+  }
+
+  .calendar-task-list > button,
+  .calendar-task-list > article {
+    min-height: 68px;
+    grid-template-columns: 26px minmax(0, 1fr) 34px;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .calendar-task-copy > span {
+    display: none;
+  }
+
+  .calendar-view-switcher {
+    margin-bottom: 16px;
+  }
+
+  .calendar-view-switcher button {
+    min-height: 36px;
+  }
+
+  .calendar-toolbar {
+    margin-bottom: 16px;
+  }
+
+  .calendar-toolbar h2 {
+    font-size: 17px;
+  }
+
+  .assistant-heading {
+    margin-bottom: 16px;
+  }
+
+  .assistant-panel .assistant-input textarea {
+    min-height: 76px;
+  }
+
+  .assistant-boundary {
+    margin-top: 14px;
+    padding: 12px 14px;
+  }
+
   .calendar-grid button {
     aspect-ratio: 0.9;
     padding: 6px;
+  }
+
+  .calendar-grid.week button {
+    aspect-ratio: 0.78;
   }
 
   .calendar-grid button.selected::after {
