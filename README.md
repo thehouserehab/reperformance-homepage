@@ -4,7 +4,7 @@
 
 ## 현재 단계
 
-현재 코드는 **1차 기능성 프로토타입 위에 역할·권한·정보구조·데이터 모델을 정리한 2차 구조 단계**입니다.
+현재 코드는 **2차 역할·정보구조 위에 PostgreSQL 마이그레이션과 활성 관계 기반 권한 계약을 추가한 단계**입니다.
 
 - 학생 Today와 컨디션 체크
 - 공부 타이머
@@ -17,10 +17,13 @@
 - 사용자가 검토하고 직접 보내는 선택형 AI 문장 정리
 - 학생·코치·학부모·관리자 역할별 핵심 내비게이션
 - 학생 기록·상담, 코치 기록 검토, 학부모 공개 요약, 관리자 운영 화면 뼈대
+- 25개 핵심 테이블의 PostgreSQL 전방향 마이그레이션 설계
+- 학생 본인·담당 코치·선택 공개 학부모·관리자 범위를 구분한 RLS
+- 대화 참여자 검사와 AI 승인·일일 한도의 원자적 예약 함수
 - 브라우저 로컬 저장
 - 설치형 PWA 기반
 
-실제 로그인, PostgreSQL, 실시간 메시지 서버, OpenAI API, 파일 저장소, 푸시 알림은 아직 연결하지 않았습니다. 역할 전환 메뉴는 개발 미리보기용이며 실제 인증이나 접근 통제를 대신하지 않습니다.
+실제 로그인, PostgreSQL, 실시간 메시지 서버, OpenAI API, 파일 저장소, 푸시 알림은 아직 연결하지 않았습니다. SQL 파일은 설계 산출물이며 어떤 DB에도 적용하지 않았습니다. 역할 전환 메뉴는 개발 미리보기용이며 실제 인증이나 접근 통제를 대신하지 않습니다.
 
 ## 실행
 
@@ -35,6 +38,8 @@ npm.cmd run dev
 
 ```powershell
 npm.cmd run typecheck
+npm.cmd run architecture:check
+npm.cmd run authorization:check
 npm.cmd run build
 npm.cmd audit --audit-level=high
 ```
@@ -66,6 +71,9 @@ npm.cmd audit --audit-level=high
 - `docs/INFORMATION_ARCHITECTURE.md`: 역할별 내비게이션과 사이트맵
 - `docs/DATA_MODEL.md`: PostgreSQL 적용 전 핵심 ERD와 상태 모델
 - `docs/CORE_WORKFLOWS.md`: 가입, 기록, 대화, 공개, 일정, AI 흐름
+- `docs/AUTHORIZATION_DESIGN.md`: 인증 이후 서버·RLS 이중 권한 검사
+- `database/migrations`: 계정·기록·대화·AI·감사·RLS 전방향 SQL
+- `database/README.md`: DB 역할 분리, 요청 컨텍스트, 적용·롤백 원칙
 
 ## 데이터와 보안 경계
 
@@ -91,9 +99,9 @@ npm.cmd audit --audit-level=high
 
 ## 다음 개발 단계
 
-1. 2차 구조의 운영자 검토와 미성년자 예외 정책 확정
-2. ERD를 실제 PostgreSQL 마이그레이션 설계로 변환
-3. 서버 인증·역할·활성 관계 기반 접근 통제
-4. Today·타이머·캘린더·기록 서버 동기화
-5. 학생-코치 대화의 서버 저장·읽음 상태·알림
+1. 인증 제공자·미성년자 본인 확인·법정대리인 예외 확정
+2. 격리된 테스트 PostgreSQL에서 4개 마이그레이션 실제 실행 검증
+3. Migration/Runtime DB 역할과 최소 `GRANT` 보정 마이그레이션
+4. 서버 인증 어댑터와 트랜잭션 `rp.user_id` 컨텍스트 구현
+5. Today·타이머·캘린더·기록·대화 서버 저장
 6. 관리자 승인형 AI와 제한 베타

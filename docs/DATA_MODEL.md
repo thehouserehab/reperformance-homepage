@@ -1,8 +1,8 @@
 # RP APP 데이터 모델과 ERD
 
-**버전:** 0.1
+**버전:** 0.2
 **기준일:** 2026-08-01
-**단계:** 구조 설계, 아직 마이그레이션 미적용
+**단계:** PostgreSQL 마이그레이션·RLS 설계 완료, 아직 DB 미적용
 
 ## 1. 모델링 원칙
 
@@ -40,6 +40,8 @@ erDiagram
     USERS ||--o{ CONVERSATION_PARTICIPANTS : joins
     CONVERSATIONS ||--o{ MESSAGES : contains
     USERS ||--o{ MESSAGES : sends
+    MESSAGES ||--o{ MESSAGE_RECEIPTS : tracks
+    USERS ||--o{ MESSAGE_RECEIPTS : receives
 
     USERS ||--o{ AI_ACCESS_GRANTS : receives
     USERS ||--o{ AI_USAGE_DAILY : consumes
@@ -56,45 +58,46 @@ erDiagram
 
 | 테이블 | 주요 필드 | 목적 |
 |---|---|---|
-| `users` | id, email/phone identifier, status, last_login_at | 인증 주체, 민감 식별자는 암호화·정규화 정책 적용 |
-| `user_roles` | user_id, role, active_from, active_to | 학생·코치·학부모·관리자 역할 부여 |
-| `student_profiles` | user_id, display_name, school_year, admission_track | 학생 기본 프로필, 최소 정보만 저장 |
-| `coach_profiles` | user_id, display_name, status | 코치 운영 상태 |
-| `guardian_profiles` | user_id, display_name | 학부모 최소 프로필 |
-| `coach_student_links` | coach_id, student_id, status, starts_at, ends_at | 담당 코치 접근 경계 |
-| `guardian_student_links` | guardian_id, student_id, status, relationship_label | 학부모 연결 경계 |
-| `guardian_sharing_preferences` | link_id, attendance, contract, academics, practical, updated_by_student_at | 학생 선택 공개 상태 |
+| `rp_users` | id, auth_subject, status, last_login_at | 외부 인증 주체 연결, 비밀번호·토큰 미저장 |
+| `rp_user_roles` | user_id, role, active_from, active_to | 학생·코치·학부모·관리자 역할 부여 |
+| `rp_student_profiles` | user_id, display_name, school_year, admission_track | 학생 기본 프로필, 최소 정보만 저장 |
+| `rp_coach_profiles` | user_id, display_name, status | 코치 운영 상태 |
+| `rp_guardian_profiles` | user_id, display_name | 학부모 최소 프로필 |
+| `rp_coach_student_links` | coach_id, student_id, status, starts_at, ends_at | 담당 코치 접근 경계 |
+| `rp_guardian_student_links` | guardian_id, student_id, status, relationship_label | 학부모 연결 경계 |
+| `rp_guardian_sharing_preferences` | link_id, attendance, contract, academics, practical, updated_by_student_at | 학생 선택 공개 상태 |
 
 ### 공부·실기·컨디션·일정
 
 | 테이블 | 주요 필드 | 목적 |
 |---|---|---|
-| `tasks` | student_id, kind, title, scheduled_at, duration, status, assigned_by | 오늘 할 일과 코치 과제 |
-| `condition_checks` | student_id, energy, focus, soreness, checked_at | 짧은 컨디션 체크 |
-| `study_sessions` | student_id, subject, goal, focused_minutes, status, completed_at | 공부 타이머 결과 |
-| `academic_snapshots` | student_id, assessment_type, subject, score_band, recorded_at | 상담에 필요한 성적 상태 스냅샷 |
-| `practical_records` | student_id, event_code, value, unit, measured_at, verified_by | 실기 종목 기록과 검증 상태 |
-| `calendar_events` | student_id, category, starts_at, ends_at, source, status | 공부·실기·상담·시험·회복 일정 |
-| `admission_profiles` | student_id, target_year, track, target_departments, updated_at | 입시 상담의 목표와 준비 기준 |
+| `rp_tasks` | student_id, kind, title, scheduled_at, duration, status, assigned_by | 오늘 할 일과 코치 과제 |
+| `rp_condition_checks` | student_id, energy, focus, soreness, checked_at | 짧은 컨디션 체크 |
+| `rp_study_sessions` | student_id, subject, goal, focused_minutes, status, completed_at | 공부 타이머 결과 |
+| `rp_academic_snapshots` | student_id, assessment_type, subject, score_band, recorded_at | 상담에 필요한 성적 상태 스냅샷 |
+| `rp_practical_records` | student_id, event_code, value, unit, measured_at, verified_by | 실기 종목 기록과 검증 상태 |
+| `rp_calendar_events` | student_id, category, starts_at, ends_at, source, status | 공부·실기·상담·시험·회복 일정 |
+| `rp_admission_profiles` | student_id, target_year, track, target_departments, updated_at | 입시 상담의 목표와 준비 기준 |
 
 ### 대화와 AI
 
 | 테이블 | 주요 필드 | 목적 |
 |---|---|---|
-| `conversations` | id, type, student_id, status | 학생-코치 또는 학부모-코치 대화방 |
-| `conversation_participants` | conversation_id, user_id, role, joined_at, left_at | 실제 참여자 접근 제어 |
-| `messages` | conversation_id, sender_id, body_ciphertext, sent_at, read_at, ai_assisted | 암호화 저장을 검토할 메시지와 읽음 상태 |
-| `ai_access_grants` | user_id, feature, status, daily_limit, approved_by | 기능별 AI 승인과 한도 |
-| `ai_usage_daily` | user_id, feature, usage_date, request_count, token_count, cost_amount | 일별 비용·사용량 통제 |
-| `ai_requests` | user_id, feature, status, input_redaction_level, model, created_at | 원문 최소화된 AI 요청 감사 메타데이터 |
+| `rp_conversations` | id, type, student_id, status | 학생-코치 또는 학부모-코치 대화방 |
+| `rp_conversation_participants` | conversation_id, user_id, role, joined_at, left_at | 실제 참여자 접근 제어 |
+| `rp_messages` | conversation_id, sender_id, body_ciphertext, sent_at, ai_assisted | 애플리케이션 암호화를 전제로 한 메시지 |
+| `rp_message_receipts` | message_id, recipient_user_id, delivered_at, read_at | 수신자별 전달·읽음 상태 |
+| `rp_ai_access_grants` | user_id, feature, status, daily_request_limit, approved_by | 기능별 AI 승인과 한도 |
+| `rp_ai_usage_daily` | user_id, feature, usage_date, request_count, token_count, cost_amount | 일별 비용·사용량 통제 |
+| `rp_ai_requests` | user_id, feature, status, input_redaction_level, model, created_at | 원문 없는 AI 요청 감사 메타데이터 |
 
 ### 동의·운영
 
 | 테이블 | 주요 필드 | 목적 |
 |---|---|---|
-| `consents` | user_id, type, version, status, granted_at, revoked_at | 개인정보·민감정보·AI·영상 동의 |
-| `contract_status_summaries` | student_id, product_name, session_count, contract_status, payment_status, first_session_at, external_ref | 외부 원본을 복제하지 않는 진행 상태 |
-| `audit_events` | actor_user_id, action, target_type, target_id, reason_code, occurred_at | 권한·동의·공개·민감 접근 추적 |
+| `rp_consents` | user_id, type, version, status, granted_at, revoked_at | 개인정보·민감정보·AI·영상 동의 |
+| `rp_contract_status_summaries` | student_id, product_name, session_count, contract_status, payment_status, first_session_at, external_ref | 외부 원본을 복제하지 않는 진행 상태 |
+| `rp_audit_events` | actor_user_id, action, target_type, target_id, reason_code, occurred_at | 권한·동의·공개·민감 접근 추적 |
 
 ## 4. 2단계 확장 모델
 
@@ -135,11 +138,23 @@ erDiagram
 | 외부 확정 방문·수업 일정 | Calendar |
 | 계약 이후 기존 고객관리 | NORE 별도 운영, 기술 연동 없음 |
 
-## 7. 마이그레이션 전 확인사항
+## 7. 마이그레이션 파일
+
+| 순서 | 파일 | 범위 |
+|---:|---|---|
+| 1 | `0001_identity_and_relationships.sql` | 계정, 역할, 프로필, 학생 관계, 학부모 공개 설정 |
+| 2 | `0002_student_workflows.sql` | 과제, 컨디션, 공부, 성적, 실기, 일정, 입시, 계약 상태 |
+| 3 | `0003_messaging_ai_and_audit.sql` | 대화, 메시지, 읽음, AI 승인·사용량, 동의, 감사 |
+| 4 | `0004_authorization_rls.sql` | 활성 관계 함수, AI 원자적 한도, RLS 정책 |
+
+마이그레이션 원본은 `database/migrations`에 있으며 아직 어떤 DB에도 적용하지 않았습니다.
+
+## 8. DB 적용 전 확인사항
 
 - 인증 제공자와 사용자 식별자 정책
 - 미성년자 동의와 법정대리인 예외 범위
 - 성적·건강·메시지·영상의 보관 기간과 삭제 방식
 - 메시지 암호화 범위와 운영자 접근 절차
 - AI 제공자에게 전송할 최소 필드와 비식별화 방식
-- PostgreSQL row-level 접근 정책 또는 동등한 서버 권한 검사
+- Migration 역할과 Runtime 역할의 분리 및 Runtime `BYPASSRLS` 금지
+- 테스트 PostgreSQL에서 전체 마이그레이션 구문·정책 실행 검증
