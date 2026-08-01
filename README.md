@@ -46,6 +46,16 @@ npm.cmd run build
 npm.cmd audit --audit-level=high
 ```
 
+Windows에서 Word 보고서를 페이지 이미지로 검수할 때는 설치된 LibreOffice와 번들 Python을 사용합니다.
+
+```powershell
+& 'C:\Users\정우현\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' `
+  scripts\render-docx-windows.py `
+  'C:\path\to\report.docx' `
+  --output-dir 'C:\path\to\rendered-pages' `
+  --keep-pdf
+```
+
 ## 주요 경로
 
 | 경로 | 역할 |
