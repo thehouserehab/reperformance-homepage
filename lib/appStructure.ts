@@ -3,6 +3,7 @@ import type { AppRole } from "./types";
 export type NavigationIconName =
   | "home"
   | "calendar"
+  | "timer"
   | "records"
   | "consultation"
   | "messages"
@@ -11,7 +12,8 @@ export type NavigationIconName =
   | "operations"
   | "relations"
   | "ai"
-  | "audit";
+  | "audit"
+  | "privacy";
 
 export type AppNavigationItem = {
   href: string;
@@ -35,9 +37,11 @@ export const appRoleDefinitions: Record<AppRole, AppRoleDefinition> = {
     navigation: [
       { href: "/student", label: "오늘", icon: "home", match: "exact" },
       { href: "/calendar", label: "캘린더", icon: "calendar", match: "exact" },
+      { href: "/student/study", label: "공부 타이머", icon: "timer", match: "prefix" },
       { href: "/student/records", label: "기록", icon: "records", match: "prefix" },
       { href: "/student/consultation", label: "상담", icon: "consultation", match: "prefix" },
       { href: "/student/messages", label: "코치 대화", icon: "messages", match: "prefix" },
+      { href: "/student/privacy", label: "공개 설정", icon: "privacy", match: "prefix" },
     ],
   },
   coach: {

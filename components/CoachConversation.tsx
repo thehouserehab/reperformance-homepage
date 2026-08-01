@@ -35,6 +35,18 @@ export function CoachConversation({ role }: { role: ConversationParticipant }) {
     input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
   }, [message]);
 
+  useEffect(() => {
+    if (role !== "student") return;
+    const savedDraft = window.sessionStorage.getItem("rp-app-coach-message-draft");
+    const savedMode = window.sessionStorage.getItem("rp-app-coach-message-mode");
+    if (!savedDraft) return;
+    setMessage(savedDraft.slice(0, 600));
+    setMode(savedMode === "assistant" ? "assistant" : "direct");
+    setAssistantText("홈에서 작성한 내용을 가져왔습니다. 확인한 뒤 코치에게 보내주세요.");
+    window.sessionStorage.removeItem("rp-app-coach-message-draft");
+    window.sessionStorage.removeItem("rp-app-coach-message-mode");
+  }, [role]);
+
   const changeMode = (nextMode: ComposeMode) => {
     setMode(nextMode);
     setAssistantText("");

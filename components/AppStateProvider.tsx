@@ -59,6 +59,7 @@ type AppStateContextValue = {
   setGuardianPermission: (key: GuardianPermissionKey, value: boolean) => void;
   addStudySession: (session: StudySession) => void;
   addCalendarEvent: (event: CalendarEvent) => void;
+  deleteCalendarEvent: (eventId: string) => void;
   sendGuardianMessage: (body: string) => void;
   sendCoachConversationMessage: (
     sender: ConversationParticipant,
@@ -144,6 +145,13 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  const deleteCalendarEvent = useCallback((eventId: string) => {
+    setState((current) => ({
+      ...current,
+      calendarEvents: current.calendarEvents.filter((event) => event.id !== eventId),
+    }));
+  }, []);
+
   const sendGuardianMessage = useCallback((body: string) => {
     const message: GuardianMessage = {
       id: crypto.randomUUID(),
@@ -191,6 +199,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setGuardianPermission,
       addStudySession,
       addCalendarEvent,
+      deleteCalendarEvent,
       sendGuardianMessage,
       sendCoachConversationMessage,
       resetPrototype,
@@ -205,6 +214,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       setGuardianPermission,
       addStudySession,
       addCalendarEvent,
+      deleteCalendarEvent,
       sendGuardianMessage,
       sendCoachConversationMessage,
       resetPrototype,
