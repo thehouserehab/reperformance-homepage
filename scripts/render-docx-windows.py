@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import tempfile
@@ -12,17 +13,22 @@ import pypdfium2 as pdfium
 
 
 def find_soffice() -> Path:
-    command = shutil.which("soffice")
-    if command:
-        return Path(command)
-
-    candidates = [
+    candidates: list[Path] = []
+    configured_path = os.environ.get("RP_SOFFICE_PATH")
+    if configured_path:
+        candidates.append(Path(configured_path))
+    candidates.extend([
+        Path(r"E:\CodexTools\LibreOffice-26.2.5\program\soffice.com"),
         Path(r"C:\Program Files\LibreOffice\program\soffice.com"),
         Path(r"C:\Program Files (x86)\LibreOffice\program\soffice.com"),
-    ]
+    ])
     for candidate in candidates:
         if candidate.exists():
             return candidate
+
+    command = shutil.which("soffice")
+    if command:
+        return Path(command)
     raise FileNotFoundError("LibreOffice soffice를 찾을 수 없습니다.")
 
 

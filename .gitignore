@@ -8,3 +8,5 @@ out/
 .DS_Store
 Thumbs.db
 artifacts/
+__pycache__/
+*.py[cod]
