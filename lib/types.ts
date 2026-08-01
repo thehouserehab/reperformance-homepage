@@ -1,4 +1,4 @@
-export type AppRole = "student" | "coach" | "guardian";
+export type AppRole = "student" | "coach" | "guardian" | "admin";
 
 export type GuardianPermissionKey = "attendance" | "contract" | "academics" | "practical";
 

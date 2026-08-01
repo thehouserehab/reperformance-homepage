@@ -1452,6 +1452,351 @@ button:disabled {
   background: var(--orange);
 }
 
+.record-summary-band,
+.coach-review-band,
+.admin-summary-band {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  margin-bottom: 64px;
+  border-radius: 8px;
+  color: white;
+  background: var(--green-black);
+}
+
+.record-summary-band > div,
+.coach-review-band > div,
+.admin-summary-band > div {
+  display: grid;
+  min-height: 142px;
+  align-content: center;
+  gap: 6px;
+  padding: 26px 30px;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.record-summary-band > div:last-child,
+.coach-review-band > div:last-child,
+.admin-summary-band > div:last-child {
+  border-right: 0;
+}
+
+.record-summary-band svg {
+  margin-bottom: 6px;
+  color: var(--orange);
+}
+
+.record-summary-band span,
+.coach-review-band span,
+.admin-summary-band span {
+  color: #b9c8c3;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.record-summary-band strong,
+.coach-review-band strong,
+.admin-summary-band strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.record-summary-band small {
+  color: #9fb1ab;
+  font-size: 11px;
+}
+
+.record-directory,
+.coach-record-directory,
+.admin-workspace {
+  margin-bottom: 54px;
+}
+
+.record-directory-row {
+  display: grid;
+  grid-template-columns: 48px 52px minmax(0, 1fr) minmax(150px, 0.28fr);
+  min-height: 126px;
+  align-items: center;
+  gap: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.record-directory-row:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.record-row-index,
+.consultation-index,
+.admin-row-index {
+  color: #a3ada9;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.record-row-icon,
+.consultation-icon,
+.admin-workspace-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--green);
+  background: var(--mint);
+}
+
+.record-row-copy span,
+.consultation-copy > span,
+.coach-record-directory article span,
+.record-action-band span,
+.coach-record-action span {
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.record-row-copy h3,
+.consultation-copy h3,
+.coach-record-directory article h3,
+.admin-operation-list h3 {
+  margin: 5px 0;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.record-row-copy p,
+.consultation-copy p,
+.admin-operation-list p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.record-row-value {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  text-align: right;
+}
+
+.record-row-value strong {
+  font-size: 20px;
+}
+
+.record-row-value span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.record-action-band,
+.coach-record-action,
+.consultation-safety-band,
+.admin-boundary-band {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 70px;
+  padding: 24px 28px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.record-action-band > svg,
+.coach-record-action > svg,
+.consultation-safety-band > svg,
+.admin-boundary-band > svg {
+  color: var(--orange);
+}
+
+.record-action-band div,
+.coach-record-action div {
+  display: grid;
+  gap: 5px;
+}
+
+.record-action-band a,
+.coach-record-action a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 7px;
+  padding: 0 15px;
+  border-radius: 6px;
+  color: white;
+  background: var(--green-black);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.consultation-intro-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.55fr);
+  align-items: end;
+  gap: 40px;
+  margin-bottom: 46px;
+  padding: 32px 0;
+  border-top: 1px solid var(--green-black);
+  border-bottom: 1px solid var(--line);
+}
+
+.consultation-intro-band h2 {
+  max-width: 620px;
+  margin: 0;
+  font-size: 29px;
+  line-height: 1.3;
+}
+
+.consultation-intro-band > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.consultation-directory {
+  margin-bottom: 50px;
+}
+
+.consultation-row {
+  display: grid;
+  grid-template-columns: 48px 58px minmax(0, 1fr) minmax(130px, auto) 48px;
+  min-height: 128px;
+  align-items: center;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.consultation-row:first-child {
+  border-top: 1px solid var(--line);
+}
+
+.consultation-row > a {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+}
+
+.consultation-row > a:hover,
+.consultation-row > a:focus-visible {
+  color: white;
+  background: var(--green-black);
+}
+
+.consultation-signal {
+  justify-self: end;
+  padding: 7px 10px;
+  border-radius: 5px;
+  color: var(--green-black);
+  background: var(--orange-soft);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.consultation-safety-band,
+.admin-boundary-band {
+  grid-template-columns: 34px minmax(0, 1fr);
+}
+
+.consultation-safety-band p,
+.admin-boundary-band p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.coach-review-band strong,
+.admin-summary-band strong {
+  margin-top: 6px;
+}
+
+.coach-record-directory article {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  min-height: 116px;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.coach-record-directory article:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.coach-record-directory article > svg {
+  color: var(--green);
+}
+
+.coach-record-directory article > strong {
+  padding: 7px 10px;
+  border-radius: 5px;
+  color: var(--green-black);
+  background: var(--mint);
+  font-size: 11px;
+}
+
+.guardian-summary-band {
+  margin-bottom: 48px;
+}
+
+.admin-workspace {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
+.admin-workspace > header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 26px 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-workspace h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.admin-operation-list article {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  min-height: 112px;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-operation-list article:last-child {
+  border-bottom: 0;
+}
+
+.admin-operation-list small {
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.admin-operation-list article > strong {
+  min-width: 76px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  color: var(--green-black);
+  background: var(--orange-soft);
+  font-size: 11px;
+  text-align: center;
+}
+
 .bottom-navigation {
   position: fixed;
   z-index: 40;
@@ -1525,6 +1870,38 @@ button:disabled {
 
   .assistant-panel {
     position: static;
+  }
+
+  .record-directory-row {
+    grid-template-columns: 42px 48px minmax(0, 1fr);
+  }
+
+  .record-row-value {
+    grid-column: 3 / 4;
+    justify-items: start;
+    padding-bottom: 20px;
+    text-align: left;
+  }
+
+  .consultation-intro-band {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 18px;
+  }
+
+  .consultation-row {
+    grid-template-columns: 42px 50px minmax(0, 1fr) 46px;
+  }
+
+  .consultation-signal {
+    grid-column: 3 / 4;
+    justify-self: start;
+    margin-bottom: 18px;
+  }
+
+  .consultation-row > a {
+    grid-column: 4 / 5;
+    grid-row: 1 / 3;
   }
 
   .coach-student-row {
@@ -1617,6 +1994,142 @@ button:disabled {
   .coach-priority-band,
   .coach-student-section {
     margin-bottom: 48px;
+  }
+
+  .record-summary-band,
+  .coach-review-band,
+  .admin-summary-band {
+    grid-template-columns: 1fr;
+    margin-bottom: 48px;
+  }
+
+  .record-summary-band > div,
+  .coach-review-band > div,
+  .admin-summary-band > div {
+    grid-template-columns: 28px minmax(0, 1fr) auto;
+    min-height: 92px;
+    align-items: center;
+    align-content: center;
+    padding: 18px 20px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .record-summary-band > div:last-child,
+  .coach-review-band > div:last-child,
+  .admin-summary-band > div:last-child {
+    border-bottom: 0;
+  }
+
+  .record-summary-band svg {
+    grid-row: 1 / 3;
+    margin: 0;
+  }
+
+  .record-summary-band strong,
+  .coach-review-band strong,
+  .admin-summary-band strong {
+    grid-column: 3 / 4;
+    grid-row: 1 / 3;
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .record-summary-band small {
+    grid-column: 2 / 3;
+  }
+
+  .record-directory-row {
+    grid-template-columns: 34px 42px minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px 0;
+  }
+
+  .record-row-icon,
+  .consultation-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .record-row-copy h3,
+  .consultation-copy h3,
+  .coach-record-directory article h3,
+  .admin-operation-list h3 {
+    font-size: 16px;
+  }
+
+  .record-row-value {
+    grid-column: 3 / 4;
+    padding: 0 0 4px;
+  }
+
+  .record-action-band,
+  .coach-record-action {
+    grid-template-columns: 34px minmax(0, 1fr);
+    padding: 22px 20px;
+  }
+
+  .record-action-band a,
+  .coach-record-action a {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .consultation-intro-band h2 {
+    font-size: 24px;
+  }
+
+  .consultation-row {
+    grid-template-columns: 30px 42px minmax(0, 1fr) 42px;
+    gap: 11px;
+    padding: 18px 0;
+  }
+
+  .consultation-row > a {
+    width: 40px;
+    height: 40px;
+  }
+
+  .consultation-signal {
+    grid-column: 3 / 5;
+    justify-self: start;
+    margin: 0 0 2px;
+  }
+
+  .consultation-safety-band,
+  .admin-boundary-band {
+    padding: 20px;
+  }
+
+  .coach-record-directory article {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px 0;
+  }
+
+  .coach-record-directory article > strong {
+    grid-column: 2 / 3;
+    justify-self: start;
+  }
+
+  .admin-workspace > header {
+    align-items: flex-start;
+    padding: 22px 18px;
+  }
+
+  .admin-workspace h2 {
+    font-size: 20px;
+  }
+
+  .admin-operation-list article {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px 18px;
+  }
+
+  .admin-operation-list article > strong {
+    grid-column: 2 / 3;
+    justify-self: start;
   }
 
   .condition-controls {
