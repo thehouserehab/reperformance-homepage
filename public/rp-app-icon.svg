@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RP APP">
+  <rect width="512" height="512" rx="88" fill="#10231e"/>
+  <path d="M115 352V151h112c53 0 86 29 86 74 0 31-17 55-46 66l61 61h-72l-52-55h-31v55h-58zm58-105h47c23 0 35-8 35-24 0-15-12-23-35-23h-47v47z" fill="#f7faf7"/>
+  <path d="M323 151h74v201h-58V204h-16v-53z" fill="#ec9f4f"/>
+</svg>
