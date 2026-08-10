@@ -100,11 +100,25 @@ const flows = [
   "Postgres 저장 및 Google Drive 백업 상태 확인",
 ];
 
-export default async function AdminPage() {
+type AdminPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getNotificationTestMessage(value: string | string[] | undefined) {
+  const status = Array.isArray(value) ? value[0] : value;
+  if (status === "sent") return { status, message: "테스트 Gmail을 보냈습니다. 수신함과 스팸함을 확인해 주세요." };
+  if (status === "failed") return { status, message: "테스트 Gmail 발송에 실패했습니다. Apps Script 배포와 실행 기록을 확인해 주세요." };
+  if (status === "not-configured") return { status, message: "Gmail 알림 환경변수 또는 Apps Script 비밀값 설정이 필요합니다." };
+  return null;
+}
+
+export default async function AdminPage({ searchParams }: AdminPageProps) {
   await requireStaffPageSession("/admin");
+  const resolvedSearchParams = await searchParams;
   const databaseReady = isDatabaseConfigured();
   const notificationStatus = getApplicationNotificationStatus();
   const applicationOperationsReady = databaseReady && notificationStatus.configured;
+  const notificationTestMessage = getNotificationTestMessage(resolvedSearchParams?.notificationTest);
 
   return (
     <PageShell>
@@ -173,12 +187,31 @@ export default async function AdminPage() {
               </article>
             </div>
 
-            {!applicationOperationsReady ? (
-              <div className="admin-readiness-actions">
-                <a className="button secondary" href="/admin/availability">예약 시간 화면 확인</a>
-                <span>외부 DB나 알림 서비스는 비용·계정 권한이 필요하므로 홈페이지가 임의로 생성하지 않습니다.</span>
+            {notificationTestMessage ? (
+              <div
+                className="admin-notification-test-result"
+                data-status={notificationTestMessage.status}
+                role="status"
+              >
+                {notificationTestMessage.message}
               </div>
             ) : null}
+
+            <div className="admin-readiness-actions">
+              {notificationStatus.configured ? (
+                <form action="/api/rp/application-notification-test" method="post">
+                  <button className="button secondary" type="submit">테스트 Gmail 보내기</button>
+                </form>
+              ) : null}
+              {!applicationOperationsReady ? (
+                <a className="button secondary" href="/admin/availability">예약 시간 화면 확인</a>
+              ) : null}
+              <span>
+                {notificationStatus.configured
+                  ? "테스트 메일에는 실제 고객정보가 포함되지 않으며 시간당 5회로 제한됩니다."
+                  : "Gmail 알림은 Google Apps Script 설정 후 사용할 수 있습니다."}
+              </span>
+            </div>
           </div>
         </div>
       </section>

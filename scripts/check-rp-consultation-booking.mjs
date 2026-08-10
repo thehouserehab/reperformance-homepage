@@ -103,6 +103,7 @@ assert.ok(notificationSource.includes('RP_APPLICATION_NOTIFICATION_WEBHOOK_URL')
 assert.ok(notificationSource.includes('RP_APPLICATION_NOTIFICATION_GOOGLE_SCRIPT_URL'));
 assert.ok(notificationSource.includes("action: 'sendApplicationNotification'"));
 assert.ok(notificationSource.includes('RP_API_SECRET'));
+assert.ok(notificationSource.includes("redirect: provider === 'google-apps-script' ? 'follow' : 'error'"));
 assert.ok(notificationSource.includes('applicantNameMasked'));
 assert.ok(!notificationSource.includes('application.phone'));
 assert.ok(!notificationSource.includes('parqYesItems'));
@@ -123,6 +124,21 @@ assert.ok(notificationCheckSource.includes('RP_APPLICATION_NOTIFICATION_TEST_CON
 assert.ok(notificationCheckSource.includes('SEND_ONE_MASKED_TEST'));
 assert.ok(!notificationCheckSource.includes('phone'));
 assert.ok(!notificationCheckSource.includes('parq'));
+
+const notificationTestRoute = read('app/api/rp/application-notification-test/route.js');
+assert.ok(notificationTestRoute.includes('verifyActiveSessionCookie'));
+assert.ok(notificationTestRoute.includes('hasStaffRole'));
+assert.ok(notificationTestRoute.includes('checkSameOriginRequest'));
+assert.ok(notificationTestRoute.includes('allowMissingOrigin: false'));
+assert.ok(notificationTestRoute.includes("scope: 'application-notification-test'"));
+assert.ok(notificationTestRoute.includes('TEST_LIMIT = 5'));
+assert.ok(notificationTestRoute.includes('sendApplicationNotification'));
+assert.ok(!notificationTestRoute.includes('phone'));
+assert.ok(!notificationTestRoute.includes('parq'));
+
+const adminPageSource = read('app/admin/page.tsx');
+assert.ok(adminPageSource.includes('/api/rp/application-notification-test'));
+assert.ok(adminPageSource.includes('테스트 Gmail 보내기'));
 
 for (const source of [
   read('app/api/rp/consultation-slots/route.js'),

@@ -755,6 +755,21 @@ h1 {
   font-size: 12px;
   line-height: 1.5;
 }
+.admin-notification-test-result {
+  padding: 14px 16px;
+  border: 1px solid #b8d2c8;
+  border-radius: 4px;
+  background: #fff;
+  color: #17614b;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+.admin-notification-test-result[data-status="failed"],
+.admin-notification-test-result[data-status="not-configured"] {
+  border-color: #e0c394;
+  color: #8a4e13;
+}
 @media (max-width: 760px) {
   .admin-readiness-panel {
     padding: 22px 18px;

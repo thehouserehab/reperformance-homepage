@@ -44,6 +44,8 @@ RP_SITE_URL=https://reperformance.the-house-exercise.com
 
 환경변수를 저장한 뒤 Production을 다시 배포합니다. 수신 Gmail 주소는 Vercel이나 저장소에 넣지 않고 Apps Script의 비공개 Script Property에만 둡니다.
 
+Apps Script의 Content Service 응답은 보안상 `script.googleusercontent.com`의 일회용 URL로 이동합니다. 홈페이지 서버는 Google Apps Script 공급자에 한해 이 리디렉션을 따라가며, 범용 Webhook은 기존처럼 리디렉션을 거부합니다.
+
 ### 3. 서버 연결 테스트
 
 Vercel과 같은 환경변수를 로컬 셸에 안전하게 주입한 뒤 아래 명령으로 설정 상태만 확인합니다.
@@ -60,6 +62,8 @@ npm.cmd run ops:notification:test
 ```
 
 테스트 후 셸을 닫거나 환경변수를 제거합니다. 실제 비밀값을 명령 기록, 문서, Git 파일에 저장하지 않습니다.
+
+배포 후에는 `/admin`의 `신규 신청 알림` 영역에서 `테스트 Gmail 보내기`를 눌러 같은 검사를 할 수 있습니다. 직원 로그인, 동일 출처 확인, 시간당 5회 제한이 적용되며 실제 고객정보는 포함하지 않습니다.
 
 ## 실제 신청 알림의 전제조건
 
