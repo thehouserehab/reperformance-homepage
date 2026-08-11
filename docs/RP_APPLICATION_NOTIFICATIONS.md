@@ -4,21 +4,21 @@
 
 ## 권장 방식: Google Apps Script + MailApp
 
-별도 유료 알림 서비스 없이 `integrations/google-apps-script/Code.gs`를 사용합니다. Google 계정의 Apps Script 및 메일 발송 할당량 안에서 동작하며 광고나 대량 메일에는 사용하지 않습니다.
+별도 유료 알림 서비스 없이 알림 전용 `integrations/google-apps-script/Notification.gs`를 사용합니다. Google 계정의 Apps Script 및 메일 발송 할당량 안에서 동작하며 광고나 대량 메일에는 사용하지 않습니다.
 
 Gmail 알림만 사용할 때는 Google Sheets ID나 `setupRPV2()`가 필요하지 않습니다. Sheets 백업은 별도 기능이며 기본적으로 비활성화합니다.
 
 ### 1. Apps Script 설정
 
-1. 새 Google Apps Script 프로젝트를 만들고 최신 `Code.gs` 전체를 붙여 넣습니다.
+1. 새 Google Apps Script 프로젝트를 만들고 최신 `Notification.gs` 전체를 기본 `Code.gs`에 붙여 넣습니다.
 2. Apps Script의 `프로젝트 설정 > 스크립트 속성`에 다음 두 값을 추가합니다.
 
 ```text
-RP_API_SECRET=<새로 생성한 32자 이상의 충분히 긴 무작위 값>
+RP_APPLICATION_NOTIFICATION_SECRET=<새로 생성한 32자 이상의 충분히 긴 무작위 값>
 RP_NOTIFICATION_EMAIL=<알림을 받을 Gmail 또는 Google Workspace 주소>
 ```
 
-비밀값과 실제 이메일 주소를 `Code.gs` 소스에 입력하지 않습니다. `RP_API_SECRET`은 이후 Vercel에 등록할 값과 완전히 같아야 합니다.
+비밀값과 실제 이메일 주소를 스크립트 소스에 입력하지 않습니다. `RP_APPLICATION_NOTIFICATION_SECRET`은 이후 Vercel에 등록할 값과 완전히 같아야 합니다.
 
 3. Apps Script 편집기에서 `verifyRpNotificationSetup()`을 실행합니다.
 4. `sendRpNotificationTest()`를 실행하고 MailApp 권한을 승인합니다.
@@ -37,7 +37,7 @@ RP_NOTIFICATION_EMAIL=<알림을 받을 Gmail 또는 Google Workspace 주소>
 ```text
 RP_APPLICATION_NOTIFICATION_PROVIDER=google-apps-script
 RP_APPLICATION_NOTIFICATION_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/.../exec
-RP_API_SECRET=<Apps Script의 RP_API_SECRET과 동일한 값>
+RP_APPLICATION_NOTIFICATION_SECRET=<Apps Script의 RP_APPLICATION_NOTIFICATION_SECRET과 동일한 값>
 RP_APPLICATION_NOTIFICATION_TIMEOUT_MS=5000
 RP_SITE_URL=https://reperformance.the-house-exercise.com
 ```

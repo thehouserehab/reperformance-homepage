@@ -182,7 +182,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                       : notificationStatus.signed
                         ? "서명된 최소정보 알림이 신청 저장 후 전송됩니다."
                         : "알림은 전송되지만 Webhook 서명 비밀키를 추가하는 것이 안전합니다."
-                    : "Google Apps Script URL과 RP_API_SECRET을 등록하고 비공개 Script Property에 수신 Gmail을 설정해야 합니다."}
+                    : "Google Apps Script URL과 알림 전용 비밀값을 등록하고 비공개 Script Property에 수신 Gmail을 설정해야 합니다."}
                 </p>
               </article>
             </div>
