@@ -36,8 +36,7 @@ export function StudyTimer() {
   const recordSession = useCallback(
     (status: "completed" | "stopped", minutes: number) => {
       if (minutes < 1 || completedRef.current) return;
-      completedRef.current = true;
-      addStudySession({
+      const saved = addStudySession({
         id: crypto.randomUUID(),
         subject,
         goal: goal.trim() || "집중 공부",
@@ -45,6 +44,7 @@ export function StudyTimer() {
         completedAt: new Date().toISOString(),
         status,
       });
+      if (saved) completedRef.current = true;
     },
     [addStudySession, goal, subject]
   );

@@ -50,8 +50,8 @@ export function StudentToday() {
 
   const openCalendarAssistant = (prompt: string) => {
     window.sessionStorage.setItem("rp-app-calendar-assistant-request", prompt);
-    window.sessionStorage.setItem("rp-app-calendar-assistant-autosave", "true");
-    setAssistantFeedback("일정을 정리해 캘린더에 등록합니다.");
+    window.sessionStorage.removeItem("rp-app-calendar-assistant-autosave");
+    setAssistantFeedback("일정 초안을 확인할 수 있도록 캘린더로 이동합니다.");
     router.push("/calendar?from=home-assistant");
   };
 
@@ -165,7 +165,7 @@ export function StudentToday() {
           <Bot aria-hidden="true" size={22} />
         </header>
 
-        <p className="home-assistant-lead">한 문장으로 말하면 일정 등록이나 코치 상담까지 바로 이어드려요.</p>
+        <p className="home-assistant-lead">한 문장으로 말하면 확인 가능한 일정 초안이나 코치 상담으로 이어드려요.</p>
         <form className="home-assistant-form" onSubmit={submitAssistant}>
           <label>
             <span className="sr-only">RP AI 도우미에게 요청</span>

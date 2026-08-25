@@ -1,24 +1,27 @@
-import { NextResponse } from "next/server";
 import { parseCalendarRequest } from "@/lib/calendarAssistant";
+import { noStoreJson, readLimitedJsonBody } from "@/lib/assistantHttp";
 
 const MAX_REQUEST_BYTES = 2_048;
 
 export async function POST(request: Request) {
-  const contentLength = Number(request.headers.get("content-length") ?? 0);
-  if (contentLength > MAX_REQUEST_BYTES) {
-    return NextResponse.json({ error: "요청 내용이 너무 깁니다." }, { status: 413 });
-  }
-  if (!request.headers.get("content-type")?.includes("application/json")) {
-    return NextResponse.json({ error: "지원하지 않는 요청 형식입니다." }, { status: 415 });
+  const result = await readLimitedJsonBody(request, MAX_REQUEST_BYTES);
+  if (!result.ok) {
+    if (result.reason === "payload_too_large") {
+      return noStoreJson({ error: "요청 내용이 너무 깁니다." }, 413);
+    }
+    if (result.reason === "unsupported_media_type") {
+      return noStoreJson({ error: "지원하지 않는 요청 형식입니다." }, 415);
+    }
+    return noStoreJson({ error: "일정 요청을 확인하지 못했습니다." }, 400);
   }
 
   try {
-    const body = (await request.json()) as { message?: unknown };
+    const body = result.value as { message?: unknown };
     if (typeof body.message !== "string" || body.message.trim().length < 2 || body.message.length > 240) {
-      return NextResponse.json({ error: "일정 요청을 2자 이상 240자 이하로 입력해 주세요." }, { status: 400 });
+      return noStoreJson({ error: "일정 요청을 2자 이상 240자 이하로 입력해 주세요." }, 400);
     }
-    return NextResponse.json(parseCalendarRequest(body.message));
+    return noStoreJson(parseCalendarRequest(body.message));
   } catch {
-    return NextResponse.json({ error: "일정 요청을 확인하지 못했습니다." }, { status: 400 });
+    return noStoreJson({ error: "일정 요청을 확인하지 못했습니다." }, 400);
   }
 }

@@ -1,7 +1,7 @@
 # RP APP 데이터 모델과 ERD
 
-**버전:** 0.2
-**기준일:** 2026-08-01
+**버전:** 0.3
+**기준일:** 2026-08-09
 **단계:** PostgreSQL 마이그레이션·RLS 설계 완료, 아직 DB 미적용
 
 ## 1. 모델링 원칙
@@ -12,6 +12,7 @@
 4. 성적·건강·상담·영상 원문은 최소 수집하고 공개 분석 이벤트에 보내지 않습니다.
 5. 계약서·결제 원본은 앱 DB에 저장하지 않고 외부 원본의 진행 상태만 관리합니다.
 6. NORE 식별자나 동기화 상태는 데이터 모델에 추가하지 않습니다.
+7. 기록 항목 정의와 실제 기록값을 분리하고, 직접 입력·타이머·상태 저장·코치 기록의 출처를 보존합니다.
 
 ## 2. 핵심 ERD
 
@@ -40,6 +41,8 @@ erDiagram
     USERS ||--o{ CONVERSATION_PARTICIPANTS : joins
     CONVERSATIONS ||--o{ MESSAGES : contains
     USERS ||--o{ MESSAGES : sends
+    MESSAGES ||--o{ MESSAGE_ATTACHMENTS : includes
+    USERS ||--o{ MESSAGE_ATTACHMENTS : uploads
     MESSAGES ||--o{ MESSAGE_RECEIPTS : tracks
     USERS ||--o{ MESSAGE_RECEIPTS : receives
 
@@ -79,6 +82,8 @@ erDiagram
 | `rp_calendar_events` | student_id, category, starts_at, ends_at, source, status | 공부·실기·상담·시험·회복 일정 |
 | `rp_admission_profiles` | student_id, target_year, track, target_departments, updated_at | 입시 상담의 목표와 준비 기준 |
 
+현재 로컬 프로토타입은 `recordItems`와 `studentRecords`로 사용자 정의 항목과 통합 기록 흐름을 검증합니다. 중앙 기록 검증 모듈이 시스템 항목별 숫자 범위·소수 자릿수·고정 단위와 사용자 항목의 이름·단위·중복·개수, 수동 기록의 미래 시각을 UI와 상태 변경 경계에서 함께 검사합니다. 이전 버전의 이상 기록은 삭제하지 않고 `validationStatus=needs_review`로 표시해 코치 요약에서 제외합니다. 운영 DB에서는 기존 `rp_study_sessions`, `rp_condition_checks`, `rp_academic_snapshots`, `rp_practical_records`를 최종 도메인 기록으로 유지하고, 사용자 정의 항목 카탈로그·수동 입력 출처·검토 상태를 연결할 별도 마이그레이션을 설계한 뒤 적용합니다. 프로토타입의 범용 문자열 값을 검증 없이 운영 DB에 그대로 복제하지 않습니다.
+
 ### 대화와 AI
 
 | 테이블 | 주요 필드 | 목적 |
@@ -86,6 +91,7 @@ erDiagram
 | `rp_conversations` | id, type, student_id, status | 학생-코치 또는 학부모-코치 대화방 |
 | `rp_conversation_participants` | conversation_id, user_id, role, joined_at, left_at | 실제 참여자 접근 제어 |
 | `rp_messages` | conversation_id, sender_id, body_ciphertext, sent_at, ai_assisted | 애플리케이션 암호화를 전제로 한 메시지 |
+| `rp_message_attachments` | message_id, uploader_user_id, kind, object_key, mime_type, byte_size, checksum, retention_until | 비공개 객체 저장소의 사진·영상 메타데이터 |
 | `rp_message_receipts` | message_id, recipient_user_id, delivered_at, read_at | 수신자별 전달·읽음 상태 |
 | `rp_ai_access_grants` | user_id, feature, status, daily_request_limit, approved_by | 기능별 AI 승인과 한도 |
 | `rp_ai_usage_daily` | user_id, feature, usage_date, request_count, token_count, cost_amount | 일별 비용·사용량 통제 |
@@ -146,6 +152,7 @@ erDiagram
 | 2 | `0002_student_workflows.sql` | 과제, 컨디션, 공부, 성적, 실기, 일정, 입시, 계약 상태 |
 | 3 | `0003_messaging_ai_and_audit.sql` | 대화, 메시지, 읽음, AI 승인·사용량, 동의, 감사 |
 | 4 | `0004_authorization_rls.sql` | 활성 관계 함수, AI 원자적 한도, RLS 정책 |
+| 5 | `0005_message_attachments.sql` | 메시지 사진·영상 메타데이터, 미디어 동의, 참여자 RLS 정책 |
 
 마이그레이션 원본은 `database/migrations`에 있으며 아직 어떤 DB에도 적용하지 않았습니다.
 
@@ -154,7 +161,11 @@ erDiagram
 - 인증 제공자와 사용자 식별자 정책
 - 미성년자 동의와 법정대리인 예외 범위
 - 성적·건강·메시지·영상의 보관 기간과 삭제 방식
+- 계정 삭제 재인증, 법적 보관 예외, 다른 기기 세션 폐기, 객체 저장소 삭제와 처리 감사 로그
 - 메시지 암호화 범위와 운영자 접근 절차
+- 메시지 미디어용 비공개 객체 저장소, 단기 서명 URL, 악성 파일 검사와 삭제 정책
+- 업로드 서버의 magic byte·완전 디코딩·악성 파일 검사, EXIF·위치정보 제거와 검증 전 `pending` 격리
+- DB 메시지·첨부 메타데이터와 객체 저장소 원본을 연결하는 업로드 세션, idempotency key, 보상 삭제·고아 객체 정리 작업
 - AI 제공자에게 전송할 최소 필드와 비식별화 방식
 - Migration 역할과 Runtime 역할의 분리 및 Runtime `BYPASSRLS` 금지
 - 테스트 PostgreSQL에서 전체 마이그레이션 구문·정책 실행 검증

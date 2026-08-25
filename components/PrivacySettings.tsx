@@ -1,7 +1,10 @@
 "use client";
 
-import { LockKeyhole, MessageCircleQuestion, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { Database, LockKeyhole, MessageCircleQuestion, ShieldCheck, Trash2, X } from "lucide-react";
 import { useAppState } from "./AppStateProvider";
+import { formatAttachmentSize } from "@/lib/messageAttachments";
+import { getPrototypeDataSummary } from "@/lib/prototypeDataLifecycle";
 import type { GuardianPermissionKey } from "@/lib/types";
 
 const permissionItems: { key: GuardianPermissionKey; title: string; description: string }[] = [
@@ -12,8 +15,47 @@ const permissionItems: { key: GuardianPermissionKey; title: string; description:
 ];
 
 export function PrivacySettings() {
-  const { state, setGuardianPermission } = useAppState();
+  const { state, hydrated, setGuardianPermission, clearPrototypeData } = useAppState();
+  const [confirmationOpen, setConfirmationOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [clearStatus, setClearStatus] = useState<{ tone: "success" | "error"; message: string } | null>(null);
   const sharedCount = Object.values(state.guardianPermissions).filter(Boolean).length;
+  const dataSummary = getPrototypeDataSummary(state);
+
+  const confirmClear = async () => {
+    if (clearing) return;
+    setClearing(true);
+    setClearStatus(null);
+
+    try {
+      const result = await clearPrototypeData();
+      if (!result.stateCleared) {
+        setClearStatus({
+          tone: "error",
+          message: "브라우저 저장소를 비우지 못했습니다. 저장 권한을 확인한 뒤 다시 시도해 주세요.",
+        });
+        return;
+      }
+
+      if (result.failedScopes.length > 0) {
+        const failedLabels = result.failedScopes.map((scope) =>
+          scope === "attachments" ? "사진·영상 첨부" : "작성 중인 임시 초안"
+        );
+        setClearStatus({
+          tone: "error",
+          message: `일정·기록·메시지는 삭제했지만 ${failedLabels.join("과 ")} 삭제가 완료되지 않았습니다. 다른 RP APP 탭을 닫고 다시 시도해 주세요.`,
+        });
+      } else {
+        setClearStatus({
+          tone: "success",
+          message: "이 기기의 일정·기록·메시지·첨부파일과 공개 설정을 삭제했습니다.",
+        });
+      }
+      setConfirmationOpen(false);
+    } finally {
+      setClearing(false);
+    }
+  };
 
   return (
     <>
@@ -71,6 +113,74 @@ export function PrivacySettings() {
         <strong>학생과 코치의 전체 대화, 개인 멘탈 기록, 건강·상담 메모, AI 질문 원문은 이 설정과 관계없이 공개하지 않습니다.</strong>
         <p>실제 서비스에서는 미성년자 동의와 계약 관련 법적 의무를 검토한 뒤 예외 범위를 확정합니다.</p>
       </aside>
+
+      <section className="device-data-section" aria-labelledby="device-data-title" aria-busy={clearing}>
+        <div className="section-heading-row">
+          <div>
+            <p className="section-kicker">DEVICE DATA</p>
+            <h2 id="device-data-title">이 기기에 저장된 내 데이터</h2>
+            <p>현재 프로토타입은 계정 서버가 아니라 이 브라우저에 데이터를 저장합니다.</p>
+          </div>
+          <Database aria-hidden="true" size={24} />
+        </div>
+
+        <dl className="device-data-summary">
+          <div><dt>할 일·일정</dt><dd>{hydrated ? `${dataSummary.tasksAndEvents}개` : "확인 중"}</dd></div>
+          <div><dt>공부·기록</dt><dd>{hydrated ? `${dataSummary.studyAndRecords}개` : "확인 중"}</dd></div>
+          <div><dt>메시지</dt><dd>{hydrated ? `${dataSummary.messages}개` : "확인 중"}</dd></div>
+          <div>
+            <dt>사진·영상 첨부</dt>
+            <dd>
+              {hydrated
+                ? `${dataSummary.attachments}개${dataSummary.attachmentBytes ? ` · ${formatAttachmentSize(dataSummary.attachmentBytes)}` : ""}`
+                : "확인 중"}
+            </dd>
+          </div>
+          <div><dt>사용자 기록 항목</dt><dd>{hydrated ? `${dataSummary.customRecordItems}개` : "확인 중"}</dd></div>
+          <div><dt>학부모 공개 항목</dt><dd>{hydrated ? `${dataSummary.sharedGuardianFields}개` : "확인 중"}</dd></div>
+        </dl>
+
+        <div className="device-data-boundary">
+          <strong>삭제 범위</strong>
+          <p>이 브라우저의 할 일, 일정, 공부·실기·컨디션 기록, 메시지, 사진·영상, 임시 초안, 사용자 항목과 학부모 공개 설정을 삭제합니다.</p>
+          <p>시스템 기록 항목과 앱 자체는 남습니다. 서버 계정이나 외부 캘린더·파일을 삭제하는 기능이 아니며 삭제한 브라우저 데이터는 복구할 수 없습니다.</p>
+        </div>
+
+        {confirmationOpen ? (
+          <div className="device-data-confirmation" role="alert" aria-labelledby="device-data-confirm-title">
+            <div>
+              <strong id="device-data-confirm-title">정말 이 기기의 데이터를 삭제할까요?</strong>
+              <p>현재 브라우저의 모든 역할 미리보기 데이터가 함께 비워집니다.</p>
+            </div>
+            <div className="device-data-confirm-actions">
+              <button type="button" className="secondary" onClick={() => setConfirmationOpen(false)} disabled={clearing}>
+                <X aria-hidden="true" size={17} /> 취소
+              </button>
+              <button type="button" className="danger" onClick={confirmClear} disabled={clearing}>
+                <Trash2 aria-hidden="true" size={17} /> {clearing ? "삭제 중" : "이 기기 데이터 삭제 확인"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="device-data-clear-button"
+            onClick={() => {
+              setConfirmationOpen(true);
+              setClearStatus(null);
+            }}
+            disabled={!hydrated || clearing}
+          >
+            <Trash2 aria-hidden="true" size={18} /> 이 기기 데이터 삭제
+          </button>
+        )}
+
+        {clearStatus ? (
+          <p className={`device-data-status ${clearStatus.tone}`} role="status" aria-live="polite">
+            {clearStatus.message}
+          </p>
+        ) : null}
+      </section>
     </>
   );
 }

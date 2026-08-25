@@ -13,7 +13,8 @@ export function GuardianWorkspace() {
     event.preventDefault();
     const body = message.trim();
     if (!body) return;
-    sendGuardianMessage(body);
+    const saved = sendGuardianMessage(body);
+    if (!saved) return;
     setMessage("");
     setSent(true);
   };

@@ -1,0 +1,2 @@
+This is intentionally not a JPEG image.
+It is a harmless browser-test fixture used to verify that RP APP rejects files whose declared MIME type does not match their actual byte signature.

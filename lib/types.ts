@@ -27,6 +27,31 @@ export type StudySession = {
   status: "completed" | "stopped";
 };
 
+export type RecordCategory = "study" | "training" | "condition";
+
+export type RecordEntrySource = "manual" | "timer" | "coach" | "check-in";
+
+export type StudentRecordItem = {
+  id: string;
+  category: RecordCategory;
+  name: string;
+  suggestedUnit: string;
+  createdBy: "system" | "student";
+  active: boolean;
+};
+
+export type StudentRecordEntry = {
+  id: string;
+  itemId: string;
+  category: RecordCategory;
+  value: string;
+  unit: string;
+  note: string;
+  recordedAt: string;
+  source: RecordEntrySource;
+  validationStatus: "valid" | "needs_review";
+};
+
 export type CalendarCategory = "study" | "training" | "exam" | "consultation" | "recovery";
 
 export type CalendarEvent = {
@@ -55,12 +80,25 @@ export type GuardianMessage = {
 
 export type ConversationParticipant = "student" | "coach";
 
+export type MessageAttachmentKind = "image" | "video";
+
+export type CoachConversationAttachment = {
+  id: string;
+  kind: MessageAttachmentKind;
+  fileName: string;
+  mimeType: string;
+  byteSize: number;
+  storageKey: string;
+  createdAt: string;
+};
+
 export type CoachConversationMessage = {
   id: string;
   sender: ConversationParticipant;
   body: string;
   sentAt: string;
   aiAssisted: boolean;
+  attachments: CoachConversationAttachment[];
 };
 
 export type AppState = {
@@ -69,6 +107,8 @@ export type AppState = {
   guardianPermissions: GuardianPermissions;
   tasks: AppTask[];
   studySessions: StudySession[];
+  recordItems: StudentRecordItem[];
+  studentRecords: StudentRecordEntry[];
   calendarEvents: CalendarEvent[];
   condition: ConditionCheck;
   guardianMessages: GuardianMessage[];

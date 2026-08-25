@@ -9,6 +9,7 @@ const expectedMigrations = [
   "0002_student_workflows.sql",
   "0003_messaging_ai_and_audit.sql",
   "0004_authorization_rls.sql",
+  "0005_message_attachments.sql",
 ];
 
 const expectedTables = [
@@ -31,6 +32,7 @@ const expectedTables = [
   "rp_conversations",
   "rp_conversation_participants",
   "rp_messages",
+  "rp_message_attachments",
   "rp_message_receipts",
   "rp_ai_access_grants",
   "rp_ai_usage_daily",
@@ -127,6 +129,18 @@ if (/\bbody\s+(text|varchar)/i.test(messageBlock)) {
   fail("Messages must not contain a plaintext body column");
 }
 
+const messageAttachmentBlock =
+  migrationSql.match(/CREATE TABLE rp_message_attachments\s*\(([\s\S]*?)\n\);/i)?.[1] ?? "";
+if (!/object_key\s+text\s+NOT\s+NULL/i.test(messageAttachmentBlock)) {
+  fail("Message attachments must reference a private object key");
+}
+if (/\b(public_url|file_bytes|media_bytes|blob_data)\b/i.test(messageAttachmentBlock)) {
+  fail("Message attachments must not store public URLs or media bytes");
+}
+if (!/checksum_sha256\s+bytea\s+NOT\s+NULL/i.test(messageAttachmentBlock)) {
+  fail("Message attachments must store a content checksum");
+}
+
 const aiRequestBlock = migrationSql.match(/CREATE TABLE rp_ai_requests\s*\(([\s\S]*?)\n\);/i)?.[1] ?? "";
 if (/\b(prompt|response|student_record|health_detail)\b/i.test(aiRequestBlock)) {
   fail("AI request table contains a forbidden raw-content column");
@@ -140,6 +154,7 @@ for (const helperFunction of [
   "rp_is_conversation_participant",
   "rp_create_conversation",
   "rp_create_message_receipts",
+  "rp_has_active_consent",
   "rp_reserve_ai_usage",
 ]) {
   if (!new RegExp(`FUNCTION\\s+${helperFunction}\\b`, "i").test(migrationSql)) {

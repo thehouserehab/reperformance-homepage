@@ -8,6 +8,7 @@
 2. `0002_student_workflows.sql`
 3. `0003_messaging_ai_and_audit.sql`
 4. `0004_authorization_rls.sql`
+5. `0005_message_attachments.sql`
 
 각 파일은 `BEGIN`과 `COMMIT` 사이에서 실행되며 순서를 바꾸면 안 됩니다.
 
@@ -48,6 +49,8 @@ COMMIT;
 `rp_messages.body_ciphertext`는 애플리케이션 계층 암호화를 전제로 합니다. 암호화 키는 DB와 분리된 비밀 저장소에서 관리하고 키 버전을 행에 저장합니다. 키 관리 방식이 확정되기 전에는 실제 메시지 데이터를 마이그레이션하지 않습니다.
 
 대화방은 `rp_create_conversation`으로 생성해 활성 관계를 검사하고, 메시지 저장 후에는 `rp_create_message_receipts` 트리거가 참여자별 읽음 상태를 생성합니다. 일반 클라이언트 입력만으로 참여자를 추가하지 않습니다.
+
+`0005_message_attachments.sql`은 비공개 객체 저장소의 메타데이터 설계입니다. 실제 적용 전에는 이미지 10MB, 영상 50MB, 메시지당 4개·합계 60MB를 서버에서 다시 강제하고, magic byte·디코딩·악성 파일 검사와 `pending → scanning → ready` 상태 전이를 additive 보정 migration으로 확정해야 합니다. 현재 파일의 `ready` 직접 insert 정책만으로는 운영 업로드가 완성되지 않습니다.
 
 ## 롤백 원칙
 

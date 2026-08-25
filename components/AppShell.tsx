@@ -17,12 +17,14 @@ import {
   MessagesSquare,
   ScanSearch,
   ShieldCheck,
+  TriangleAlert,
   Timer,
   UsersRound,
   X,
 } from "lucide-react";
 import { appRoleDefinitions, appRoleOrder, type NavigationIconName } from "@/lib/appStructure";
 import type { AppRole } from "@/lib/types";
+import { useAppState } from "./AppStateProvider";
 
 const navigationIcons: Record<NavigationIconName, typeof Home> = {
   home: Home,
@@ -63,6 +65,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { persistenceIssue } = useAppState();
   const roleDefinition = appRoleDefinitions[role];
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showEveningMessage, setShowEveningMessage] = useState(false);
@@ -123,6 +126,16 @@ export function AppShell({
         <div className="evening-encouragement" role="status">
           <span>오늘도 정말 수고했어요.</span>
           <b>한 번의 완벽함보다 매일의 꾸준함이 더 멀리 갑니다.</b>
+        </div>
+      )}
+
+      {persistenceIssue && (
+        <div className="prototype-persistence-alert" role="alert" aria-live="assertive">
+          <TriangleAlert aria-hidden="true" size={21} />
+          <div>
+            <strong>변경 내용을 이 기기에 저장하지 못했습니다.</strong>
+            <span>화면에는 반영하지 않았습니다. 브라우저 저장 공간과 권한을 확인한 뒤 다시 시도해 주세요.</span>
+          </div>
         </div>
       )}
 

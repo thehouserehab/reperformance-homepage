@@ -10,12 +10,23 @@ export function CoachRecordsWorkspace() {
   const todayTasks = getTasksForDate(state.tasks, state.scheduleDate);
   const completedTasks = todayTasks.filter((task) => task.completed).length;
   const focusedMinutes = state.studySessions.reduce((total, session) => total + session.focusedMinutes, 0);
+  const recordsNeedingReview = state.studentRecords.filter(
+    (record) => record.validationStatus === "needs_review"
+  ).length;
+  const trainingRecords = state.studentRecords
+    .filter((record) => record.category === "training" && record.validationStatus === "valid")
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+  const conditionRecords = state.studentRecords
+    .filter((record) => record.category === "condition" && record.validationStatus === "valid")
+    .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+  const latestTraining = trainingRecords[0];
+  const latestTrainingItem = state.recordItems.find((item) => item.id === latestTraining?.itemId);
 
   return (
     <>
       <section className="coach-review-band">
         <div><span>검토할 학생</span><strong>1</strong></div>
-        <div><span>새 실기 기록</span><strong>2</strong></div>
+        <div><span>실기 기록</span><strong>{trainingRecords.length}</strong></div>
         <div><span>컨디션 신호</span><strong>{state.condition.soreness >= 4 ? 1 : 0}</strong></div>
       </section>
 
@@ -27,6 +38,12 @@ export function CoachRecordsWorkspace() {
           </div>
         </div>
 
+        {recordsNeedingReview ? (
+          <p className="coach-record-warning" role="status">
+            입력 기준을 확인해야 하는 기록 {recordsNeedingReview}건은 최신 기록과 요약 계산에서 제외했습니다.
+          </p>
+        ) : null}
+
         <article>
           <BookOpenCheck aria-hidden="true" size={23} />
           <div><span>학업</span><h3>집중 {focusedMinutes}분 · 오늘 과제 {completedTasks}/{todayTasks.length}</h3></div>
@@ -34,13 +51,18 @@ export function CoachRecordsWorkspace() {
         </article>
         <article>
           <Trophy aria-hidden="true" size={23} />
-          <div><span>실기</span><h3>제자리멀리뛰기 268cm · 10m 왕복달리기 8.72초</h3></div>
-          <strong>2건 검토</strong>
+          <div>
+            <span>실기</span>
+            <h3>{latestTraining
+              ? `${latestTrainingItem?.name ?? "직접 기록"} ${latestTraining.value}${latestTraining.unit}`
+              : "아직 실기 기록이 없습니다."}</h3>
+          </div>
+          <strong>{trainingRecords.length}건 확인</strong>
         </article>
         <article>
           <Activity aria-hidden="true" size={23} />
           <div><span>컨디션</span><h3>에너지 {state.condition.energy}/5 · 뻐근함 {state.condition.soreness}/5</h3></div>
-          <strong>{state.condition.checkedAt ? "오늘 확인" : "입력 대기"}</strong>
+          <strong>{conditionRecords.length ? `${conditionRecords.length}건 확인` : "입력 대기"}</strong>
         </article>
       </section>
 

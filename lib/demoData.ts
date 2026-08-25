@@ -1,8 +1,9 @@
 import type { AppState } from "./types";
+import { PROTOTYPE_REFERENCE_DATE, rebaseAppStateDates } from "./appDates";
 
 export const defaultAppState: AppState = {
   studentName: "김도윤",
-  scheduleDate: "2026-08-02",
+  scheduleDate: PROTOTYPE_REFERENCE_DATE,
   guardianPermissions: {
     attendance: false,
     contract: false,
@@ -78,6 +79,96 @@ export const defaultAppState: AppState = {
     },
   ],
   studySessions: [],
+  recordItems: [
+    {
+      id: "record-item-study-focus",
+      category: "study",
+      name: "집중 공부",
+      suggestedUnit: "분",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-study-score",
+      category: "study",
+      name: "모의고사 점수",
+      suggestedUnit: "점",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-training-jump",
+      category: "training",
+      name: "제자리멀리뛰기",
+      suggestedUnit: "cm",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-training-shuttle",
+      category: "training",
+      name: "10m 왕복달리기",
+      suggestedUnit: "초",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-condition-energy",
+      category: "condition",
+      name: "에너지",
+      suggestedUnit: "/5",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-condition-focus",
+      category: "condition",
+      name: "집중 가능",
+      suggestedUnit: "/5",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-condition-soreness",
+      category: "condition",
+      name: "몸의 뻐근함",
+      suggestedUnit: "/5",
+      createdBy: "system",
+      active: true,
+    },
+    {
+      id: "record-item-condition-sleep",
+      category: "condition",
+      name: "수면 시간",
+      suggestedUnit: "시간",
+      createdBy: "system",
+      active: true,
+    },
+  ],
+  studentRecords: [
+    {
+      id: "record-training-jump-1",
+      itemId: "record-item-training-jump",
+      category: "training",
+      value: "268",
+      unit: "cm",
+      note: "착지 균형을 함께 확인한 기록",
+      recordedAt: "2026-08-01T19:35:00+09:00",
+      source: "coach",
+      validationStatus: "valid",
+    },
+    {
+      id: "record-training-shuttle-1",
+      itemId: "record-item-training-shuttle",
+      category: "training",
+      value: "8.72",
+      unit: "초",
+      note: "실내 10m 구간 기준",
+      recordedAt: "2026-08-01T19:50:00+09:00",
+      source: "coach",
+      validationStatus: "valid",
+    },
+  ],
   calendarEvents: [
     {
       id: "event-training",
@@ -118,6 +209,7 @@ export const defaultAppState: AppState = {
       body: "도윤 학생, 오늘 제자리멀리뛰기는 기록보다 착지 균형을 먼저 확인하겠습니다.",
       sentAt: "2026-08-01T10:10:00+09:00",
       aiAssisted: false,
+      attachments: [],
     },
     {
       id: "coach-conversation-2",
@@ -125,6 +217,40 @@ export const defaultAppState: AppState = {
       body: "네, 오른쪽 무릎이 조금 뻐근한데 워밍업 후 상태도 같이 말씀드릴게요.",
       sentAt: "2026-08-01T10:14:00+09:00",
       aiAssisted: false,
+      attachments: [],
     },
   ],
 };
+
+export function createDefaultAppStateForDate(dateKey: string) {
+  return rebaseAppStateDates(defaultAppState, PROTOTYPE_REFERENCE_DATE, dateKey);
+}
+
+export function createEmptyAppStateForDate(dateKey: string): AppState {
+  const base = createDefaultAppStateForDate(dateKey);
+
+  return {
+    ...base,
+    guardianPermissions: {
+      attendance: false,
+      contract: false,
+      academics: false,
+      practical: false,
+    },
+    tasks: [],
+    studySessions: [],
+    recordItems: base.recordItems
+      .filter((item) => item.createdBy === "system")
+      .map((item) => ({ ...item })),
+    studentRecords: [],
+    calendarEvents: [],
+    condition: {
+      energy: 3,
+      focus: 3,
+      soreness: 2,
+      checkedAt: null,
+    },
+    guardianMessages: [],
+    coachConversation: [],
+  };
+}

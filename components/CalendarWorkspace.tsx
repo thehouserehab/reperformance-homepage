@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Bot,
   CalendarPlus,
@@ -12,6 +13,7 @@ import {
   Dumbbell,
   GraduationCap,
   HeartPulse,
+  MessageCircle,
   Plus,
   Sparkles,
   Trash2,
@@ -25,6 +27,7 @@ import {
 } from "@/lib/taskScheduling";
 import type { AppTask, CalendarCategory, TaskKind } from "@/lib/types";
 import { useAppState } from "./AppStateProvider";
+import styles from "./CalendarWorkspace.module.css";
 
 type CalendarView = "week" | "month";
 type CalendarRole = "student" | "coach";
@@ -96,7 +99,7 @@ function TaskComposer({
   onClose,
 }: {
   date: string;
-  onAdd: (task: Omit<AppTask, "id" | "completed">) => void;
+  onAdd: (task: Omit<AppTask, "id" | "completed">) => boolean;
   onClose: () => void;
 }) {
   const [kind, setKind] = useState<TaskKind>("study");
@@ -110,7 +113,7 @@ function TaskComposer({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
 
-    onAdd({
+    const saved = onAdd({
       title: trimmedTitle,
       detail: detail.trim(),
       kind,
@@ -119,7 +122,7 @@ function TaskComposer({
       durationMinutes: Math.min(240, Math.max(5, durationMinutes)),
       assignedBy: "student",
     });
-    onClose();
+    if (saved) onClose();
   };
 
   return (
@@ -181,6 +184,7 @@ function TaskComposer({
 }
 
 export function CalendarWorkspace({ role }: { role: CalendarRole }) {
+  const router = useRouter();
   const { state, hydrated, addCalendarEvent, deleteCalendarEvent, addTask, deleteTask, toggleTask } = useAppState();
   const initialDate = dateFromKey(state.scheduleDate);
   const [visibleMonth, setVisibleMonth] = useState(new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
@@ -249,7 +253,7 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
     }
   };
 
-  const requestDraft = useCallback(async (requestMessage = message, autoSave = false) => {
+  const requestDraft = useCallback(async (requestMessage = message) => {
     const normalizedMessage = requestMessage.trim();
     if (normalizedMessage.length < 2) return;
     setPending(true);
@@ -263,45 +267,42 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
       });
       const result = (await response.json()) as CalendarAssistantResult & { error?: string };
       if (!response.ok) throw new Error(result.error ?? "일정을 정리하지 못했습니다.");
-      if (autoSave && result.draft) {
-        addCalendarEvent({ ...result.draft, id: crypto.randomUUID(), source: "assistant" });
-        const date = result.draft.startsAt.slice(0, 10);
-        const [year, month] = date.split("-").map(Number);
-        setSelectedDate(date);
-        setVisibleMonth(new Date(year, month - 1, 1));
-        setAssistantText(`${result.summary} 캘린더에 등록했습니다.`);
-        setDraft(null);
-      } else {
-        setAssistantText(result.summary);
-        setDraft(result.draft);
-      }
+      setAssistantText(result.summary);
+      setDraft(result.draft);
     } catch (error) {
       setAssistantText(error instanceof Error ? error.message : "일정을 정리하지 못했습니다.");
     } finally {
       setPending(false);
     }
-  }, [addCalendarEvent, message]);
+  }, [message]);
 
   useEffect(() => {
     if (!hydrated || role !== "student") return;
     const request = window.sessionStorage.getItem("rp-app-calendar-assistant-request");
     if (!request) return;
-    const autoSave = window.sessionStorage.getItem("rp-app-calendar-assistant-autosave") === "true";
     window.sessionStorage.removeItem("rp-app-calendar-assistant-request");
     window.sessionStorage.removeItem("rp-app-calendar-assistant-autosave");
     setMessage(request);
-    void requestDraft(request, autoSave);
+    void requestDraft(request);
   }, [hydrated, requestDraft, role]);
 
   const confirmDraft = () => {
     if (!draft) return;
-    addCalendarEvent({ ...draft, id: crypto.randomUUID(), source: "assistant" });
+    const saved = addCalendarEvent({ ...draft, id: crypto.randomUUID(), source: "assistant" });
+    if (!saved) return;
     const date = draft.startsAt.slice(0, 10);
     const [year, month] = date.split("-").map(Number);
     setSelectedDate(date);
     setVisibleMonth(new Date(year, month - 1, 1));
     setAssistantText("캘린더에 등록했습니다.");
     setDraft(null);
+  };
+
+  const requestTaskAdjustment = (task: AppTask) => {
+    const request = `코치님, ${task.scheduledDate} ${task.scheduledTime}에 예정된 “${task.title}” 과제를 조정하고 싶습니다.`;
+    window.sessionStorage.setItem("rp-app-coach-message-draft", request);
+    window.sessionStorage.setItem("rp-app-coach-message-mode", "direct");
+    router.push("/student/messages?from=task-adjustment");
   };
 
   return (
@@ -343,7 +344,7 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
 
         <div className="assistant-boundary">
           <CalendarPlus aria-hidden="true" size={20} />
-          <p>홈에서 날짜와 시간이 분명한 요청은 바로 등록하며, 이 화면에서 확인하거나 삭제할 수 있습니다.</p>
+          <p>홈에서 보낸 요청도 초안으로만 정리합니다. 날짜·시간·제목을 확인한 뒤 직접 등록해 주세요.</p>
         </div>
       </section>
 
@@ -443,7 +444,12 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
 
             <div className="agenda-list">
               {selectedTasks.map((task) => (
-                <article key={`task-${task.id}`} className={`agenda-row task ${task.kind} ${task.completed ? "completed" : ""}`}>
+                <article
+                  key={`task-${task.id}`}
+                  className={`agenda-row task ${task.kind} ${task.completed ? "completed" : ""} ${
+                    role === "student" && task.assignedBy === "coach" ? styles.coachAssignedTask : ""
+                  }`}
+                >
                   {role === "student" ? (
                     <button
                       type="button"
@@ -466,15 +472,27 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
                   </div>
                   <time>{task.scheduledTime}</time>
                   {role === "student" && (
-                    <button
-                      type="button"
-                      className="agenda-task-delete"
-                      onClick={() => deleteTask(task.id)}
-                      aria-label={`${task.title} 삭제`}
-                      title="할 일 삭제"
-                    >
-                      <Trash2 aria-hidden="true" size={16} />
-                    </button>
+                    task.assignedBy === "coach" ? (
+                      <button
+                        type="button"
+                        className={styles.adjustTaskButton}
+                        onClick={() => requestTaskAdjustment(task)}
+                        aria-label={`${task.title} 코치에게 조정 요청`}
+                        title="코치에게 조정 요청"
+                      >
+                        <MessageCircle aria-hidden="true" size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="agenda-task-delete"
+                        onClick={() => deleteTask(task.id)}
+                        aria-label={`${task.title} 삭제`}
+                        title="할 일 삭제"
+                      >
+                        <Trash2 aria-hidden="true" size={16} />
+                      </button>
+                    )
                   )}
                 </article>
               ))}

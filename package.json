@@ -9,7 +9,14 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "architecture:check": "node scripts/verify-rp-app-architecture.mjs",
-    "authorization:check": "node scripts/verify-authorization-policy.mjs"
+    "authorization:check": "node scripts/verify-authorization-policy.mjs",
+    "prototype-safety:check": "node scripts/verify-prototype-safety.mjs",
+    "date-boundaries:check": "node scripts/verify-prototype-date-boundaries.mjs",
+    "record-validation:check": "node scripts/verify-record-validation.mjs",
+    "prototype-data-lifecycle:check": "node scripts/verify-prototype-data-lifecycle.mjs",
+    "prototype-persistence:check": "node scripts/verify-prototype-persistence.mjs",
+    "message-attachment-safety:check": "node scripts/verify-message-attachment-safety.mjs",
+    "message-attachment-lifecycle:check": "node scripts/verify-message-attachment-lifecycle.mjs"
   },
   "dependencies": {
     "lucide-react": "1.28.0",
