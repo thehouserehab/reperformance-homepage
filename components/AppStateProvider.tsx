@@ -20,6 +20,9 @@ import { validateManualRecordInput, validateRecordItemInput } from "@/lib/record
 import type {
   AppState,
   AppTask,
+  AssistantConversationAction,
+  AssistantConversationMessage,
+  AssistantConversationSender,
   CalendarEvent,
   CoachConversationAttachment,
   CoachConversationMessage,
@@ -28,6 +31,7 @@ import type {
   GuardianMessage,
   GuardianPermissionKey,
   RecordCategory,
+  RecordDirection,
   StudentRecordEntry,
   StudentRecordItem,
   StudySession,
@@ -47,6 +51,24 @@ function restoreConversation(messages: unknown): CoachConversationMessage[] {
       attachments: Array.isArray(message.attachments)
         ? message.attachments.filter(isMessageAttachmentMetadataValid)
         : [],
+    }));
+}
+
+function restoreAssistantConversation(messages: unknown): AssistantConversationMessage[] {
+  if (!Array.isArray(messages)) return defaultAppState.assistantConversation;
+
+  return messages
+    .filter((message): message is Partial<AssistantConversationMessage> => Boolean(message && typeof message === "object"))
+    .map((message) => ({
+      id: typeof message.id === "string" ? message.id : crypto.randomUUID(),
+      sender: message.sender === "assistant" ? "assistant" : ("user" as AssistantConversationSender),
+      body: typeof message.body === "string" ? message.body : "",
+      sentAt: typeof message.sentAt === "string" ? message.sentAt : new Date().toISOString(),
+      action:
+        message.action === "handoff-coach" || message.action === "calendar-added"
+          ? (message.action as AssistantConversationAction)
+          : undefined,
+      handoffPrompt: typeof message.handoffPrompt === "string" ? message.handoffPrompt : undefined,
     }));
 }
 
@@ -70,11 +92,16 @@ function restoreRecordItems(items: unknown) {
       continue;
     }
 
+    // Items saved before pbDirection existed default to "higher" so older custom
+    // record items survive this change instead of being silently dropped.
+    const pbDirection = item.pbDirection === "lower" ? "lower" : "higher";
+
     const validation = validateRecordItemInput(
       {
         category: item.category,
         name: item.name,
         suggestedUnit: item.suggestedUnit,
+        pbDirection,
       },
       restoredItems
     );
@@ -155,6 +182,7 @@ function restoreState(saved: string): AppState {
     calendarEvents: Array.isArray(parsed.calendarEvents) ? parsed.calendarEvents : defaultAppState.calendarEvents,
     guardianMessages: Array.isArray(parsed.guardianMessages) ? parsed.guardianMessages : defaultAppState.guardianMessages,
     coachConversation: restoreConversation(parsed.coachConversation),
+    assistantConversation: restoreAssistantConversation(parsed.assistantConversation),
   };
 }
 
@@ -185,6 +213,7 @@ type AppStateContextValue = {
     category: RecordCategory;
     name: string;
     suggestedUnit: string;
+    pbDirection: RecordDirection;
   }) => string | null;
   addStudentRecord: (record: Omit<StudentRecordEntry, "id" | "source" | "validationStatus">) => boolean;
   addCalendarEvent: (event: CalendarEvent) => boolean;
@@ -195,6 +224,11 @@ type AppStateContextValue = {
     body: string,
     aiAssisted: boolean,
     attachments: CoachConversationAttachment[]
+  ) => boolean;
+  sendAssistantMessage: (
+    sender: AssistantConversationSender,
+    body: string,
+    options?: { action?: AssistantConversationAction; handoffPrompt?: string }
   ) => boolean;
   clearPrototypeData: () => Promise<PrototypeDataClearResult>;
 };
@@ -362,6 +396,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     category: RecordCategory;
     name: string;
     suggestedUnit: string;
+    pbDirection: RecordDirection;
   }) => {
     const initialValidation = validateRecordItemInput(item);
     if (!initialValidation.ok) return null;
@@ -460,6 +495,29 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     [commitState]
   );
 
+  const sendAssistantMessage = useCallback(
+    (
+      sender: AssistantConversationSender,
+      body: string,
+      options?: { action?: AssistantConversationAction; handoffPrompt?: string }
+    ) => {
+      const message: AssistantConversationMessage = {
+        id: crypto.randomUUID(),
+        sender,
+        body,
+        sentAt: new Date().toISOString(),
+        action: options?.action,
+        handoffPrompt: options?.handoffPrompt,
+      };
+
+      return commitState((current) => ({
+        ...current,
+        assistantConversation: [...current.assistantConversation, message],
+      }));
+    },
+    [commitState]
+  );
+
   const clearPrototypeData = useCallback(async (): Promise<PrototypeDataClearResult> => {
     const emptyState = createEmptyAppStateForDate(getKoreanTodayDateKey());
     let stateCleared = false;
@@ -512,6 +570,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       deleteCalendarEvent,
       sendGuardianMessage,
       sendCoachConversationMessage,
+      sendAssistantMessage,
       clearPrototypeData,
     }),
     [
@@ -530,6 +589,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       deleteCalendarEvent,
       sendGuardianMessage,
       sendCoachConversationMessage,
+      sendAssistantMessage,
       clearPrototypeData,
     ]
   );

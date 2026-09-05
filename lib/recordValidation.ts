@@ -71,9 +71,9 @@ const SYSTEM_MEASUREMENT_RULES: Record<string, MeasurementRule> = {
   },
 };
 
-export type RecordItemInput = Pick<StudentRecordItem, "category" | "name" | "suggestedUnit">;
+export type RecordItemInput = Pick<StudentRecordItem, "category" | "name" | "suggestedUnit" | "pbDirection">;
 export type ManualRecordInput = Omit<StudentRecordEntry, "id" | "source" | "validationStatus">;
-export type RecordItemInputField = "name" | "suggestedUnit";
+export type RecordItemInputField = "name" | "suggestedUnit" | "pbDirection";
 export type ManualRecordInputField = "itemId" | "value" | "unit" | "recordedAt" | "note";
 
 type ValidationSuccess<T> = {
@@ -175,6 +175,10 @@ export function validateRecordItemInput(
     errors.suggestedUnit = "단위에는 제어 문자를 사용할 수 없습니다.";
   }
 
+  if (input.pbDirection !== "higher" && input.pbDirection !== "lower") {
+    errors.pbDirection = "기록 방향을 선택해 주세요.";
+  }
+
   const normalizedName = name.toLocaleLowerCase("ko-KR");
   const duplicate = existingItems.some(
     (item) =>
@@ -207,6 +211,7 @@ export function validateRecordItemInput(
       category: input.category,
       name,
       suggestedUnit,
+      pbDirection: input.pbDirection,
     },
   };
 }

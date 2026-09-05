@@ -6,12 +6,10 @@ import { useEffect, useState } from "react";
 import {
   Bot,
   CalendarDays,
-  ChevronRight,
   ClipboardList,
   ContactRound,
   Home,
   LayoutDashboard,
-  Menu,
   MessageCircle,
   MessageCircleQuestion,
   MessagesSquare,
@@ -19,10 +17,10 @@ import {
   ShieldCheck,
   TriangleAlert,
   Timer,
+  UserRound,
   UsersRound,
-  X,
 } from "lucide-react";
-import { appRoleDefinitions, appRoleOrder, type NavigationIconName } from "@/lib/appStructure";
+import { appRoleDefinitions, type NavigationIconName } from "@/lib/appStructure";
 import type { AppRole } from "@/lib/types";
 import { useAppState } from "./AppStateProvider";
 
@@ -40,6 +38,7 @@ const navigationIcons: Record<NavigationIconName, typeof Home> = {
   ai: Bot,
   audit: ScanSearch,
   privacy: ShieldCheck,
+  mypage: UserRound,
 };
 
 function isKoreanEvening() {
@@ -67,26 +66,8 @@ export function AppShell({
   const pathname = usePathname();
   const { persistenceIssue } = useAppState();
   const roleDefinition = appRoleDefinitions[role];
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const bottomNavItems = roleDefinition.navigation.slice(0, 5);
   const [showEveningMessage, setShowEveningMessage] = useState(false);
-
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (!sidebarOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSidebarOpen(false);
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [sidebarOpen]);
 
   useEffect(() => {
     if (layout !== "home") return;
@@ -100,17 +81,6 @@ export function AppShell({
     <div className={`app-shell${layout === "conversation" ? " conversation-app-shell" : ""}${layout === "home" ? " home-app-shell" : ""}`}>
       <header className="app-header">
         <div className="app-header-primary">
-          <button
-            type="button"
-            className="sidebar-toggle"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="메뉴 열기"
-            aria-expanded={sidebarOpen}
-            aria-controls="app-sidebar"
-            title="메뉴"
-          >
-            <Menu aria-hidden="true" size={22} />
-          </button>
           <Link className="brand-lockup" href={roleDefinition.homeHref} aria-label={`RP APP ${roleDefinition.label} 홈`}>
             <span className="brand-mark">RP</span>
             <span>
@@ -139,55 +109,6 @@ export function AppShell({
         </div>
       )}
 
-      <button
-        type="button"
-        className={`sidebar-backdrop${sidebarOpen ? " open" : ""}`}
-        onClick={() => setSidebarOpen(false)}
-        aria-label="메뉴 바깥 영역 닫기"
-        tabIndex={sidebarOpen ? 0 : -1}
-      />
-      <aside id="app-sidebar" className={`app-sidebar${sidebarOpen ? " open" : ""}`} aria-label={`${roleDefinition.label} 메뉴`} aria-hidden={!sidebarOpen} inert={!sidebarOpen}>
-        <header className="sidebar-header">
-          <Link href={roleDefinition.homeHref} className="sidebar-brand">
-            <span className="brand-mark">RP</span>
-            <span><b>RP APP</b><small>{roleDefinition.label} 화면</small></span>
-          </Link>
-          <button type="button" className="sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="메뉴 닫기" title="닫기">
-            <X aria-hidden="true" size={21} />
-          </button>
-        </header>
-
-        <nav className="sidebar-navigation" aria-label={`${roleDefinition.label} 기능 목록`}>
-          <p>목록</p>
-          {roleDefinition.navigation.map((item) => {
-            const Icon = navigationIcons[item.icon];
-            const active = item.match === "exact" ? pathname === item.href : pathname.startsWith(item.href);
-            return (
-              <Link key={item.href} href={item.href} className={active ? "active" : undefined} aria-current={active ? "page" : undefined}>
-                <Icon aria-hidden="true" size={19} strokeWidth={1.9} />
-                <span>{item.label}</span>
-                <ChevronRight aria-hidden="true" size={16} />
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="sidebar-role-preview">
-          <p>개발 화면 미리보기</p>
-          <div>
-            {appRoleOrder.map((previewRole) => {
-              const preview = appRoleDefinitions[previewRole];
-              return (
-                <Link key={previewRole} href={preview.homeHref} aria-current={role === previewRole ? "page" : undefined}>
-                  {preview.label}
-                </Link>
-              );
-            })}
-          </div>
-          <small>운영 버전에서는 로그인한 역할만 표시됩니다.</small>
-        </div>
-      </aside>
-
       <main className={`app-main${layout === "conversation" ? " conversation-app-main" : ""}`}>
         <section
           className={layout === "conversation" ? "sr-only" : `page-heading${layout === "schedule" ? " schedule-page-heading" : ""}${layout === "home" ? " home-page-heading" : ""}`}
@@ -197,6 +118,26 @@ export function AppShell({
         </section>
         {children}
       </main>
+
+      {layout !== "conversation" && (
+        <nav className="app-bottom-nav" aria-label={`${roleDefinition.label} 주요 이동`}>
+          {bottomNavItems.map((item) => {
+            const Icon = navigationIcons[item.icon];
+            const active = item.match === "exact" ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`app-bottom-nav-item${active ? " active" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
+                <Icon aria-hidden="true" size={21} strokeWidth={active ? 2.2 : 1.8} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }

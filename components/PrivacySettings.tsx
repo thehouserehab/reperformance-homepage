@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { Database, LockKeyhole, MessageCircleQuestion, ShieldCheck, Trash2, X } from "lucide-react";
+import { ClipboardList, Database, LockKeyhole, MessageCircleQuestion, MessagesSquare, ShieldCheck, Trash2, X } from "lucide-react";
+import { appRoleDefinitions, appRoleOrder } from "@/lib/appStructure";
 import { useAppState } from "./AppStateProvider";
 import { formatAttachmentSize } from "@/lib/messageAttachments";
 import { getPrototypeDataSummary } from "@/lib/prototypeDataLifecycle";
@@ -59,6 +61,17 @@ export function PrivacySettings() {
 
   return (
     <>
+      <section className="mypage-quicklinks" aria-label="바로가기">
+        <Link href="/student/records" className="mypage-quicklink">
+          <ClipboardList aria-hidden="true" size={20} />
+          <span>기록</span>
+        </Link>
+        <Link href="/student/consultation" className="mypage-quicklink">
+          <MessagesSquare aria-hidden="true" size={20} />
+          <span>상담</span>
+        </Link>
+      </section>
+
       <section className="privacy-summary-band">
         <ShieldCheck aria-hidden="true" size={30} />
         <div>
@@ -180,6 +193,22 @@ export function PrivacySettings() {
             {clearStatus.message}
           </p>
         ) : null}
+      </section>
+
+      <section className="dev-role-preview" aria-labelledby="dev-role-preview-title">
+        <p className="section-kicker">DEV ONLY</p>
+        <h2 id="dev-role-preview-title">개발 화면 미리보기</h2>
+        <div className="dev-role-preview-links">
+          {appRoleOrder.map((previewRole) => {
+            const preview = appRoleDefinitions[previewRole];
+            return (
+              <Link key={previewRole} href={preview.homeHref} aria-current={previewRole === "student" ? "page" : undefined}>
+                {preview.label}
+              </Link>
+            );
+          })}
+        </div>
+        <small>운영 버전에서는 로그인한 역할만 표시됩니다.</small>
       </section>
     </>
   );

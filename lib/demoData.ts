@@ -87,6 +87,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "분",
       createdBy: "system",
       active: true,
+      pbDirection: "higher",
     },
     {
       id: "record-item-study-score",
@@ -95,6 +96,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "점",
       createdBy: "system",
       active: true,
+      pbDirection: "higher",
     },
     {
       id: "record-item-training-jump",
@@ -103,6 +105,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "cm",
       createdBy: "system",
       active: true,
+      pbDirection: "higher",
     },
     {
       id: "record-item-training-shuttle",
@@ -111,6 +114,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "초",
       createdBy: "system",
       active: true,
+      pbDirection: "lower",
     },
     {
       id: "record-item-condition-energy",
@@ -119,6 +123,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "/5",
       createdBy: "system",
       active: true,
+      pbDirection: "higher",
     },
     {
       id: "record-item-condition-focus",
@@ -127,6 +132,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "/5",
       createdBy: "system",
       active: true,
+      pbDirection: "higher",
     },
     {
       id: "record-item-condition-soreness",
@@ -135,6 +141,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "/5",
       createdBy: "system",
       active: true,
+      pbDirection: "lower",
     },
     {
       id: "record-item-condition-sleep",
@@ -143,6 +150,7 @@ export const defaultAppState: AppState = {
       suggestedUnit: "시간",
       createdBy: "system",
       active: true,
+      pbDirection: "higher",
     },
   ],
   studentRecords: [
@@ -220,6 +228,14 @@ export const defaultAppState: AppState = {
       attachments: [],
     },
   ],
+  assistantConversation: [
+    {
+      id: "assistant-welcome",
+      sender: "assistant",
+      body: "안녕하세요! 일정 등록이나 코치 상담이 필요하면 편하게 말씀해주세요. 예: \"내일 오후 6시 실기 훈련 등록해줘\"",
+      sentAt: "2026-08-01T09:00:00+09:00",
+    },
+  ],
 };
 
 export function createDefaultAppStateForDate(dateKey: string) {
@@ -252,5 +268,6 @@ export function createEmptyAppStateForDate(dateKey: string): AppState {
     },
     guardianMessages: [],
     coachConversation: [],
+    assistantConversation: [],
   };
 }

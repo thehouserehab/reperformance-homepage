@@ -31,6 +31,8 @@ export type RecordCategory = "study" | "training" | "condition";
 
 export type RecordEntrySource = "manual" | "timer" | "coach" | "check-in";
 
+export type RecordDirection = "higher" | "lower";
+
 export type StudentRecordItem = {
   id: string;
   category: RecordCategory;
@@ -38,6 +40,7 @@ export type StudentRecordItem = {
   suggestedUnit: string;
   createdBy: "system" | "student";
   active: boolean;
+  pbDirection: RecordDirection;
 };
 
 export type StudentRecordEntry = {
@@ -101,6 +104,19 @@ export type CoachConversationMessage = {
   attachments: CoachConversationAttachment[];
 };
 
+export type AssistantConversationSender = "user" | "assistant";
+
+export type AssistantConversationAction = "handoff-coach" | "calendar-added";
+
+export type AssistantConversationMessage = {
+  id: string;
+  sender: AssistantConversationSender;
+  body: string;
+  sentAt: string;
+  action?: AssistantConversationAction;
+  handoffPrompt?: string;
+};
+
 export type AppState = {
   studentName: string;
   scheduleDate: string;
@@ -113,4 +129,5 @@ export type AppState = {
   condition: ConditionCheck;
   guardianMessages: GuardianMessage[];
   coachConversation: CoachConversationMessage[];
+  assistantConversation: AssistantConversationMessage[];
 };

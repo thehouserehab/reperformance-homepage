@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import {
   Activity,
@@ -12,6 +13,7 @@ import {
   Plus,
   Save,
   ShieldCheck,
+  Trophy,
 } from "lucide-react";
 import { formatKoreanMessageTime } from "@/lib/dateFormatting";
 import {
@@ -24,8 +26,36 @@ import {
   type ManualRecordInputField,
   type RecordItemInputField,
 } from "@/lib/recordValidation";
-import type { RecordCategory, RecordEntrySource } from "@/lib/types";
+import { computeRecordInsight, resolveRecordDirection } from "@/lib/recordInsights";
+import type { RecordCategory, RecordDirection, RecordEntrySource, StudentRecordEntry } from "@/lib/types";
 import { useAppState } from "./AppStateProvider";
+
+const directionOptions: { value: RecordDirection; label: string; description: string }[] = [
+  { value: "higher", label: "높을수록 좋음", description: "예: 점수, 점프 거리" },
+  { value: "lower", label: "낮을수록 좋음", description: "예: 달리기 기록, 통증" },
+];
+
+function RecordSparkline({ values }: { values: number[] }) {
+  if (values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min;
+  return (
+    <div className="record-sparkline" role="img" aria-label="최근 기록 추이 그래프">
+      {values.map((value, index) => {
+        const ratio = range === 0 ? 0.5 : (value - min) / range;
+        const isLast = index === values.length - 1;
+        return (
+          <span
+            key={index}
+            className={isLast ? "record-sparkline-bar current" : "record-sparkline-bar"}
+            style={{ height: `${18 + ratio * 82}%` }}
+          />
+        );
+      })}
+    </div>
+  );
+}
 
 const categoryOptions = [
   { value: "study", label: "공부", description: "학습 시간·점수·과제", icon: BookOpenCheck },
@@ -62,8 +92,11 @@ function toDateTimeLocalValue(date = new Date()) {
 }
 
 export function StudentRecordsWorkspace() {
+  const searchParams = useSearchParams();
   const { state, hydrated, addRecordItem, addStudentRecord } = useAppState();
-  const [viewMode, setViewMode] = useState<RecordViewMode>("history");
+  const [viewMode, setViewMode] = useState<RecordViewMode>(
+    searchParams.get("view") === "entry" ? "entry" : "history"
+  );
   const [historyFilter, setHistoryFilter] = useState<RecordHistoryFilter>("all");
   const [visibleRecordCount, setVisibleRecordCount] = useState(8);
   const [category, setCategory] = useState<RecordCategory>("study");
@@ -78,6 +111,7 @@ export function StudentRecordsWorkspace() {
   const [recordedAt, setRecordedAt] = useState(toDateTimeLocalValue);
   const [newItemName, setNewItemName] = useState("");
   const [newItemUnit, setNewItemUnit] = useState("");
+  const [newItemDirection, setNewItemDirection] = useState<RecordDirection>("higher");
   const [feedback, setFeedback] = useState("");
   const [itemErrors, setItemErrors] = useState<Partial<Record<RecordItemInputField, string>>>({});
   const [recordErrors, setRecordErrors] = useState<Partial<Record<ManualRecordInputField, string>>>({});
@@ -100,6 +134,15 @@ export function StudentRecordsWorkspace() {
     () => new Map(state.recordItems.map((item) => [item.id, item])),
     [state.recordItems]
   );
+  const recordsByItemId = useMemo(() => {
+    const map = new Map<string, StudentRecordEntry[]>();
+    for (const entry of state.studentRecords) {
+      const list = map.get(entry.itemId);
+      if (list) list.push(entry);
+      else map.set(entry.itemId, [entry]);
+    }
+    return map;
+  }, [state.studentRecords]);
   const filteredRecords = useMemo(
     () => state.studentRecords
       .filter((record) => historyFilter === "all" || record.category === historyFilter)
@@ -163,7 +206,7 @@ export function StudentRecordsWorkspace() {
   const submitNewItem = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const validation = validateRecordItemInput(
-      { category, name: newItemName, suggestedUnit: newItemUnit },
+      { category, name: newItemName, suggestedUnit: newItemUnit, pbDirection: newItemDirection },
       state.recordItems
     );
     if (!validation.ok) {
@@ -183,6 +226,7 @@ export function StudentRecordsWorkspace() {
     setUnit(validation.value.suggestedUnit);
     setNewItemName("");
     setNewItemUnit("");
+    setNewItemDirection("higher");
     setItemErrors({});
     setRecordErrors({});
     setFeedback(`${validation.value.name} 항목을 추가했습니다.`);
@@ -334,6 +378,12 @@ export function StudentRecordsWorkspace() {
               <div className="record-history-list">
                 {visibleRecords.length ? visibleRecords.map((record, index) => {
                   const item = itemLookup.get(record.itemId);
+                  const direction = resolveRecordDirection(item);
+                  const insight = computeRecordInsight(
+                    record,
+                    recordsByItemId.get(record.itemId) ?? [record],
+                    direction
+                  );
                   return (
                     <article className="record-history-row" key={record.id}>
                       <span className="record-history-index">{String(index + 1).padStart(2, "0")}</span>
@@ -342,12 +392,21 @@ export function StudentRecordsWorkspace() {
                           {categoryLabels[record.category]} · {sourceLabels[record.source]}
                           {record.validationStatus === "needs_review" ? " · 검토 필요" : ""}
                         </span>
-                        <h3>{item?.name ?? "삭제된 항목"}</h3>
+                        <h3>
+                          {item?.name ?? "삭제된 항목"}
+                          {insight.isPersonalBest ? (
+                            <span className="record-history-pb-badge">
+                              <Trophy aria-hidden="true" size={12} /> PB
+                            </span>
+                          ) : null}
+                        </h3>
                         <p>{record.note || "추가 메모 없음"}</p>
+                        {insight.deltaLabel ? <p className="record-history-insight">{insight.deltaLabel}</p> : null}
                       </div>
                       <div className="record-history-value">
                         <strong>{record.value}{record.unit}</strong>
                         <time dateTime={record.recordedAt}>{formatKoreanMessageTime(record.recordedAt)}</time>
+                        <RecordSparkline values={insight.sparklineValues} />
                       </div>
                     </article>
                   );
@@ -464,6 +523,33 @@ export function StudentRecordsWorkspace() {
                       />
                       {itemErrors.suggestedUnit ? <small className="record-field-error" id="record-item-unit-error">{itemErrors.suggestedUnit}</small> : null}
                     </label>
+                    <fieldset className="record-item-direction">
+                      <legend>기록 방향 <small>PB(최고 기록) 판단 기준</small></legend>
+                      <div className="record-item-direction-options">
+                        {directionOptions.map((option) => (
+                          <label
+                            key={option.value}
+                            className={newItemDirection === option.value ? "selected" : undefined}
+                          >
+                            <input
+                              type="radio"
+                              name="record-item-direction"
+                              value={option.value}
+                              checked={newItemDirection === option.value}
+                              onChange={() => {
+                                setNewItemDirection(option.value);
+                                clearItemError("pbDirection");
+                              }}
+                            />
+                            <span>
+                              <strong>{option.label}</strong>
+                              <small>{option.description}</small>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {itemErrors.pbDirection ? <small className="record-field-error">{itemErrors.pbDirection}</small> : null}
+                    </fieldset>
                     <button type="submit"><Plus aria-hidden="true" size={16} /> 항목 저장</button>
                   </form>
                 </details>

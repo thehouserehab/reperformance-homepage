@@ -1,11 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Bot,
-  CalendarPlus,
-  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -15,12 +12,10 @@ import {
   HeartPulse,
   MessageCircle,
   Plus,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
-import type { CalendarAssistantResult, CalendarDraft } from "@/lib/calendarAssistant";
-import { formatKoreanScheduleDateTime, formatKoreanScheduleTime } from "@/lib/dateFormatting";
+import { formatKoreanScheduleTime } from "@/lib/dateFormatting";
 import {
   sortTasks,
   toDateKey,
@@ -185,16 +180,12 @@ function TaskComposer({
 
 export function CalendarWorkspace({ role }: { role: CalendarRole }) {
   const router = useRouter();
-  const { state, hydrated, addCalendarEvent, deleteCalendarEvent, addTask, deleteTask, toggleTask } = useAppState();
+  const { state, hydrated, deleteCalendarEvent, addTask, deleteTask, toggleTask } = useAppState();
   const initialDate = dateFromKey(state.scheduleDate);
   const [visibleMonth, setVisibleMonth] = useState(new Date(initialDate.getFullYear(), initialDate.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(state.scheduleDate);
   const [calendarView, setCalendarView] = useState<CalendarView>("month");
   const [calendarInitialized, setCalendarInitialized] = useState(false);
-  const [message, setMessage] = useState("내일 오후 6시에 수학 오답 정리 50분 등록해줘");
-  const [draft, setDraft] = useState<CalendarDraft | null>(null);
-  const [assistantText, setAssistantText] = useState("");
-  const [pending, setPending] = useState(false);
   const [taskComposerOpen, setTaskComposerOpen] = useState(false);
 
   useEffect(() => {
@@ -253,51 +244,6 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
     }
   };
 
-  const requestDraft = useCallback(async (requestMessage = message) => {
-    const normalizedMessage = requestMessage.trim();
-    if (normalizedMessage.length < 2) return;
-    setPending(true);
-    setDraft(null);
-    setAssistantText("");
-    try {
-      const response = await fetch("/api/calendar/assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: normalizedMessage }),
-      });
-      const result = (await response.json()) as CalendarAssistantResult & { error?: string };
-      if (!response.ok) throw new Error(result.error ?? "일정을 정리하지 못했습니다.");
-      setAssistantText(result.summary);
-      setDraft(result.draft);
-    } catch (error) {
-      setAssistantText(error instanceof Error ? error.message : "일정을 정리하지 못했습니다.");
-    } finally {
-      setPending(false);
-    }
-  }, [message]);
-
-  useEffect(() => {
-    if (!hydrated || role !== "student") return;
-    const request = window.sessionStorage.getItem("rp-app-calendar-assistant-request");
-    if (!request) return;
-    window.sessionStorage.removeItem("rp-app-calendar-assistant-request");
-    window.sessionStorage.removeItem("rp-app-calendar-assistant-autosave");
-    setMessage(request);
-    void requestDraft(request);
-  }, [hydrated, requestDraft, role]);
-
-  const confirmDraft = () => {
-    if (!draft) return;
-    const saved = addCalendarEvent({ ...draft, id: crypto.randomUUID(), source: "assistant" });
-    if (!saved) return;
-    const date = draft.startsAt.slice(0, 10);
-    const [year, month] = date.split("-").map(Number);
-    setSelectedDate(date);
-    setVisibleMonth(new Date(year, month - 1, 1));
-    setAssistantText("캘린더에 등록했습니다.");
-    setDraft(null);
-  };
-
   const requestTaskAdjustment = (task: AppTask) => {
     const request = `코치님, ${task.scheduledDate} ${task.scheduledTime}에 예정된 “${task.title}” 과제를 조정하고 싶습니다.`;
     window.sessionStorage.setItem("rp-app-coach-message-draft", request);
@@ -307,47 +253,6 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
 
   return (
     <div className="calendar-layout">
-      <section className="assistant-panel compact" id="schedule-assistant" aria-labelledby="assistant-title">
-        <div className="assistant-heading">
-          <span><Bot aria-hidden="true" size={22} /></span>
-          <div>
-            <p className="section-kicker">SCHEDULE ASSISTANT</p>
-            <h2 id="assistant-title">일정 도우미</h2>
-          </div>
-        </div>
-        <div className="assistant-compose">
-          <label className="assistant-input">
-            <span>말로 일정 추가</span>
-            <textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={240} rows={2} />
-          </label>
-          <button type="button" className="assistant-action" onClick={() => requestDraft()} disabled={pending || message.trim().length < 2}>
-            <Sparkles aria-hidden="true" size={18} />
-            {pending ? "정리 중" : "초안 만들기"}
-          </button>
-        </div>
-
-        {assistantText && (
-          <div className="assistant-result" aria-live="polite">
-            <p>{assistantText}</p>
-            {draft && (
-              <div className="draft-event">
-                <span>{categoryLabels[draft.category]}</span>
-                <strong>{draft.title}</strong>
-                <time>{formatKoreanScheduleDateTime(draft.startsAt)}</time>
-                <button type="button" onClick={confirmDraft}>
-                  <Check aria-hidden="true" size={18} /> 이 일정 등록
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="assistant-boundary">
-          <CalendarPlus aria-hidden="true" size={20} />
-          <p>홈에서 보낸 요청도 초안으로만 정리합니다. 날짜·시간·제목을 확인한 뒤 직접 등록해 주세요.</p>
-        </div>
-      </section>
-
       <section className="calendar-panel" aria-labelledby="calendar-title">
         <div className="calendar-panel-header">
           <div className="calendar-toolbar">

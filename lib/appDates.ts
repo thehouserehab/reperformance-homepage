@@ -126,6 +126,10 @@ export function rebaseAppStateDates(
         createdAt: shiftIsoDatePrefix(attachment.createdAt, dayOffset),
       })),
     })),
+    assistantConversation: state.assistantConversation.map((message) => ({
+      ...message,
+      sentAt: shiftIsoDatePrefix(message.sentAt, dayOffset),
+    })),
   };
 }
 
