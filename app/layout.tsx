@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AppStateProvider } from "@/components/AppStateProvider";
 import { PwaRegistrar } from "@/components/PwaRegistrar";
+import { ScrollRestoration } from "@/components/ScrollRestoration";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ko">
       <body>
         <AppStateProvider>
+          <ScrollRestoration />
           {children}
           <PwaRegistrar />
         </AppStateProvider>

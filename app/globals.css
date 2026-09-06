@@ -24,6 +24,13 @@
 html {
   scroll-behavior: smooth;
   background: var(--canvas);
+  /* Some mobile browsers (notably mobile Safari) can nudge the scroll
+     position on their own when content above the viewport resizes shortly
+     after a route change (e.g. the calendar switching from month to week
+     view right after mount). Scroll anchoring is meant to prevent jumps
+     during in-place reading, not to fight our own post-navigation reset,
+     so it's turned off site-wide. */
+  overflow-anchor: none;
 }
 
 body {
@@ -1728,32 +1735,47 @@ button.agenda-task-check:hover {
 }
 
 .calendar-panel-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
   align-items: flex-end;
-  justify-content: space-between;
   gap: 28px;
   margin-bottom: 24px;
 }
 
+.calendar-toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.calendar-nav-row {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
 .calendar-view-switcher {
   display: grid;
-  width: 184px;
+  width: 168px;
+  flex: 0 0 168px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 4px;
-  flex: 0 0 auto;
-  padding: 4px;
+  padding: 3px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--surface-soft);
 }
 
 .calendar-view-switcher button {
-  min-height: 38px;
+  min-height: 34px;
   border: 0;
   border-radius: 999px;
   color: var(--muted);
   background: transparent;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
 }
 
@@ -1762,17 +1784,56 @@ button.agenda-task-check:hover {
   background: var(--green);
 }
 
-.calendar-toolbar {
+.calendar-move-buttons {
   display: flex;
-  min-width: 0;
-  flex: 1;
+  flex: 0 0 auto;
   align-items: center;
-  justify-content: space-between;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
 }
 
-.calendar-toolbar > div:last-child {
-  display: flex;
-  gap: 7px;
+.calendar-move-arrow {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+}
+
+.calendar-move-arrow:hover,
+.calendar-move-arrow:focus-visible {
+  color: var(--green-deep);
+  background: var(--mint);
+}
+
+.calendar-today-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.calendar-today-button:hover,
+.calendar-today-button:focus-visible {
+  color: var(--green-deep);
+  background: var(--mint);
 }
 
 .calendar-board {
@@ -4805,16 +4866,38 @@ button:disabled {
 
   .calendar-panel-header {
     display: grid;
+    grid-template-columns: 1fr;
     gap: 14px;
     margin-bottom: 18px;
   }
 
-  .calendar-view-switcher {
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .calendar-nav-row {
+    flex-wrap: wrap;
     width: 100%;
+  }
+
+  .calendar-view-switcher {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 152px;
   }
 
   .calendar-view-switcher button {
     min-height: 36px;
+  }
+
+  .calendar-move-buttons {
+    flex: 0 0 auto;
+  }
+
+  .calendar-today-button {
+    padding: 0 12px;
   }
 
   .calendar-toolbar h2 {

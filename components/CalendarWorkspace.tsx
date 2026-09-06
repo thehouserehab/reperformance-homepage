@@ -236,6 +236,14 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
     setVisibleMonth(new Date(next.getFullYear(), next.getMonth(), 1));
   };
 
+  const goToToday = () => {
+    const todayKey = state.scheduleDate;
+    const todayDate = dateFromKey(todayKey);
+    setSelectedDate(todayKey);
+    setVisibleMonth(new Date(todayDate.getFullYear(), todayDate.getMonth(), 1));
+    setTaskComposerOpen(false);
+  };
+
   const selectCalendarDate = (date: Date, current: boolean) => {
     setSelectedDate(toDateKey(date));
     setTaskComposerOpen(false);
@@ -260,32 +268,37 @@ export function CalendarWorkspace({ role }: { role: CalendarRole }) {
               <p className="section-kicker">MY CALENDAR</p>
               <h2 id="calendar-title">{calendarTitle}</h2>
             </div>
-            <div>
-              <button type="button" className="icon-button secondary" onClick={() => moveCalendar(-1)} aria-label={`이전 ${calendarView === "month" ? "달" : "주"}`} title={`이전 ${calendarView === "month" ? "달" : "주"}`}>
-                <ChevronLeft aria-hidden="true" size={20} />
-              </button>
-              <button type="button" className="icon-button secondary" onClick={() => moveCalendar(1)} aria-label={`다음 ${calendarView === "month" ? "달" : "주"}`} title={`다음 ${calendarView === "month" ? "달" : "주"}`}>
-                <ChevronRight aria-hidden="true" size={20} />
-              </button>
+            <div className="calendar-nav-row">
+              <div className="calendar-view-switcher" role="group" aria-label="캘린더 보기 방식">
+                <button
+                  type="button"
+                  className={calendarView === "week" ? "active" : undefined}
+                  aria-pressed={calendarView === "week"}
+                  onClick={() => setCalendarView("week")}
+                >
+                  주간
+                </button>
+                <button
+                  type="button"
+                  className={calendarView === "month" ? "active" : undefined}
+                  aria-pressed={calendarView === "month"}
+                  onClick={() => setCalendarView("month")}
+                >
+                  월간
+                </button>
+              </div>
+              <div className="calendar-move-buttons">
+                <button type="button" className="calendar-move-arrow" onClick={() => moveCalendar(-1)} aria-label={`이전 ${calendarView === "month" ? "달" : "주"}`} title={`이전 ${calendarView === "month" ? "달" : "주"}`}>
+                  <ChevronLeft aria-hidden="true" size={16} />
+                </button>
+                <button type="button" className="calendar-today-button" onClick={goToToday} aria-label="오늘로 이동" title="오늘">
+                  오늘
+                </button>
+                <button type="button" className="calendar-move-arrow" onClick={() => moveCalendar(1)} aria-label={`다음 ${calendarView === "month" ? "달" : "주"}`} title={`다음 ${calendarView === "month" ? "달" : "주"}`}>
+                  <ChevronRight aria-hidden="true" size={16} />
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="calendar-view-switcher" role="group" aria-label="캘린더 보기 방식">
-            <button
-              type="button"
-              className={calendarView === "week" ? "active" : undefined}
-              aria-pressed={calendarView === "week"}
-              onClick={() => setCalendarView("week")}
-            >
-              주간
-            </button>
-            <button
-              type="button"
-              className={calendarView === "month" ? "active" : undefined}
-              aria-pressed={calendarView === "month"}
-              onClick={() => setCalendarView("month")}
-            >
-              월간
-            </button>
           </div>
         </div>
 
