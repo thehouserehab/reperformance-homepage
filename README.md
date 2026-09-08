@@ -53,4 +53,4 @@ npm.cmd run ops:public:check
 - Vercel 기본 도메인: `https://reperformance-homepage.vercel.app`
 - 작업 기준 경로: `E:\CodexProjects\reperformance-homepage`
 
-세부 절차와 현재 Vercel 프로젝트 정리 기준은 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)에 기록합니다. (테스트: main 브랜치 변경)
+세부 절차와 현재 Vercel 프로젝트 정리 기준은 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)에 기록합니다.
