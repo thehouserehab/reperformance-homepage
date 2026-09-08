@@ -1,0 +1,37 @@
+name: Merge Conflict Check
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  check-conflict:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: main 브랜치 가져오기
+        run: git fetch origin main
+
+      - name: 병합 충돌 여부 확인
+        id: check
+        run: |
+          if git merge-tree --write-tree origin/main HEAD > /dev/null 2>&1; then
+            echo "conflict=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "conflict=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 충돌 시 Discord 알림
+        if: steps.check.outputs.conflict == 'true'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          CONTENT="⚠️ 충돌 가능성 발견: \`${{ github.ref_name }}\` 브랜치가 main과 병합 시 충돌할 수 있습니다. (푸시: ${{ github.actor }})"
+          curl -s -H "Content-Type: application/json" \
+            -d "$(jq -n --arg content "$CONTENT" '{content:$content}')" \
+            "$DISCORD_WEBHOOK_URL"
