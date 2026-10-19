@@ -35,8 +35,8 @@ const pageChecks = [
   {
     path: "/pe-exam",
     label: "PE exam hub",
-    expectedTexts: ["대학 정보 확인에서 실기 향상 관리까지", "실기 기록 추적", "합격 예측이 아니라 상담 준비", "대학 정보 검색"],
-    requiredHrefs: ["#university-search", "#training-management", "/apply?service=pe-exam"],
+    expectedTexts: ["대학·학과 찾기", "실기·자료·비교 조건", "실기 기록 추적", "합격 예측이 아니라 상담 준비"],
+    requiredHrefs: ["/pe-exam/faq", "/pe-exam/ai-consult", "/apply?service=pe-exam"],
   },
   { path: "/services/pe-exam", label: "PE exam service", expectedTexts: ["체대입시"] },
   { path: "/login", label: "login", expectedTexts: ["로그인"] },

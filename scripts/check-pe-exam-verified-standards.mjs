@@ -84,7 +84,10 @@ const departmentClientSource = fs.readFileSync(
   'utf8',
 );
 assert.ok(clientSource.includes('성별과 측정 방식이 일치하는 공식 만점표만 계산에 사용합니다.'));
-assert.ok(clientSource.includes('getStandardComparison'));
+const comparisonSource = fs.readFileSync(path.join(root, 'app/pe-exam/peExamComparison.mjs'), 'utf8');
+assert.ok(clientSource.includes('getCardPracticalComparison(card, records, applicantSex, trackFilter)'));
+assert.ok(comparisonSource.includes('function getStandardComparison(card, record, applicantSex, trackFilter, department)'));
+assert.ok(comparisonSource.includes('comparison: getStandardComparison(card, record, applicantSex, trackFilter, department)'));
 assert.ok(clientSource.includes('recordComparisonActive'));
 assert.ok(clientSource.includes('getAcademicComparison'));
 assert.ok(clientSource.includes('내 수능 평균 백분위'));

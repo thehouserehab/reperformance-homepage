@@ -17,20 +17,17 @@ import {
   getVerifiedPracticalStandards,
   verifiedPracticalEventOptions,
 } from "./peExamVerifiedStandards";
-import styles from "./PeExamHub.module.css";
+import baseStyles from "./PeExamHub.module.css";
+import designStyles from "./PeExamHomeDesign.module.css";
+import { getPeExamDepartmentHref, getPeExamDepartmentProfileByName } from "./peExamDepartmentData";
+
+const styles = { ...baseStyles, ...designStyles };
 
 export const metadata: Metadata = {
   title: "체대입시 정보 허브 | RePERFORMANCE",
   description:
     "2026년 대입 흐름, 전국 체육 관련 학과 대학 목록, 수시·정시 준비 기준, FAQ와 로그인 회원용 AI 입시 상담 방향 가이드를 확인하는 RePERFORMANCE 체대입시 정보 허브입니다.",
 };
-
-const hubLinks = [
-  { href: "#university-search", label: "대학 찾기" },
-  { href: "#training-management", label: "실기 관리" },
-  { href: "#guide-index", label: "일정·지역" },
-  { href: "/pe-exam/faq", label: "FAQ" },
-] as const;
 
 const resourceCards = [
   {
@@ -225,7 +222,21 @@ const universitySearchCards = peExamRegionDetails
           admission.method.includes("실기"),
       ).length;
 
+      const departmentNames = {
+        early: uniqueItems(school.earlyAdmissions.map((admission) => admission.unit)),
+        regular: uniqueItems(school.regularAdmissions.flatMap((admission) => admission.units.map((unit) => unit.name))),
+      };
+      const departmentLinks = Object.fromEntries((["early", "regular"] as const).map((track) => {
+        const profiles = getVerifiedPracticalStandards(school.code, track)
+          .map((standard) => getPeExamDepartmentProfileByName(school.code, standard.department))
+          .filter((profile) => profile !== undefined);
+        return [track, [...new Map(profiles.map((profile) => [profile.slug, profile])).values()]
+          .map((profile) => ({ name: profile.name, href: getPeExamDepartmentHref(region.slug, track, school.slug, profile.slug) }))];
+      }));
+
       return {
+        departmentNames,
+        departmentLinks,
         key: `${region.slug}-${school.slug}`,
         universityCode: school.code,
         name,
@@ -304,73 +315,26 @@ const practicalSearchOptions = [
 export default function PeExamPage() {
   return (
     <PageShell>
-      <nav className={styles.hubNav} aria-label="체대입시 정보 메뉴">
-        <div className={`container ${styles.hubNavInner}`}>
-          <span className={styles.hubNavLabel}>QUICK INDEX</span>
-          {hubLinks.map((link, index) => (
-            <Link href={link.href} key={link.href}>
-              <span className={styles.hubNavIndex}>{String(index + 1).padStart(2, "0")}</span>
-              <span>{link.label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
-
+      <div className={styles.page}>
       <section className={styles.hero}>
-        <div className={`container ${styles.heroInner}`}>
-          <div className={styles.heroCopy}>
-            <p className="eyebrow light-text">PE EXAM, MADE CLEAR</p>
-            <h1>찾고, 비교하고,<br />기록을 올립니다.</h1>
-            <p>
-              대학 정보 확인에서 실기 향상 관리까지. 필요한 정보부터 짧게 보고
-              현재 기록을 실제 훈련 계획으로 연결합니다.
-            </p>
-            <div className={styles.heroActions}>
-              <Link className="button primary" href="#university-search">
-                <span>대학 정보 검색</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-              <Link className="button secondary" href="/apply?service=pe-exam">
-                <span>체대입시 상담 신청</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-            </div>
-          </div>
-
-          <aside className={styles.heroDecision} aria-label="체대입시 시작 선택">
-            <span>START WITH ONE</span>
-            <Link href="#university-search">
-              <strong>학교를 알고 있어요.</strong>
-              <small>대학명 검색으로 바로 시작</small>
-              <em aria-hidden="true">→</em>
-            </Link>
-            <Link href="#university-search">
-              <strong>조건부터 정리할게요.</strong>
-              <small>지역·전형·실기 기준으로 탐색</small>
-              <em aria-hidden="true">→</em>
-            </Link>
-          </aside>
+        <div className="container">
+          <p className={styles.eyebrow}>RP 체대입시</p>
+          <h1>대학·학과 찾기</h1>
+          <p>궁금한 학교나 학과를 검색하세요. 필요한 전형부터 확인할 수 있습니다.</p>
         </div>
       </section>
 
-      <section className={`section ${styles.searchSection}`} id="university-search">
+      <section className={styles.searchSection} id="university-search" aria-label="대학 찾기">
         <div className="container">
-          <div className={styles.searchSectionHead}>
-            <div>
-              <p className="eyebrow">UNIVERSITY SEARCH</p>
-              <h2>학교명을 검색하고 수시·정시 상세 페이지로 바로 이동합니다.</h2>
-            </div>
-            <p>
-              첫 화면에서 대학을 먼저 찾고, 선택한 전형 페이지에서 등급·입결, 실기 종목,
-              기록 기준, 공식 확인 링크를 이어서 봅니다.
-            </p>
-          </div>
           <PeExamHomeSearchClient
             cards={universitySearchCards}
             practicalOptions={practicalSearchOptions}
             recordOptions={verifiedPracticalEventOptions}
             regionOptions={universitySearchRegionOptions}
           />
+          <p className={styles.sourceNotice}>
+            자료의 모집연도와 적용 전형을 확인하세요. 수치·실기 기준의 최종 확인은 대학 공식 모집요강이 필요합니다.
+          </p>
         </div>
       </section>
 
@@ -676,6 +640,7 @@ export default function PeExamPage() {
           </Link>
         </div>
       </section>
+      </div>
     </PageShell>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import styles from "./PeExamHub.module.css";
+import { useMemo, useRef, useState } from "react";
+import baseStyles from "./PeExamHub.module.css";
+import designStyles from "./PeExamHomeDesign.module.css";
+
+const styles = { ...baseStyles, ...designStyles };
 import { createApplicantComparison, getCardPracticalComparison } from "./peExamComparison.mjs";
 
 function normalizeSearch(value) {
@@ -10,6 +13,30 @@ function normalizeSearch(value) {
     .normalize("NFKC")
     .toLowerCase()
     .replace(/\s+/g, "");
+}
+
+function getSearchTokens(query) {
+  return String(query || "").normalize("NFKC").trim().split(/\s+/).map(normalizeSearch).filter(Boolean);
+}
+
+function getCardTrackMatch(card, track, query) {
+  const tokens = getSearchTokens(query);
+  const schoolText = normalizeSearch([card.name, ...(card.aliases || []), card.meta, card.regionLabel].join(" "));
+  const names = [...new Set(card.departmentNames?.[track] || [])];
+  const departmentTokens = tokens.filter((token) => !schoolText.includes(token));
+  const matches = names.filter((name) => departmentTokens.every((token) => normalizeSearch(name).includes(token)));
+  const practicalMatch = departmentTokens.length > 0 && departmentTokens.every((token) =>
+    (card.practicalItems || []).some((item) => normalizePracticalKey(item).includes(normalizePracticalKey(token))));
+  const matchesQuery = departmentTokens.length === 0 || matches.length > 0 || practicalMatch;
+  const exactMatches = matches.filter((name) => departmentTokens.includes(normalizeSearch(name)));
+  const singleName = exactMatches.length === 1 ? exactMatches[0] : matches.length === 1 ? matches[0] : null;
+  const schoolHref = track === "early" ? card.earlyHref : card.regularHref;
+  const directLink = departmentTokens.length > 0 && singleName
+    ? (card.departmentLinks?.[track] || []).find((link) =>
+        link.name === singleName && link.href.startsWith(`${schoolHref}/departments/`) &&
+        /^[a-z0-9-]+$/.test(link.href.slice(`${schoolHref}/departments/`.length)))
+    : null;
+  return { matchesQuery, names: practicalMatch && !matches.length ? names : matches, href: directLink?.href || schoolHref, direct: Boolean(directLink), departmentName: directLink?.name || null };
 }
 
 function normalizePracticalKey(value) {
@@ -145,7 +172,9 @@ function formatSignedGap(value, unit) {
 
 export default function PeExamHomeSearchClient(props) {
   const { cards = [], practicalOptions = [], recordOptions = [], regionOptions = [] } = props;
-  const [searchMode, setSearchMode] = useState("school");
+  const searchInputRef = useRef(null);
+  const firstResultRef = useRef(null);
+  const isComposingRef = useRef(false);
   const [query, setQuery] = useState("");
   const [dataFilter, setDataFilter] = useState("all");
   const [regionFilter, setRegionFilter] = useState("all");
@@ -156,14 +185,17 @@ export default function PeExamHomeSearchClient(props) {
   const [applicantSex, setApplicantSex] = useState("");
   const [records, setRecords] = useState([{ id: 1, eventId: "standing-long-jump", value: "" }]);
   const [resultLimit, setResultLimit] = useState(INITIAL_RESULT_LIMIT);
-  const normalizedQuery = normalizeSearch(query);
   const includePracticalKey = includePractical === "all" ? "" : normalizePracticalKey(includePractical);
   const enteredRecordCount = records.filter((record) => Number(record.value) > 0).length;
-  const recordComparisonActive = Boolean(applicantSex && enteredRecordCount);
-  const academicProfileActive = Boolean(
+  const hasSearchQuery = Boolean(query.trim());
+  const recordComparisonRequested = Boolean(applicantSex && enteredRecordCount);
+  const academicProfileRequested = Boolean(
     parseNumericInput(averagePercentile, 0, 100) !== null
     || parseNumericInput(englishGrade, 1, 9) !== null,
   );
+  const comparisonPaused = hasSearchQuery && (recordComparisonRequested || academicProfileRequested);
+  const recordComparisonActive = !hasSearchQuery && recordComparisonRequested;
+  const academicProfileActive = !hasSearchQuery && academicProfileRequested;
 
   function resetRecords() {
     setApplicantSex("");
@@ -215,40 +247,25 @@ export default function PeExamHomeSearchClient(props) {
     setResultLimit(INITIAL_RESULT_LIMIT);
   }
 
-  function changeSearchMode(nextMode) {
-    setSearchMode(nextMode);
-    setResultLimit(INITIAL_RESULT_LIMIT);
-
-    if (nextMode === "school") {
-      setRegionFilter("all");
-      setTrackFilter("all");
-      setIncludePractical("all");
-      setAveragePercentile("");
-      setEnglishGrade("");
-      resetRecords();
-      return;
-    }
-
-    setQuery("");
-    setDataFilter("all");
-  }
-
   const comparisonByCardKey = useMemo(() => {
+    if (!recordComparisonActive) return new Map();
     return new Map(
       cards.map((card) => [card.key, getCardPracticalComparison(card, records, applicantSex, trackFilter)]),
     );
-  }, [applicantSex, cards, records, trackFilter]);
+  }, [applicantSex, cards, recordComparisonActive, records, trackFilter]);
 
   const academicComparisonByCardKey = useMemo(() => {
+    if (!academicProfileActive || trackFilter === "early") return new Map();
     return new Map(
       cards.map((card) => [
         card.key,
         getAcademicComparison(card, averagePercentile, englishGrade, trackFilter),
       ]),
     );
-  }, [averagePercentile, cards, englishGrade, trackFilter]);
+  }, [academicProfileActive, averagePercentile, cards, englishGrade, trackFilter]);
 
   const applicantComparisonByCardKey = useMemo(() => {
+    if (!academicProfileActive && !recordComparisonActive) return new Map();
     const academicRequested = academicProfileActive && trackFilter !== "early";
     return new Map(
       cards.map((card) => [
@@ -273,7 +290,8 @@ export default function PeExamHomeSearchClient(props) {
   const filteredCards = useMemo(() => {
     const matches = cards.filter((card) => {
       const cardPracticalKeys = getCardPracticalKeys(card);
-      const matchesQuery = !normalizedQuery || normalizeSearch(card.searchText).includes(normalizedQuery);
+      const tracks = trackFilter === "all" ? ["early", "regular"] : [trackFilter];
+      const matchesQuery = tracks.some((track) => getCardTrackMatch(card, track, query).matchesQuery);
       const matchesData = dataFilter === "all" || Boolean(card.flags?.[dataFilter]);
       const matchesRegion = regionFilter === "all" || card.regionSlug === regionFilter;
       const matchesTrack = trackFilter === "all" || Boolean(card.flags?.[trackFilter]);
@@ -310,21 +328,16 @@ export default function PeExamHomeSearchClient(props) {
     comparisonByCardKey,
     dataFilter,
     includePracticalKey,
-    normalizedQuery,
+    query,
     recordComparisonActive,
     regionFilter,
     trackFilter,
   ]);
 
-  const hasStartedSearch = searchMode === "school"
-    ? Boolean(query.trim() || dataFilter !== "all")
-    : Boolean(
-        regionFilter !== "all" ||
-        trackFilter !== "all" ||
-        includePractical !== "all" ||
-        academicProfileActive ||
-        enteredRecordCount,
-      );
+  const hasStartedSearch = Boolean(
+    query.trim() || dataFilter !== "all" || regionFilter !== "all" ||
+    trackFilter !== "all" || includePractical !== "all" || academicProfileActive || enteredRecordCount
+  );
   const visibleCards = hasStartedSearch ? filteredCards.slice(0, resultLimit) : [];
   const verifiedComparisonCount = recordComparisonActive
     ? filteredCards.filter((card) => comparisonByCardKey.get(card.key)).length
@@ -345,76 +358,60 @@ export default function PeExamHomeSearchClient(props) {
 
   return (
     <div className={styles.homeSearchTool}>
-      <div className={styles.homeSearchModeTabs} role="group" aria-label="대학 찾기 방법">
-        <button aria-pressed={searchMode === "school"} onClick={() => changeSearchMode("school")} type="button">
-          <span>01</span>
-          대학명으로 찾기
-        </button>
-        <button aria-pressed={searchMode === "condition"} onClick={() => changeSearchMode("condition")} type="button">
-          <span>02</span>
-          내 조건으로 후보 찾기
-        </button>
+      <form className={styles.searchForm} role="search" aria-label="대학·학과 검색" onSubmit={(event) => {
+        event.preventDefault();
+        if (isComposingRef.current) return;
+        if (visibleCards.length) firstResultRef.current?.focus();
+        else searchInputRef.current?.focus();
+      }}>
+        <label className={styles.searchInputWrap}>
+          <span className={styles.visuallyHidden}>체대입시 대학 정보 검색</span>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="m15.5 15.5 5 5" fill="none" stroke="currentColor" strokeWidth="1.8" /></svg>
+          <input ref={searchInputRef} aria-label="체대입시 대학 정보 검색" autoComplete="off" enterKeyHint="search"
+            onCompositionStart={() => { isComposingRef.current = true; }}
+            onCompositionEnd={() => { isComposingRef.current = false; }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && (isComposingRef.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229)) {
+                event.preventDefault();
+              }
+            }}
+            onChange={(event) => updateFilter(setQuery, event.target.value)}
+            placeholder="학교명 또는 학과명" type="search" value={query} />
+        </label>
+        <button type="submit">검색</button>
+      </form>
+
+      <div className={styles.basicFilters}>
+        <label className={styles.homeSearchSelectLabel}><span>지역</span>
+          <select value={regionFilter} onChange={(event) => updateFilter(setRegionFilter, event.target.value)}>
+            <option value="all">전체 지역</option>
+            {regionOptions.map((region) => <option key={region.value} value={region.value}>{region.label}</option>)}
+          </select>
+        </label>
+        <label className={styles.homeSearchSelectLabel}><span>전형</span>
+          <select value={trackFilter} onChange={(event) => updateFilter(setTrackFilter, event.target.value)}>
+            {trackOptions.map((track) => <option key={track.value} value={track.value}>{track.label}</option>)}
+          </select>
+        </label>
       </div>
 
-      {searchMode === "school" ? (
-        <div className={styles.homeSearchControls}>
-          <label className={styles.homeSearchLabel}>
-            <span>대학 정보 검색</span>
-            <input
-              aria-label="체대입시 대학 정보 검색"
-              onChange={(event) => updateFilter(setQuery, event.target.value)}
-              placeholder="학교명 또는 줄임말 검색 (예: 한체대, 용인대)"
-              type="search"
-              value={query}
-            />
-          </label>
-
-          <details className={styles.homeSearchFilterDisclosure}>
-            <summary>세부 자료 필터 <span>선택</span></summary>
-            <div className={styles.homeSearchFilterGroup} role="group" aria-label="대학 정보 자료 필터">
-              {dataFilters.map((item) => (
-                <button
-                  aria-pressed={dataFilter === item.key}
-                  key={item.key}
-                  onClick={() => updateFilter(setDataFilter, item.key)}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </details>
-        </div>
-      ) : (
+      <details className={styles.advancedDisclosure}>
+        <summary>실기·자료·비교 조건 <span>선택</span></summary>
         <div className={styles.homeSearchAdvanced}>
+          <div className={styles.homeSearchFilterGroup} role="group" aria-label="대학 정보 자료 필터">
+            {dataFilters.map((item) => <button aria-pressed={dataFilter === item.key} key={item.key}
+              onClick={() => updateFilter(setDataFilter, item.key)} type="button">{item.label}</button>)}
+          </div>
           <div className={styles.homeSearchAdvancedHead}>
             <div>
               <strong>조건을 고르고, 공식 기록표가 있는 대학부터 비교하세요.</strong>
               <p>공개 입결과 대학 공식 모집요강을 대조하며, 합격 여부를 자동 판정하지 않습니다.</p>
+              <p>학교·학과 검색 중에는 대학 단위 비교를 표시하지 않습니다. 검색어를 지우고 지역·전형·실기 조건으로 비교하세요.</p>
             </div>
             <span>공식 자료 대조</span>
           </div>
 
           <div className={styles.homeSearchSelectGrid}>
-            <label className={styles.homeSearchSelectLabel}>
-              <span>지역</span>
-              <select value={regionFilter} onChange={(event) => updateFilter(setRegionFilter, event.target.value)}>
-                <option value="all">전체 지역</option>
-                {regionOptions.map((region) => (
-                  <option key={region.value} value={region.value}>{region.label}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className={styles.homeSearchSelectLabel}>
-              <span>전형</span>
-              <select value={trackFilter} onChange={(event) => updateFilter(setTrackFilter, event.target.value)}>
-                {trackOptions.map((track) => (
-                  <option key={track.value} value={track.value}>{track.label}</option>
-                ))}
-              </select>
-            </label>
-
             <label className={styles.homeSearchSelectLabel}>
               <span>포함 실기</span>
               <select value={includePractical} onChange={(event) => updateFilter(setIncludePractical, event.target.value)}>
@@ -522,12 +519,20 @@ export default function PeExamHomeSearchClient(props) {
           </section>
           </details>
         </div>
-      )}
+      </details>
+
+      {comparisonPaused ? (
+        <div className={styles.comparisonPausedNotice} role="status">
+          <p>학교·학과 검색 중에는 대학 단위 비교를 표시하지 않습니다. 검색어를 지우고 지역·전형·실기 조건으로 비교하세요.</p>
+          <button type="button" onClick={() => { updateFilter(setQuery, ""); searchInputRef.current?.focus(); }}>검색어만 지우고 비교 재개</button>
+          <small>입력한 성적·기록과 선택한 조건은 유지됩니다.</small>
+        </div>
+      ) : null}
 
       {hasStartedSearch ? (
         <div className={styles.homeSearchResultBar}>
           <p className={styles.homeSearchMeta}>
-            {searchMode === "condition" ? "조건 일치 후보" : "검색 결과"} {filteredCards.length}개
+            검색 결과 {filteredCards.length}개
             {academicProfileActive ? ` · 공식 입결 비교 가능 ${academicComparisonCount}개` : ""}
             {recordComparisonActive ? ` · 공식 기록 비교 가능 ${verifiedComparisonCount}개` : ""}
           </p>
@@ -535,9 +540,13 @@ export default function PeExamHomeSearchClient(props) {
         </div>
       ) : (
         <div className={styles.homeSearchEmpty}>
-          <span>START HERE</span>
-          <strong>{searchMode === "school" ? "학교명이나 줄임말을 입력하세요." : "지역·전형·실기 중 한 가지 조건부터 고르세요."}</strong>
-          <p>선택하기 전에는 긴 대학 목록을 보여주지 않습니다.</p>
+          <strong>학교명이나 학과명으로 시작하세요.</strong>
+          <p>지역과 수시·정시만 골라도 대학을 찾을 수 있습니다.</p>
+          <div className={styles.searchExamples} aria-label="검색 예시">
+            {["용인대 체육학과", "가천대 운동재활"].map((example) => (
+              <button key={example} type="button" onClick={() => { resetFilters(); setQuery(example); searchInputRef.current?.focus(); }}>{example} <span aria-hidden="true">→</span></button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -562,25 +571,40 @@ export default function PeExamHomeSearchClient(props) {
       {visibleCards.length ? (
         <>
           <div className={styles.homeSearchGrid}>
-            {visibleCards.map((card) => {
+            {visibleCards.map((card, index) => {
               const comparison = comparisonByCardKey.get(card.key);
               const academicComparison = academicComparisonByCardKey.get(card.key);
               const applicantComparison = applicantComparisonByCardKey.get(card.key);
               return (
-                <article className={styles.homeSearchCard} key={card.key}>
+                <article className={styles.homeSearchCard} key={card.key} ref={index === 0 ? firstResultRef : null} tabIndex={-1} aria-label={card.name}>
                   <div className={styles.homeSearchCardHead}>
                     <span>{card.regionLabel}</span>
                     <h3>{card.name}</h3>
                     <p>{card.meta}</p>
                   </div>
 
-                  <dl className={styles.homeSearchStats}>
-                    {card.stats.map((stat) => (
-                      <div key={stat.label}><dt>{stat.label}</dt><dd>{stat.value}</dd></div>
-                    ))}
-                  </dl>
+                  <div className={styles.trackResults}>
+                    {(trackFilter === "all" ? ["early", "regular"] : [trackFilter]).map((track) => {
+                      const match = getCardTrackMatch(card, track, query);
+                      if (!match.matchesQuery) return null;
+                      const label = track === "early" ? "수시" : "정시";
+                      return <div className={styles.trackRow} key={track}>
+                        <span className={styles.trackLabel}>{label}</span>
+                        <div><p>{match.names.length ? match.names.slice(0, 3).join(" · ") : "대학 상세에서 모집단위 확인"}
+                          {match.names.length > 3 ? ` 외 ${match.names.length - 3}개` : ""}</p>
+                          <small>모집연도·세부 기준은 공식 모집요강 확인 필요</small></div>
+                        <Link href={match.href} aria-label={`${card.name} ${label} ${match.direct ? match.departmentName + " 학과 보기" : "상세 보기"}`}>
+                          {match.direct ? "학과 보기" : "상세 보기"} <span aria-hidden="true">→</span>
+                        </Link>
+                      </div>;
+                    })}
+                  </div>
 
-                  {card.preview ? <p className={styles.homeSearchPreview}>{card.preview}</p> : null}
+                  {(academicProfileActive && trackFilter !== "early") || recordComparisonActive ? (
+                    <p className={styles.comparisonScopeNotice}>
+                      대학 전체 자료 기준 비교 · 학과별 적용 기준이 다릅니다. 아래 비교 근거의 학과·전형을 확인하세요.
+                    </p>
+                  ) : null}
 
                   {applicantComparison ? (
                     <section className={styles.applicantComparisonSummary} aria-label="입력 자료 상담 비교 결과">
@@ -689,10 +713,7 @@ export default function PeExamHomeSearchClient(props) {
                     </details>
                   ) : null}
 
-                  <div className={styles.homeSearchActions}>
-                    <Link href={card.earlyHref}>수시 상세</Link>
-                    <Link href={card.regularHref}>정시 상세</Link>
-                  </div>
+
                 </article>
               );
             })}
@@ -709,12 +730,13 @@ export default function PeExamHomeSearchClient(props) {
             ) : null}
           </div>
         </>
-      ) : (
+      ) : hasStartedSearch ? (
         <div className={styles.universityEmptyState}>
           <strong>검색 결과가 없습니다.</strong>
-          <span>조건을 줄이거나 필터를 초기화하면 공식 확인이 필요한 대학까지 다시 볼 수 있습니다.</span>
+          <span>학교명이나 학과명을 짧게 입력하거나 조건을 줄여 보세요.</span>
+          <button type="button" onClick={resetFilters}>검색과 조건 초기화</button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
